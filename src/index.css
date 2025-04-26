@@ -1,3 +1,8 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -33,60 +38,6 @@
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -96,6 +47,86 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-raleway;
   }
+
+  h1, h2, h3 {
+    @apply font-playfair;
+  }
+
+  .modal {
+    @apply hidden fixed inset-0 bg-black/50 z-[100];
+  }
+
+  .modal.active {
+    @apply flex;
+  }
+
+  .floating-buttons {
+    @apply fixed right-8 bottom-8 flex flex-col gap-4 z-[90];
+  }
+
+  .hero-section {
+    background-image: url('https://readdy.ai/api/search-image?query=A%20serene%20and%20calming%20scene%20with%20soft%20gradient%20from%20light%20blue%20to%20white.%20The%20left%20side%20should%20be%20more%20empty%20and%20minimal%2C%20perfect%20for%20text%20overlay.%20The%20right%20side%20features%20gentle%2C%20abstract%20angel%20wings%20or%20comforting%20hands%20in%20soft%20pastel%20colors.%20The%20overall%20mood%20is%20peaceful%2C%20hopeful%2C%20and%20supportive%2C%20with%20delicate%20elements%20that%20suggest%20care%20and%20emotional%20support.&width=1600&height=800&seq=123456&orientation=landscape');
+    @apply bg-cover bg-center;
+  }
+
+  .timeline-item::before {
+    content: '';
+    @apply absolute top-0 bottom-0 left-1/2 w-0.5 bg-gray-200 -translate-x-1/2;
+  }
+
+  .timeline-item:first-child::before {
+    @apply top-1/2;
+  }
+
+  .timeline-item:last-child::before {
+    @apply bottom-1/2;
+  }
+
+  input:focus, textarea:focus {
+    @apply outline-none border-primary;
+  }
+
+  .custom-checkbox {
+    @apply appearance-none w-5 h-5 border-2 border-primary rounded cursor-pointer relative;
+  }
+
+  .custom-checkbox:checked {
+    @apply bg-primary;
+  }
+
+  .custom-checkbox:checked::after {
+    content: '';
+    @apply absolute top-0.5 left-1.5 w-1.5 h-2.5 border-r-2 border-b-2 border-white rotate-45;
+  }
+
+  .switch {
+    @apply relative inline-block w-12 h-6;
+  }
+
+  .switch input {
+    @apply opacity-0 w-0 h-0;
+  }
+
+  .slider {
+    @apply absolute cursor-pointer inset-0 bg-gray-200 transition-all duration-300 rounded-full;
+  }
+
+  .slider:before {
+    content: "";
+    @apply absolute h-5 w-5 left-0.5 bottom-0.5 bg-white transition-all duration-300 rounded-full;
+  }
+
+  input:checked + .slider {
+    @apply bg-primary;
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(24px);
+  }
+}
+
+:where([class^="ri-"])::before { 
+  content: "\f3c2"; 
 }
