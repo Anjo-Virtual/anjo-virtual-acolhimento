@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -81,16 +80,35 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        fadeInUp: {
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' }
+        },
+        scaleIn: {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' }
+        },
+        slideIn: {
+          '0%': { transform: 'translateX(-20px)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' }
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        fadeInUp: 'fadeInUp 0.6s ease-out',
+        scaleIn: 'scaleIn 0.4s ease-out',
+        slideIn: 'slideIn 0.5s ease-out'
       },
       fontFamily: {
         'pacifico': ['Pacifico', 'cursive'],
         'playfair': ['Playfair Display', 'serif'],
         'raleway': ['Raleway', 'sans-serif'],
       },
+      boxShadow: {
+        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
+        'hover': '0 10px 40px -15px rgba(0, 0, 0, 0.1)'
+      }
     },
   },
   plugins: [require("tailwindcss-animate")],
