@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css');
@@ -68,17 +69,15 @@
     @apply bg-cover bg-center;
   }
 
+  /* Removendo a linha vertical do timeline */
   .timeline-item::before {
-    content: '';
-    @apply absolute top-0 bottom-0 left-1/2 w-0.5 bg-primary/20 -translate-x-1/2;
+    content: none;
   }
 
-  .timeline-item:first-child::before {
-    @apply top-1/2;
-  }
-
+  /* Mantendo apenas a linha horizontal */
+  .timeline-item:first-child::before, 
   .timeline-item:last-child::before {
-    @apply bottom-1/2;
+    content: none;
   }
 
   input:focus, textarea:focus {
