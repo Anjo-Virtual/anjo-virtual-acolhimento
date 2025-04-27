@@ -23,7 +23,7 @@ export const ChatBox = ({ onClose }: ChatBoxProps) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const userMessage = { role: "user", content: input };
+    const userMessage: Message = { role: "user", content: input };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
@@ -48,7 +48,7 @@ export const ChatBox = ({ onClose }: ChatBoxProps) => {
       if (!response.ok) throw new Error('Failed to get response');
       
       const data = await response.json();
-      const assistantMessage = {
+      const assistantMessage: Message = {
         role: "assistant",
         content: data.choices[0].message.content
       };
