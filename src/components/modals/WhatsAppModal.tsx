@@ -1,28 +1,34 @@
 
-import { FormEvent, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { whatsAppFormSchema } from "@/lib/validations/form-schemas";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface WhatsAppModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+type FormData = z.infer<typeof whatsAppFormSchema>;
+
 const WhatsAppModal = ({ isOpen, onClose }: WhatsAppModalProps) => {
-  const [phone, setPhone] = useState("");
+  const form = useForm<FormData>({
+    resolver: zodResolver(whatsAppFormSchema),
+    defaultValues: {
+      phone: "",
+    },
+  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPhone(e.target.value);
-  };
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    
-    // Formatar número e criar link WhatsApp
-    const formattedPhone = phone.replace(/\D/g, "");
+  const onSubmit = (data: FormData) => {
+    const formattedPhone = data.phone.replace(/\D/g, "");
     const whatsappLink = `https://wa.me/55${formattedPhone}?text=Olá! Gostaria de conhecer mais sobre o Anjo Virtual.`;
     
-    // Fechar modal e redirecionar para WhatsApp
     onClose();
     window.open(whatsappLink, "_blank");
+    form.reset();
   };
 
   if (!isOpen) return null;
@@ -40,26 +46,35 @@ const WhatsAppModal = ({ isOpen, onClose }: WhatsAppModalProps) => {
           <i className="ri-close-line ri-lg"></i>
         </button>
         <h3 className="text-2xl font-semibold text-gray-800 mb-6">Conversar pelo WhatsApp</h3>
-        <form onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="whatsappPhone" className="block text-sm font-medium text-gray-700 mb-1">Seu WhatsApp</label>
-            <input 
-              type="tel" 
-              id="whatsappPhone" 
-              required 
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:border-primary" 
-              placeholder="(00) 00000-0000"
-              value={phone}
-              onChange={handleChange}
+        
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Seu WhatsApp</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="tel" 
+                      placeholder="(00) 00000-0000"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <button 
-            type="submit" 
-            className="mt-6 w-full bg-[#25D366] text-white px-6 py-3 rounded-button hover:bg-opacity-90 transition-colors"
-          >
-            Abrir WhatsApp
-          </button>
-        </form>
+            
+            <Button 
+              type="submit"
+              className="mt-6 w-full bg-[#25D366] text-white px-6 py-3 rounded-button hover:bg-opacity-90 transition-colors"
+            >
+              Abrir WhatsApp
+            </Button>
+          </form>
+        </Form>
       </div>
     </div>
   );

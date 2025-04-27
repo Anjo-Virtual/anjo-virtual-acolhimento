@@ -1,50 +1,37 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { businessFormSchema } from "@/lib/validations/form-schemas";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
 
-import { FormEvent, useState } from 'react';
-import { toast } from '@/components/ui/use-toast';
+type FormData = z.infer<typeof businessFormSchema>;
 
 const Business = () => {
-  const [formData, setFormData] = useState({
-    nome: '',
-    empresa: '',
-    email: '',
-    telefone: '',
-    mensagem: '',
-    termos: false
+  const form = useForm<FormData>({
+    resolver: zodResolver(businessFormSchema),
+    defaultValues: {
+      nome: "",
+      empresa: "",
+      email: "",
+      telefone: "",
+      mensagem: "",
+      termos: false,
+    },
   });
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    // Simula envio de formulário
-    console.log('Formulário enviado:', formData);
+  const onSubmit = (data: FormData) => {
+    console.log("Formulário enviado:", data);
     toast({
       title: "Solicitação enviada",
       description: "Recebemos sua solicitação e entraremos em contato em breve!",
     });
     
-    // Limpar formulário
-    setFormData({
-      nome: '',
-      empresa: '',
-      email: '',
-      telefone: '',
-      mensagem: '',
-      termos: false
-    });
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { id, value } = e.target;
-    setFormData({
-      ...formData,
-      [id]: value
-    });
-  };
-
-  const handleCheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      termos: e.target.checked
-    });
+    form.reset();
   };
 
   return (
@@ -97,84 +84,123 @@ const Business = () => {
           <div className="lg:w-1/2">
             <div className="bg-white rounded-lg shadow-md p-8">
               <h3 className="text-xl font-semibold text-gray-800 mb-6">Solicite uma Proposta</h3>
-              <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <div>
-                    <label htmlFor="nome" className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-                    <input
-                      type="text"
-                      id="nome"
-                      className="w-full px-4 py-2 border border-gray-300 rounded focus:border-primary"
-                      placeholder="Seu nome"
-                      value={formData.nome}
-                      onChange={handleChange}
+              
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="nome"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nome</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Seu nome" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="empresa"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Empresa</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nome da empresa" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>E-mail</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="seu@email.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="telefone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Telefone</FormLabel>
+                          <FormControl>
+                            <Input placeholder="(00) 00000-0000" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
-                  <div>
-                    <label htmlFor="empresa" className="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
-                    <input
-                      type="text"
-                      id="empresa"
-                      className="w-full px-4 py-2 border border-gray-300 rounded focus:border-primary"
-                      placeholder="Nome da empresa"
-                      value={formData.empresa}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
-                    <input
-                      type="email"
-                      id="email"
-                      className="w-full px-4 py-2 border border-gray-300 rounded focus:border-primary"
-                      placeholder="seu@email.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="telefone" className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
-                    <input
-                      type="tel"
-                      id="telefone"
-                      className="w-full px-4 py-2 border border-gray-300 rounded focus:border-primary"
-                      placeholder="(00) 00000-0000"
-                      value={formData.telefone}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-                <div className="mb-6">
-                  <label htmlFor="mensagem" className="block text-sm font-medium text-gray-700 mb-1">Mensagem</label>
-                  <textarea
-                    id="mensagem"
-                    rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded focus:border-primary"
-                    placeholder="Conte-nos sobre as necessidades da sua empresa"
-                    value={formData.mensagem}
-                    onChange={handleChange}
-                  ></textarea>
-                </div>
-                <div className="flex items-start mb-6">
-                  <input
-                    type="checkbox"
-                    id="termos"
-                    className="custom-checkbox mr-2"
-                    checked={formData.termos}
-                    onChange={handleCheckbox}
+
+                  <FormField
+                    control={form.control}
+                    name="mensagem"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Mensagem</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Conte-nos sobre as necessidades da sua empresa" 
+                            className="min-h-[120px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                  <label htmlFor="termos" className="text-sm text-gray-600">
-                    Concordo em receber comunicações do Anjo Virtual e aceito os <a href="#" className="text-primary">Termos de Uso</a> e <a href="#" className="text-primary">Política de Privacidade</a>.
-                  </label>
-                </div>
-                <button
-                  type="submit"
-                  className="bg-primary text-white px-6 py-3 rounded-button hover:bg-opacity-90 transition-colors whitespace-nowrap"
-                  disabled={!formData.termos}
-                >
-                  Enviar Solicitação
-                </button>
-              </form>
+
+                  <FormField
+                    control={form.control}
+                    name="termos"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>
+                            Concordo em receber comunicações do Anjo Virtual e aceito os{" "}
+                            <a href="#" className="text-primary">
+                              Termos de Uso
+                            </a>{" "}
+                            e{" "}
+                            <a href="#" className="text-primary">
+                              Política de Privacidade
+                            </a>
+                            .
+                          </FormLabel>
+                          <FormMessage />
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-primary text-white px-6 py-3 rounded-button hover:bg-opacity-90 transition-colors"
+                    disabled={!form.getValues("termos")}
+                  >
+                    Enviar Solicitação
+                  </Button>
+                </form>
+              </Form>
             </div>
           </div>
         </div>

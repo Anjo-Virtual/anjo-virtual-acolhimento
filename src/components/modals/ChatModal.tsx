@@ -1,30 +1,33 @@
 
 import { FormEvent, useState } from "react";
 import { toast } from "@/components/ui/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { chatFormSchema } from "@/lib/validations/form-schemas";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface ChatModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+type FormData = z.infer<typeof chatFormSchema>;
+
 const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
+  const form = useForm<FormData>({
+    resolver: zodResolver(chatFormSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+    },
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setFormData({
-      ...formData,
-      [id]: value,
-    });
-  };
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    console.log("Chat iniciado com:", formData);
+  const onSubmit = (data: FormData) => {
+    console.log("Chat iniciado com:", data);
     
     toast({
       title: "Chat iniciado!",
@@ -32,13 +35,7 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
     });
     
     onClose();
-    
-    // Resetar formulário
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-    });
+    form.reset();
   };
 
   if (!isOpen) return null;
@@ -56,52 +53,59 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
           <i className="ri-close-line ri-lg"></i>
         </button>
         <h3 className="text-2xl font-semibold text-gray-800 mb-6">Iniciar Conversa</h3>
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-              <input 
-                type="text" 
-                id="name" 
-                required 
-                className="w-full px-4 py-2 border border-gray-300 rounded focus:border-primary" 
-                placeholder="Seu nome"
-                value={formData.name}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
-              <input 
-                type="email" 
-                id="email" 
-                required 
-                className="w-full px-4 py-2 border border-gray-300 rounded focus:border-primary" 
-                placeholder="seu@email.com"
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
-              <input 
-                type="tel" 
-                id="phone" 
-                required 
-                className="w-full px-4 py-2 border border-gray-300 rounded focus:border-primary" 
-                placeholder="(00) 00000-0000"
-                value={formData.phone}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-          <button 
-            type="submit" 
-            className="mt-6 w-full bg-primary text-white px-6 py-3 rounded-button hover:bg-opacity-90 transition-colors"
-          >
-            Iniciar Chat
-          </button>
-        </form>
+        
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Seu nome" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>E-mail</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="seu@email.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Telefone</FormLabel>
+                  <FormControl>
+                    <Input placeholder="(00) 00000-0000" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button 
+              type="submit"
+              className="w-full bg-primary text-white px-6 py-3 rounded-button hover:bg-opacity-90 transition-colors"
+            >
+              Iniciar Chat
+            </Button>
+          </form>
+        </Form>
       </div>
     </div>
   );
