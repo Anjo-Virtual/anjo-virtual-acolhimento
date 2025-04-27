@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
@@ -55,20 +56,22 @@ const Blog = () => {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredPosts.map((post) => (
-          <Card key={post.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-xl">{post.title}</CardTitle>
-              <CardDescription>{new Date(post.date).toLocaleDateString('pt-BR')}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">{post.description}</p>
-              <div className="mt-4">
-                <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
-                  {post.category}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+          <Link to={`/blog/${post.id}`} key={post.id}>
+            <Card className="hover:shadow-lg transition-shadow h-full">
+              <CardHeader>
+                <CardTitle className="text-xl">{post.title}</CardTitle>
+                <CardDescription>{new Date(post.date).toLocaleDateString('pt-BR')}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">{post.description}</p>
+                <div className="mt-4">
+                  <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+                    {post.category}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
     </div>
