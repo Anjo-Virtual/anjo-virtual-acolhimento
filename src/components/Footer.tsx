@@ -1,4 +1,3 @@
-
 const Footer = () => {
   return (
     <footer className="bg-gray-800 text-white pt-16 pb-8">
@@ -27,6 +26,7 @@ const Footer = () => {
               <li><a href="#planos" className="text-gray-300 hover:text-white transition-colors">Planos</a></li>
               <li><a href="#comunidade" className="text-gray-300 hover:text-white transition-colors">Comunidade do Luto</a></li>
               <li><a href="#empresas" className="text-gray-300 hover:text-white transition-colors">Para Empresas</a></li>
+              <li><a href="/blog" className="text-gray-300 hover:text-white transition-colors">Blog</a></li>
             </ul>
           </div>
           <div>

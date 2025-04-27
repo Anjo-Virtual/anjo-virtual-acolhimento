@@ -1,6 +1,7 @@
-
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 interface BlogPost {
   id: number;
@@ -36,40 +37,48 @@ const BlogPost = () => {
 
   if (!post) {
     return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <h1 className="text-2xl font-bold mb-4">Artigo não encontrado</h1>
-        <Link to="/blog" className="text-primary hover:underline">
-          Voltar para o blog
-        </Link>
-      </div>
+      <>
+        <Header />
+        <div className="container mx-auto px-4 py-8 mt-24 text-center">
+          <h1 className="text-2xl font-bold mb-4">Artigo não encontrado</h1>
+          <Link to="/blog" className="text-primary hover:underline">
+            Voltar para o blog
+          </Link>
+        </div>
+        <Footer />
+      </>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Link to="/blog" className="inline-flex items-center text-primary hover:underline mb-6">
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Voltar para o blog
-      </Link>
-      
-      <article className="max-w-3xl mx-auto">
-        <header className="mb-8">
-          <h1 className="text-4xl font-playfair font-bold mb-4">{post.title}</h1>
-          <div className="flex items-center gap-4 text-gray-600">
-            <time>{new Date(post.date).toLocaleDateString('pt-BR')}</time>
-            <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
-              {post.category}
-            </span>
-          </div>
-        </header>
+    <>
+      <Header />
+      <div className="container mx-auto px-4 py-8 mt-24">
+        <Link to="/blog" className="inline-flex items-center text-primary hover:underline mb-6">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar para o blog
+        </Link>
+        
+        <article className="max-w-3xl mx-auto">
+          <header className="mb-8">
+            <h1 className="text-4xl font-playfair font-bold mb-4">{post.title}</h1>
+            <div className="flex items-center gap-4 text-gray-600">
+              <time>{new Date(post.date).toLocaleDateString('pt-BR')}</time>
+              <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+                {post.category}
+              </span>
+            </div>
+          </header>
 
-        <div className="prose prose-gray max-w-none">
-          {post.content?.split('\n\n').map((paragraph, index) => (
-            <p key={index} className="mb-4">{paragraph}</p>
-          ))}
-        </div>
-      </article>
-    </div>
+          <div className="prose prose-gray max-w-none">
+            {post.content?.split('\n\n').map((paragraph, index) => (
+              <p key={index} className="mb-4">{paragraph}</p>
+            ))}
+          </div>
+        </article>
+      </div>
+      <Footer />
+    </>
   );
 };
 

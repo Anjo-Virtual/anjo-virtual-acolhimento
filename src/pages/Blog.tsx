@@ -1,9 +1,10 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 interface BlogPost {
   id: number;
@@ -40,41 +41,45 @@ const Blog = () => {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-playfair font-bold text-center mb-8">Blog</h1>
-      
-      <div className="relative max-w-md mx-auto mb-8">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-        <Input
-          type="search"
-          placeholder="Buscar artigos..."
-          className="pl-10"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
+    <>
+      <Header />
+      <div className="container mx-auto px-4 py-8 mt-24">
+        <h1 className="text-4xl font-playfair font-bold text-center mb-8">Blog</h1>
+        
+        <div className="relative max-w-md mx-auto mb-8">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <Input
+            type="search"
+            placeholder="Buscar artigos..."
+            className="pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredPosts.map((post) => (
-          <Link to={`/blog/${post.id}`} key={post.id}>
-            <Card className="hover:shadow-lg transition-shadow h-full">
-              <CardHeader>
-                <CardTitle className="text-xl">{post.title}</CardTitle>
-                <CardDescription>{new Date(post.date).toLocaleDateString('pt-BR')}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">{post.description}</p>
-                <div className="mt-4">
-                  <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
-                    {post.category}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredPosts.map((post) => (
+            <Link to={`/blog/${post.id}`} key={post.id}>
+              <Card className="hover:shadow-lg transition-shadow h-full">
+                <CardHeader>
+                  <CardTitle className="text-xl">{post.title}</CardTitle>
+                  <CardDescription>{new Date(post.date).toLocaleDateString('pt-BR')}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">{post.description}</p>
+                  <div className="mt-4">
+                    <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+                      {post.category}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 };
 
