@@ -1,5 +1,5 @@
 
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,6 +8,7 @@ import { chatFormSchema } from "@/lib/validations/form-schemas";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ChatBox } from "../chat/ChatBox";
 
 interface ChatModalProps {
   isOpen: boolean;
@@ -17,6 +18,9 @@ interface ChatModalProps {
 type FormData = z.infer<typeof chatFormSchema>;
 
 const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
+  const [chatStarted, setChatStarted] = useState(false);
+  const [perplexityKey, setPerplexityKey] = useState(localStorage.getItem('perplexityKey') || '');
+  
   const form = useForm<FormData>({
     resolver: zodResolver(chatFormSchema),
     defaultValues: {
@@ -27,15 +31,18 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
   });
 
   const onSubmit = (data: FormData) => {
+    if (!perplexityKey) {
+      toast({
+        title: "Erro",
+        description: "Por favor, insira sua chave da API Perplexity",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    localStorage.setItem('perplexityKey', perplexityKey);
     console.log("Chat iniciado com:", data);
-    
-    toast({
-      title: "Chat iniciado!",
-      description: "Em breve um de nossos anjos entrará em contato.",
-    });
-    
-    onClose();
-    form.reset();
+    setChatStarted(true);
   };
 
   if (!isOpen) return null;
@@ -52,60 +59,80 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
         >
           <i className="ri-close-line ri-lg"></i>
         </button>
-        <h3 className="text-2xl font-semibold text-gray-800 mb-6">Iniciar Conversa</h3>
-        
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
+
+        {!chatStarted ? (
+          <>
+            <h3 className="text-2xl font-semibold text-gray-800 mb-6">Iniciar Conversa</h3>
+            
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Seu nome" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>E-mail</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="seu@email.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="(00) 00000-0000" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormItem>
-                  <FormLabel>Nome</FormLabel>
+                  <FormLabel>Chave da API Perplexity</FormLabel>
                   <FormControl>
-                    <Input placeholder="Seu nome" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="Sua chave da API"
+                      value={perplexityKey}
+                      onChange={(e) => setPerplexityKey(e.target.value)}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-              )}
-            />
 
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>E-mail</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="seu@email.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Telefone</FormLabel>
-                  <FormControl>
-                    <Input placeholder="(00) 00000-0000" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button 
-              type="submit"
-              className="w-full bg-primary text-white px-6 py-3 rounded-button hover:bg-opacity-90 transition-colors"
-            >
-              Iniciar Chat
-            </Button>
-          </form>
-        </Form>
+                <Button 
+                  type="submit"
+                  className="w-full bg-primary text-white px-6 py-3 rounded-button hover:bg-opacity-90 transition-colors"
+                >
+                  Iniciar Chat
+                </Button>
+              </form>
+            </Form>
+          </>
+        ) : (
+          <ChatBox onClose={onClose} />
+        )}
       </div>
     </div>
   );
