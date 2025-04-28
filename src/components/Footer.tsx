@@ -1,3 +1,6 @@
+
+import Newsletter from "./Newsletter";
+
 const Footer = () => {
   return (
     <footer className="bg-gray-800 text-white pt-16 pb-8">
@@ -55,10 +58,7 @@ const Footer = () => {
             </ul>
             <div className="mt-6">
               <h4 className="text-lg font-medium mb-4">Newsletter</h4>
-              <form className="flex">
-                <input type="email" placeholder="Seu e-mail" className="flex-1 px-4 py-2 rounded-l border-none text-gray-800" />
-                <button type="submit" className="bg-primary text-white px-4 py-2 rounded-r hover:bg-opacity-90 transition-colors whitespace-nowrap">Assinar</button>
-              </form>
+              <Newsletter />
             </div>
           </div>
         </div>

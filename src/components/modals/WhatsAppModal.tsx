@@ -1,4 +1,5 @@
 
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -6,6 +7,7 @@ import { whatsAppFormSchema } from "@/lib/validations/form-schemas";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 interface WhatsAppModalProps {
   isOpen: boolean;
@@ -15,6 +17,8 @@ interface WhatsAppModalProps {
 type FormData = z.infer<typeof whatsAppFormSchema>;
 
 const WhatsAppModal = ({ isOpen, onClose }: WhatsAppModalProps) => {
+  const [destinationNumber, setDestinationNumber] = useState("");
+  
   const form = useForm<FormData>({
     resolver: zodResolver(whatsAppFormSchema),
     defaultValues: {
@@ -22,9 +26,37 @@ const WhatsAppModal = ({ isOpen, onClose }: WhatsAppModalProps) => {
     },
   });
 
+  useEffect(() => {
+    const fetchDestinationNumber = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("site_settings")
+          .select()
+          .eq("key", "whatsapp_config")
+          .single();
+
+        if (error) throw error;
+        
+        if (data && data.value && data.value.destination_number) {
+          setDestinationNumber(data.value.destination_number);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar número de destino:", error);
+      }
+    };
+
+    if (isOpen) {
+      fetchDestinationNumber();
+    }
+  }, [isOpen]);
+
   const onSubmit = (data: FormData) => {
     const formattedPhone = data.phone.replace(/\D/g, "");
-    const whatsappLink = `https://wa.me/55${formattedPhone}?text=Olá! Gostaria de conhecer mais sobre o Anjo Virtual.`;
+    
+    // Se não tiver número de destino configurado, usar o padrão
+    const targetNumber = destinationNumber || "5511999999999";
+    
+    const whatsappLink = `https://wa.me/${targetNumber}?text=Olá! Gostaria de conhecer mais sobre o Anjo Virtual.`;
     
     onClose();
     window.open(whatsappLink, "_blank");
