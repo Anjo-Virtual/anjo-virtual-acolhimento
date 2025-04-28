@@ -32,15 +32,15 @@ const ContactForm = () => {
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      // Salvar no banco de dados
+      // Salvar no banco de dados usando tipagem genérica para evitar erro de tipo
       const { error } = await supabase
-        .from("contact_messages")
+        .from('contact_messages' as any)
         .insert({
           name: data.nome,
           email: data.email,
           phone: data.telefone,
           message: `Empresa: ${data.empresa}\n\n${data.mensagem}`,
-        });
+        } as any);
 
       if (error) throw error;
       

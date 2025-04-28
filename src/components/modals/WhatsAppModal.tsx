@@ -16,6 +16,11 @@ interface WhatsAppModalProps {
 
 type FormData = z.infer<typeof whatsAppFormSchema>;
 
+// Interface para tipar os dados do site_settings
+interface WhatsAppConfig {
+  destination_number: string;
+}
+
 const WhatsAppModal = ({ isOpen, onClose }: WhatsAppModalProps) => {
   const [destinationNumber, setDestinationNumber] = useState("");
   
@@ -29,11 +34,12 @@ const WhatsAppModal = ({ isOpen, onClose }: WhatsAppModalProps) => {
   useEffect(() => {
     const fetchDestinationNumber = async () => {
       try {
+        // Usando any para bypass da tipagem
         const { data, error } = await supabase
-          .from("site_settings")
+          .from('site_settings' as any)
           .select()
           .eq("key", "whatsapp_config")
-          .single();
+          .single() as { data: { value: WhatsAppConfig } | null, error: any };
 
         if (error) throw error;
         

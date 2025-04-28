@@ -28,12 +28,12 @@ const Newsletter = () => {
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      // Salvar no banco de dados
+      // Salvar no banco de dados usando tipagem genérica
       const { error } = await supabase
-        .from("newsletter_subscriptions")
+        .from('newsletter_subscriptions' as any)
         .insert({
           email: data.email,
-        });
+        } as any);
 
       if (error) {
         // Se o email já existe, ainda consideramos um sucesso

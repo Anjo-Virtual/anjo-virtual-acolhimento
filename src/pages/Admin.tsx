@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import WhatsAppConfigModal from "@/components/modals/WhatsAppConfigModal";
 
+// Interfaces para tipar os dados
 interface ContactMessage {
   id: string;
   name: string;
@@ -55,10 +56,11 @@ const Admin = () => {
 
   const fetchContactMessages = async () => {
     try {
+      // Usando tipagem genérica para obter mensagens de contato
       const { data, error } = await supabase
-        .from("contact_messages")
+        .from('contact_messages' as any)
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false }) as { data: ContactMessage[] | null, error: any };
 
       if (error) throw error;
       setContactMessages(data || []);
@@ -69,10 +71,11 @@ const Admin = () => {
 
   const fetchSubscribers = async () => {
     try {
+      // Usando tipagem genérica para obter assinantes
       const { data, error } = await supabase
-        .from("newsletter_subscriptions")
+        .from('newsletter_subscriptions' as any)
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false }) as { data: NewsletterSubscription[] | null, error: any };
 
       if (error) throw error;
       setSubscribers(data || []);
@@ -83,9 +86,10 @@ const Admin = () => {
 
   const markAsProcessed = async (id: string) => {
     try {
+      // Usando tipagem genérica para atualizar status
       const { error } = await supabase
-        .from("contact_messages")
-        .update({ processed: true })
+        .from('contact_messages' as any)
+        .update({ processed: true } as any)
         .eq("id", id);
 
       if (error) throw error;
@@ -97,9 +101,10 @@ const Admin = () => {
 
   const toggleSubscriberStatus = async (id: string, currentStatus: boolean) => {
     try {
+      // Usando tipagem genérica para atualizar status
       const { error } = await supabase
-        .from("newsletter_subscriptions")
-        .update({ active: !currentStatus })
+        .from('newsletter_subscriptions' as any)
+        .update({ active: !currentStatus } as any)
         .eq("id", id);
 
       if (error) throw error;

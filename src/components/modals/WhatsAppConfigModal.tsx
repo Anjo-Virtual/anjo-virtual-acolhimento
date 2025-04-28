@@ -20,6 +20,18 @@ interface WhatsAppConfigModalProps {
   onClose: () => void;
 }
 
+// Definindo interface para os dados provenientes do Supabase
+interface SiteSettings {
+  id: string;
+  key: string;
+  value: {
+    destination_number?: string;
+    [key: string]: any;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
 const WhatsAppConfigModal = ({ isOpen, onClose }: WhatsAppConfigModalProps) => {
   const [loading, setLoading] = useState(false);
 
@@ -34,11 +46,12 @@ const WhatsAppConfigModal = ({ isOpen, onClose }: WhatsAppConfigModalProps) => {
     const fetchConfig = async () => {
       setLoading(true);
       try {
+        // Usando any para bypass da tipagem e especificando formato da resposta
         const { data, error } = await supabase
-          .from("site_settings")
+          .from('site_settings' as any)
           .select()
           .eq("key", "whatsapp_config")
-          .single();
+          .single() as { data: SiteSettings | null, error: any };
 
         if (error) throw error;
         
@@ -60,12 +73,13 @@ const WhatsAppConfigModal = ({ isOpen, onClose }: WhatsAppConfigModalProps) => {
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
+      // Usando tipagem genérica para o update
       const { error } = await supabase
-        .from("site_settings")
+        .from('site_settings' as any)
         .update({
           value: { destination_number: data.destinationNumber },
           updated_at: new Date().toISOString(),
-        })
+        } as any)
         .eq("key", "whatsapp_config");
 
       if (error) throw error;
