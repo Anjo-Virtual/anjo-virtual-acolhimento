@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import Admin from "./pages/Admin"; // This will now be our redirect page
 import { AdminLayout } from "./components/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Contacts from "./pages/admin/Contacts";
@@ -28,6 +29,9 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:id" element={<BlogPost />} />
+          
+          {/* Legacy Admin Route - Now redirects to new admin dashboard */}
+          <Route path="/admin-old" element={<Admin />} />
           
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminLayout />}>
