@@ -5,11 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff } from "lucide-react";
-
-// Define interface for the API key settings
-interface PerplexitySettings {
-  api_key: string;
-}
+import { PerplexitySettings } from "@/utils/perplexityUtils";
 
 export const ChatAdmin = () => {
   const [name, setName] = useState("");
@@ -40,7 +36,7 @@ export const ChatAdmin = () => {
       }
 
       if (data && data.value) {
-        // First check if the value is an object and has an api_key property
+        // Check if the value is an object and has an api_key property
         const value = data.value as Record<string, unknown>;
         if (typeof value === 'object' && value !== null && 'api_key' in value) {
           setPerplexityKey("•".repeat(20));
