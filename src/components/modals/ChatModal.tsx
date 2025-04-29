@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { useForm } from "react-hook-form";
@@ -20,6 +19,10 @@ interface ChatModalProps {
 interface N8nWebhookConfig {
   webhook_url: string;
   active: boolean;
+}
+
+interface PerplexitySettings {
+  api_key: string;
 }
 
 type FormData = z.infer<typeof chatFormSchema>;
@@ -70,7 +73,6 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
     }
   };
 
-  // New function to fetch the Perplexity API key from site settings
   const fetchPerplexityKey = async () => {
     try {
       const { data, error } = await supabase
@@ -87,9 +89,13 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
         return;
       }
       
-      if (data && data.value && data.value.api_key) {
-        // Store the API key in localStorage for ChatBox component to use
-        localStorage.setItem('perplexityKey', data.value.api_key);
+      if (data && data.value) {
+        // Type assertion to ensure TypeScript recognizes the api_key property
+        const settings = data.value as PerplexitySettings;
+        if (settings.api_key) {
+          // Store the API key in localStorage for ChatBox component to use
+          localStorage.setItem('perplexityKey', settings.api_key);
+        }
       }
     } catch (error) {
       console.error("Erro ao buscar configuração da API:", error);

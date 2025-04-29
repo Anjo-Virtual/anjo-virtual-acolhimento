@@ -7,6 +7,11 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff } from "lucide-react";
 
+// Define interface for the API key settings
+interface PerplexitySettings {
+  api_key: string;
+}
+
 export const ChatAdmin = () => {
   const [name, setName] = useState("");
   const [type, setType] = useState("");
@@ -36,9 +41,13 @@ export const ChatAdmin = () => {
         return;
       }
       
-      if (data && data.value && data.value.api_key) {
-        // Mask the API key for display
-        setPerplexityKey("•".repeat(20));
+      if (data && data.value) {
+        // Type assertion to ensure TypeScript recognizes the api_key property
+        const settings = data.value as PerplexitySettings;
+        if (settings.api_key) {
+          // Mask the API key for display
+          setPerplexityKey("•".repeat(20));
+        }
       }
     } catch (error) {
       console.error("Erro ao buscar chave da API:", error);
