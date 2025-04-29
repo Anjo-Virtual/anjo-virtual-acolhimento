@@ -12,9 +12,14 @@ interface Message {
 
 interface ChatBoxProps {
   onClose: () => void;
+  leadData?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+  } | null;
 }
 
-export const ChatBox = ({ onClose }: ChatBoxProps) => {
+export const ChatBox = ({ onClose, leadData }: ChatBoxProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +34,15 @@ export const ChatBox = ({ onClose }: ChatBoxProps) => {
     setIsLoading(true);
 
     try {
+      // Incluir dados do lead nos metadados da requisição
+      const metadata = leadData ? {
+        lead: {
+          name: leadData.name,
+          email: leadData.email,
+          phone: leadData.phone
+        }
+      } : undefined;
+
       const response = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
         headers: {
@@ -42,6 +56,7 @@ export const ChatBox = ({ onClose }: ChatBoxProps) => {
             content: msg.content
           })),
           temperature: 0.7,
+          metadata
         }),
       });
 
@@ -64,6 +79,13 @@ export const ChatBox = ({ onClose }: ChatBoxProps) => {
   return (
     <div className="flex flex-col h-[500px]">
       <ScrollArea className="flex-1 p-4 space-y-4">
+        {leadData && messages.length === 0 && (
+          <div className="text-center py-4">
+            <p className="font-semibold">Olá {leadData.name}!</p>
+            <p className="text-gray-600 mt-2">Como posso ajudar você hoje?</p>
+          </div>
+        )}
+        
         {messages.map((message, i) => (
           <div
             key={i}

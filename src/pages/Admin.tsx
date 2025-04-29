@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import WhatsAppConfigModal from "@/components/modals/WhatsAppConfigModal";
+import N8nWebhookConfigModal from "@/components/modals/N8nWebhookConfigModal";
 
 // Interfaces para tipar os dados
 interface ContactMessage {
@@ -28,6 +29,7 @@ const Admin = () => {
   const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
   const [subscribers, setSubscribers] = useState<NewsletterSubscription[]>([]);
   const [isWhatsAppConfigModalOpen, setIsWhatsAppConfigModalOpen] = useState(false);
+  const [isN8nWebhookConfigModalOpen, setIsN8nWebhookConfigModalOpen] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -58,9 +60,9 @@ const Admin = () => {
     try {
       // Usando tipagem genérica para obter mensagens de contato
       const { data, error } = await supabase
-        .from('contact_messages' as any)
+        .from('contact_messages')
         .select("*")
-        .order("created_at", { ascending: false }) as { data: ContactMessage[] | null, error: any };
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setContactMessages(data || []);
@@ -73,9 +75,9 @@ const Admin = () => {
     try {
       // Usando tipagem genérica para obter assinantes
       const { data, error } = await supabase
-        .from('newsletter_subscriptions' as any)
+        .from('newsletter_subscriptions')
         .select("*")
-        .order("created_at", { ascending: false }) as { data: NewsletterSubscription[] | null, error: any };
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setSubscribers(data || []);
@@ -88,8 +90,8 @@ const Admin = () => {
     try {
       // Usando tipagem genérica para atualizar status
       const { error } = await supabase
-        .from('contact_messages' as any)
-        .update({ processed: true } as any)
+        .from('contact_messages')
+        .update({ processed: true })
         .eq("id", id);
 
       if (error) throw error;
@@ -103,8 +105,8 @@ const Admin = () => {
     try {
       // Usando tipagem genérica para atualizar status
       const { error } = await supabase
-        .from('newsletter_subscriptions' as any)
-        .update({ active: !currentStatus } as any)
+        .from('newsletter_subscriptions')
+        .update({ active: !currentStatus })
         .eq("id", id);
 
       if (error) throw error;
@@ -145,6 +147,13 @@ const Admin = () => {
         <div className="flex justify-between items-center mb-12">
           <h1 className="text-3xl font-bold">Painel Administrativo</h1>
           <div className="space-x-4">
+            <Button 
+              onClick={() => setIsN8nWebhookConfigModalOpen(true)}
+              className="bg-blue-600 text-white hover:bg-opacity-90"
+            >
+              <i className="ri-settings-line mr-2"></i>
+              Configurar N8N Webhook
+            </Button>
             <Button 
               onClick={() => setIsWhatsAppConfigModalOpen(true)}
               className="bg-[#25D366] text-white hover:bg-opacity-90"
@@ -243,6 +252,13 @@ const Admin = () => {
         <WhatsAppConfigModal 
           isOpen={isWhatsAppConfigModalOpen}
           onClose={() => setIsWhatsAppConfigModalOpen(false)}
+        />
+      )}
+
+      {isN8nWebhookConfigModalOpen && (
+        <N8nWebhookConfigModal 
+          isOpen={isN8nWebhookConfigModalOpen}
+          onClose={() => setIsN8nWebhookConfigModalOpen(false)}
         />
       )}
     </div>

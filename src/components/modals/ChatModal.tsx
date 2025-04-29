@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,18 +8,28 @@ import { chatFormSchema } from "@/lib/validations/form-schemas";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { ChatBox } from "../chat/ChatBox";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ChatModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+interface N8nWebhookConfig {
+  webhook_url: string;
+  active: boolean;
+}
+
 type FormData = z.infer<typeof chatFormSchema>;
 
 const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
   const [chatStarted, setChatStarted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [perplexityKey, setPerplexityKey] = useState(localStorage.getItem('perplexityKey') || '');
+  const [n8nConfig, setN8nConfig] = useState<N8nWebhookConfig | null>(null);
+  const [leadData, setLeadData] = useState<FormData | null>(null);
   
   const form = useForm<FormData>({
     resolver: zodResolver(chatFormSchema),
@@ -30,7 +40,75 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
     },
   });
 
-  const onSubmit = (data: FormData) => {
+  useEffect(() => {
+    if (isOpen) {
+      fetchN8nWebhookConfig();
+    }
+  }, [isOpen]);
+
+  const fetchN8nWebhookConfig = async () => {
+    try {
+      // Usando tipagem genérica para obter configuração do webhook n8n
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select()
+        .eq('key', 'n8n_webhook_config')
+        .single();
+
+      if (error) {
+        console.error("Erro ao buscar configuração do webhook:", error);
+        return;
+      }
+      
+      if (data && data.value) {
+        setN8nConfig(data.value as N8nWebhookConfig);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar configuração do webhook:", error);
+    }
+  };
+
+  const sendLeadToN8n = async (data: FormData) => {
+    if (!n8nConfig || !n8nConfig.webhook_url || !n8nConfig.active) {
+      console.log("Webhook n8n não configurado ou inativo, prosseguindo sem enviar");
+      return true;
+    }
+    
+    try {
+      const response = await fetch(`${window.location.origin}/functions/v1/webhook-n8n`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          webhookUrl: n8nConfig.webhook_url,
+          data: {
+            name: data.name,
+            email: data.email,
+            phone: data.phone,
+            source: 'chat'
+          }
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Falha ao enviar dados para o webhook');
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Erro ao enviar lead para o n8n:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível processar seu contato. Por favor, tente novamente.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const onSubmit = async (data: FormData) => {
     if (!perplexityKey) {
       toast({
         title: "Erro",
@@ -40,9 +118,27 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
       return;
     }
 
-    localStorage.setItem('perplexityKey', perplexityKey);
-    console.log("Chat iniciado com:", data);
-    setChatStarted(true);
+    setIsSubmitting(true);
+    
+    try {
+      // Enviar dados para o webhook do n8n
+      const webhookSuccess = await sendLeadToN8n(data);
+      
+      if (webhookSuccess) {
+        localStorage.setItem('perplexityKey', perplexityKey);
+        setLeadData(data); // Armazenar dados do lead para usar no chat
+        setChatStarted(true);
+      }
+    } catch (error) {
+      console.error("Erro ao processar formulário:", error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao iniciar o chat. Por favor, tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -124,14 +220,22 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
                 <Button 
                   type="submit"
                   className="w-full bg-primary text-white px-6 py-3 rounded-button hover:bg-opacity-90 transition-colors"
+                  disabled={isSubmitting}
                 >
-                  Iniciar Chat
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    "Iniciar Chat"
+                  )}
                 </Button>
               </form>
             </Form>
           </>
         ) : (
-          <ChatBox onClose={onClose} />
+          <ChatBox onClose={onClose} leadData={leadData} />
         )}
       </div>
     </div>
