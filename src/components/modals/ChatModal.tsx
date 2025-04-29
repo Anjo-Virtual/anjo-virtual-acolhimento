@@ -48,7 +48,6 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
 
   const fetchN8nWebhookConfig = async () => {
     try {
-      // Usando tipagem genérica para obter configuração do webhook n8n
       const { data, error } = await supabase
         .from('site_settings')
         .select()
@@ -61,7 +60,9 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
       }
       
       if (data && data.value) {
-        setN8nConfig(data.value as N8nWebhookConfig);
+        // Type assertion to handle the conversion properly
+        const configData = data.value as unknown as N8nWebhookConfig;
+        setN8nConfig(configData);
       }
     } catch (error) {
       console.error("Erro ao buscar configuração do webhook:", error);

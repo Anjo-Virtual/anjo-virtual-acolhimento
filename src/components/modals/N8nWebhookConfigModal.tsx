@@ -49,8 +49,10 @@ const N8nWebhookConfigModal = ({ isOpen, onClose }: N8nWebhookConfigModalProps) 
         }
         
         if (data && data.value) {
+          // Add proper type assertion here
+          const configData = data.value as unknown as FormData;
           // Atualizar formulário com valores existentes
-          form.reset(data.value as FormData);
+          form.reset(configData);
         }
       } catch (error) {
         console.error("Erro ao buscar configuração:", error);
