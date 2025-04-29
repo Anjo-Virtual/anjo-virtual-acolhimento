@@ -1,7 +1,5 @@
-
 import About from "@/components/About";
 import Business from "@/components/Business";
-import { ChatAdmin } from "@/components/chat/ChatAdmin";
 import Community from "@/components/Community";
 import FloatingButtons from "@/components/FloatingButtons";
 import Footer from "@/components/Footer";
@@ -50,7 +48,6 @@ const Index = () => {
       <About />
       <HowItWorks />
       <Plans />
-      <ChatAdmin />
       <Testimonials />
       <Community />
       <Business />
