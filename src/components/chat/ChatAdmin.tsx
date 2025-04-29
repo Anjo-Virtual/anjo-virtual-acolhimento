@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,10 +41,9 @@ export const ChatAdmin = () => {
       }
       
       if (data && data.value) {
-        // Type assertion to ensure TypeScript recognizes the api_key property
-        const settings = data.value as PerplexitySettings;
-        if (settings.api_key) {
-          // Mask the API key for display
+        // First check if the value is an object and has an api_key property
+        const value = data.value as Record<string, unknown>;
+        if (typeof value === 'object' && value !== null && 'api_key' in value) {
           setPerplexityKey("•".repeat(20));
         }
       }

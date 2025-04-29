@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { useForm } from "react-hook-form";
@@ -90,11 +91,11 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
       }
       
       if (data && data.value) {
-        // Type assertion to ensure TypeScript recognizes the api_key property
-        const settings = data.value as PerplexitySettings;
-        if (settings.api_key) {
+        // First check if the value is an object and has an api_key property
+        const value = data.value as Record<string, unknown>;
+        if (typeof value === 'object' && value !== null && 'api_key' in value) {
           // Store the API key in localStorage for ChatBox component to use
-          localStorage.setItem('perplexityKey', settings.api_key);
+          localStorage.setItem('perplexityKey', value.api_key as string);
         }
       }
     } catch (error) {
