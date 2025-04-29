@@ -27,7 +27,6 @@ type FormData = z.infer<typeof chatFormSchema>;
 const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
   const [chatStarted, setChatStarted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [perplexityKey, setPerplexityKey] = useState(localStorage.getItem('perplexityKey') || '');
   const [n8nConfig, setN8nConfig] = useState<N8nWebhookConfig | null>(null);
   const [leadData, setLeadData] = useState<FormData | null>(null);
   
@@ -43,6 +42,8 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
   useEffect(() => {
     if (isOpen) {
       fetchN8nWebhookConfig();
+      // Also fetch the perplexity key from site settings
+      fetchPerplexityKey();
     }
   }, [isOpen]);
 
@@ -66,6 +67,32 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
       }
     } catch (error) {
       console.error("Erro ao buscar configuração do webhook:", error);
+    }
+  };
+
+  // New function to fetch the Perplexity API key from site settings
+  const fetchPerplexityKey = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select()
+        .eq('key', 'perplexity_api_key')
+        .single();
+
+      if (error) {
+        // If not found, it's not a critical error
+        if (error.code !== 'PGRST116') {  // Record not found
+          console.error("Erro ao buscar API key:", error);
+        }
+        return;
+      }
+      
+      if (data && data.value && data.value.api_key) {
+        // Store the API key in localStorage for ChatBox component to use
+        localStorage.setItem('perplexityKey', data.value.api_key);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar configuração da API:", error);
     }
   };
 
@@ -110,13 +137,19 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
   };
 
   const onSubmit = async (data: FormData) => {
+    // Check if we have the Perplexity key in localStorage or fetch it again
+    const perplexityKey = localStorage.getItem('perplexityKey');
     if (!perplexityKey) {
-      toast({
-        title: "Erro",
-        description: "Por favor, insira sua chave da API Perplexity",
-        variant: "destructive",
-      });
-      return;
+      await fetchPerplexityKey();
+      const updatedKey = localStorage.getItem('perplexityKey');
+      if (!updatedKey) {
+        toast({
+          title: "Erro",
+          description: "O serviço de chat não está configurado corretamente. Por favor, tente novamente mais tarde.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -126,7 +159,6 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
       const webhookSuccess = await sendLeadToN8n(data);
       
       if (webhookSuccess) {
-        localStorage.setItem('perplexityKey', perplexityKey);
         setLeadData(data); // Armazenar dados do lead para usar no chat
         setChatStarted(true);
       }
@@ -204,19 +236,6 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
                     </FormItem>
                   )}
                 />
-
-                <FormItem>
-                  <FormLabel>Chave da API Perplexity</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Sua chave da API"
-                      value={perplexityKey}
-                      onChange={(e) => setPerplexityKey(e.target.value)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
 
                 <Button 
                   type="submit"

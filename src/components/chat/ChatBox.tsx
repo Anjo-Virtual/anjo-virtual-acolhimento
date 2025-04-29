@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bot, Send, User } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 
 interface Message {
   role: "assistant" | "user";
@@ -34,6 +35,13 @@ export const ChatBox = ({ onClose, leadData }: ChatBoxProps) => {
     setIsLoading(true);
 
     try {
+      // Get the API key from localStorage
+      const apiKey = localStorage.getItem('perplexityKey');
+      
+      if (!apiKey) {
+        throw new Error("API key not found. Please contact the administrator.");
+      }
+
       // Incluir dados do lead nos metadados da requisição
       const metadata = leadData ? {
         lead: {
@@ -46,7 +54,7 @@ export const ChatBox = ({ onClose, leadData }: ChatBoxProps) => {
       const response = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('perplexityKey')}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -71,6 +79,11 @@ export const ChatBox = ({ onClose, leadData }: ChatBoxProps) => {
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Error:', error);
+      toast({
+        title: "Erro na Comunicação",
+        description: error.message || "Não foi possível obter resposta do assistente.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
