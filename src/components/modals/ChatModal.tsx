@@ -75,8 +75,15 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
     setIsSubmitting(true);
     
     try {
+      // Ensure data has all required fields for LeadData type
+      const leadData: LeadData = {
+        name: data.name || "",
+        email: data.email || "",
+        phone: data.phone || ""
+      };
+      
       // Enviar dados para o webhook do n8n
-      const webhookSuccess = await sendLeadToN8n(data, n8nConfig);
+      const webhookSuccess = await sendLeadToN8n(leadData, n8nConfig);
       
       if (webhookSuccess) {
         setLeadData(data); // Armazenar dados do lead para usar no chat
@@ -99,12 +106,12 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
   return (
     <div className={`modal ${isOpen ? "active" : ""}`} onClick={onClose}>
       <div 
-        className="bg-white rounded-lg p-8 max-w-md w-full mx-auto my-auto relative"
+        className="bg-white rounded-lg p-8 max-w-md w-full mx-auto my-auto relative shadow-soft animate-scaleIn"
         onClick={(e) => e.stopPropagation()}
       >
         <button 
           onClick={onClose}
-          className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+          className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 transition-colors"
         >
           <i className="ri-close-line ri-lg"></i>
         </button>

@@ -91,55 +91,83 @@ export const ChatBox = ({ onClose, leadData }: ChatBoxProps) => {
 
   return (
     <div className="flex flex-col h-[500px]">
+      <div className="bg-primary/5 p-4 rounded-t-lg mb-2">
+        <h3 className="text-xl font-semibold text-gray-800 mb-1">Conversa com Anjo Virtual</h3>
+        {leadData?.name && (
+          <p className="text-sm text-gray-600">Bem-vindo(a), {leadData.name}</p>
+        )}
+      </div>
+
       <ScrollArea className="flex-1 p-4 space-y-4">
         {leadData && messages.length === 0 && (
-          <div className="text-center py-4">
-            <p className="font-semibold">Olá {leadData.name}!</p>
-            <p className="text-gray-600 mt-2">Como posso ajudar você hoje?</p>
+          <div className="text-center py-6 bg-primary/5 rounded-lg border border-primary/10 animate-fadeInUp">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-3">
+              <Bot className="w-8 h-8 text-primary" />
+            </div>
+            <p className="font-semibold text-gray-800">Olá {leadData.name}!</p>
+            <p className="text-gray-600 mt-2 px-4">Como posso ajudar você hoje? Estou aqui para acolher e conversar sobre o que precisar.</p>
           </div>
         )}
         
         {messages.map((message, i) => (
           <div
             key={i}
-            className={`flex gap-2 ${
+            className={`flex gap-3 mb-4 ${
               message.role === "assistant" ? "justify-start" : "justify-end"
-            }`}
+            } animate-fadeInUp`}
+            style={{ animationDelay: `${i * 0.1}s` }}
           >
             {message.role === "assistant" && (
-              <Bot className="w-6 h-6 text-primary" />
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Bot className="w-5 h-5 text-primary" />
+              </div>
             )}
             <div
-              className={`rounded-lg p-3 max-w-[80%] ${
+              className={`rounded-2xl p-4 max-w-[80%] shadow-sm ${
                 message.role === "assistant"
-                  ? "bg-secondary"
-                  : "bg-primary text-primary-foreground"
+                  ? "bg-white border border-gray-100"
+                  : "bg-primary text-white"
               }`}
             >
               {message.content}
             </div>
             {message.role === "user" && (
-              <User className="w-6 h-6 text-primary" />
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                <User className="w-5 h-5 text-white" />
+              </div>
             )}
           </div>
         ))}
         {isLoading && (
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Bot className="w-6 h-6 animate-pulse" />
-            <span>Digitando...</span>
+          <div className="flex items-center gap-3 text-gray-500 animate-pulse">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <Bot className="w-5 h-5 text-primary" />
+            </div>
+            <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+              <div className="flex space-x-2">
+                <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce"></div>
+                <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+              </div>
+            </div>
           </div>
         )}
       </ScrollArea>
 
-      <form onSubmit={handleSend} className="p-4 border-t flex gap-2">
+      <form onSubmit={handleSend} className="p-4 border-t border-gray-100 flex gap-2 mt-auto bg-gray-50/50 rounded-b-lg">
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Digite sua mensagem..."
           disabled={isLoading}
+          className="border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary"
         />
-        <Button type="submit" disabled={isLoading}>
-          <Send className="w-4 h-4" />
+        <Button 
+          type="submit" 
+          disabled={isLoading}
+          className="bg-primary hover:bg-primary/90 text-white rounded-full w-10 h-10 p-0 flex items-center justify-center"
+        >
+          <Send className="w-5 h-5" />
         </Button>
       </form>
     </div>

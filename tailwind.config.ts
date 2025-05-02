@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -29,12 +30,21 @@ export default {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         primary: {
-          DEFAULT: '#8A6FD6',
+          DEFAULT: '#8A6FD6', // Refreshed purple
+          light: '#B3A0E3',
+          dark: '#6B51B8',
           foreground: 'hsl(var(--primary-foreground))'
         },
         secondary: {
-          DEFAULT: '#57B5E7',
+          DEFAULT: '#57B5E7', // Refreshed blue
+          light: '#8ACDED',
+          dark: '#3C9DD0',
           foreground: 'hsl(var(--secondary-foreground))'
+        },
+        tertiary: {
+          DEFAULT: '#F9B572', // Warm orange
+          light: '#FBCF9B',
+          dark: '#F79B4B'
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
@@ -91,6 +101,10 @@ export default {
         slideIn: {
           '0%': { transform: 'translateX(-20px)', opacity: '0' },
           '100%': { transform: 'translateX(0)', opacity: '1' }
+        },
+        pulse: {
+          '0%, 100%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(1.05)' },
         }
       },
       animation: {
@@ -98,7 +112,8 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         fadeInUp: 'fadeInUp 0.6s ease-out',
         scaleIn: 'scaleIn 0.4s ease-out',
-        slideIn: 'slideIn 0.5s ease-out'
+        slideIn: 'slideIn 0.5s ease-out',
+        pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       fontFamily: {
         'pacifico': ['Pacifico', 'cursive'],
@@ -106,8 +121,20 @@ export default {
         'raleway': ['Raleway', 'sans-serif'],
       },
       boxShadow: {
-        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
-        'hover': '0 10px 40px -15px rgba(0, 0, 0, 0.1)'
+        'soft': '0 5px 20px -5px rgba(0, 0, 0, 0.1)',
+        'hover': '0 10px 40px -15px rgba(0, 0, 0, 0.1)',
+        'card': '0 2px 10px rgba(0, 0, 0, 0.05)'
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        'gradient-soft': 'linear-gradient(to right, #f6d365 0%, #fda085 100%)',
+        'gradient-purple': 'linear-gradient(135deg, #8A6FD6 0%, #B3A0E3 100%)',
+        'gradient-blue': 'linear-gradient(135deg, #57B5E7 0%, #8ACDED 100%)'
+      },
+      transitionProperty: {
+        'height': 'height',
+        'spacing': 'margin, padding'
       }
     },
   },
