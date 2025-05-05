@@ -21,6 +21,8 @@ import NotFound from "./pages/NotFound";
 import { TrackingScripts } from "./components/TrackingScripts";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/admin/ProtectedRoute";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCanceled from "./pages/PaymentCanceled";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +38,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:id" element={<BlogPost />} />
+            <Route path="/pagamento-sucesso" element={<PaymentSuccess />} />
+            <Route path="/pagamento-cancelado" element={<PaymentCanceled />} />
             
             {/* Legacy Admin Route - Now redirects to new admin dashboard */}
             <Route path="/admin-old" element={<Admin />} />

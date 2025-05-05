@@ -1,5 +1,97 @@
 
+import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
+
 const Plans = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState<string | null>(null);
+
+  // Preços fixos do Stripe
+  const STRIPE_PRICES = {
+    monthly: "price_1GrUrVFGP9lWHwUzuZ3kuPzZ", // Substitua com seu price_id real do Stripe
+    gift: "price_1GrUrRFGP9lWHwUzC8fUBZbM",    // Substitua com seu price_id real do Stripe
+  };
+
+  const handleCheckout = async (priceId: string, mode: "payment" | "subscription", planType: string) => {
+    if (!user) {
+      toast({
+        title: "Autenticação necessária",
+        description: "Por favor, faça login para continuar com a compra.",
+        variant: "destructive",
+      });
+      navigate("/admin/login?redirect=/planos");
+      return;
+    }
+
+    try {
+      setIsLoading(planType);
+
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: {
+          priceId,
+          mode,
+          planType
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("URL de checkout não retornada");
+      }
+    } catch (error) {
+      console.error("Erro no checkout:", error);
+      toast({
+        title: "Erro no processamento do pagamento",
+        description: error instanceof Error ? error.message : "Ocorreu um erro inesperado",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(null);
+    }
+  };
+
+  // Botão com loading state
+  const CheckoutButton = ({ 
+    children, 
+    onClick, 
+    variant = "primary", 
+    planType 
+  }: { 
+    children: React.ReactNode, 
+    onClick: () => void, 
+    variant?: "primary" | "outline", 
+    planType: string 
+  }) => (
+    <button
+      onClick={onClick}
+      disabled={!!isLoading}
+      className={`block w-full ${
+        variant === "primary" 
+          ? "bg-primary text-white hover:bg-opacity-90" 
+          : "bg-white border border-primary text-primary hover:bg-primary hover:text-white"
+      } text-center py-3 rounded-button transition-colors whitespace-nowrap`}
+    >
+      {isLoading === planType ? (
+        <span className="flex items-center justify-center">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Processando...
+        </span>
+      ) : (
+        children
+      )}
+    </button>
+  );
+
   return (
     <section id="planos" className="py-20 bg-gray-50">
       <div className="container mx-auto px-6">
@@ -38,7 +130,13 @@ const Plans = () => {
               </ul>
             </div>
             <div className="px-6 pb-6">
-              <a href="#" className="block w-full bg-white border border-primary text-primary text-center py-3 rounded-button hover:bg-primary hover:text-white transition-colors whitespace-nowrap">Começar Grátis</a>
+              <CheckoutButton 
+                onClick={() => navigate(user ? "/dashboard" : "/admin/login")}
+                variant="outline"
+                planType="free"
+              >
+                Começar Grátis
+              </CheckoutButton>
             </div>
           </div>
 
@@ -78,7 +176,13 @@ const Plans = () => {
               </ul>
             </div>
             <div className="px-6 pb-6">
-              <a href="#" className="block w-full bg-white border border-primary text-primary text-center py-3 rounded-button hover:bg-primary hover:text-white transition-colors whitespace-nowrap">Presentear Alguém</a>
+              <CheckoutButton 
+                onClick={() => handleCheckout(STRIPE_PRICES.gift, "payment", "gift")}
+                variant="outline"
+                planType="gift"
+              >
+                Presentear Alguém
+              </CheckoutButton>
             </div>
           </div>
 
@@ -119,7 +223,13 @@ const Plans = () => {
               </ul>
             </div>
             <div className="px-6 pb-6">
-              <a href="#" className="block w-full bg-primary text-white text-center py-3 rounded-button hover:bg-opacity-90 transition-colors whitespace-nowrap">Assinar Agora</a>
+              <CheckoutButton 
+                onClick={() => handleCheckout(STRIPE_PRICES.monthly, "subscription", "monthly")}
+                variant="primary"
+                planType="monthly"
+              >
+                Assinar Agora
+              </CheckoutButton>
             </div>
           </div>
 
@@ -158,7 +268,13 @@ const Plans = () => {
               </ul>
             </div>
             <div className="px-6 pb-6">
-              <a href="#" className="block w-full bg-white border border-primary text-primary text-center py-3 rounded-button hover:bg-primary hover:text-white transition-colors whitespace-nowrap">Solicitar Proposta</a>
+              <CheckoutButton 
+                onClick={() => navigate("/contato?assunto=Plano%20Empresarial")}
+                variant="outline"
+                planType="business"
+              >
+                Solicitar Proposta
+              </CheckoutButton>
             </div>
           </div>
         </div>
