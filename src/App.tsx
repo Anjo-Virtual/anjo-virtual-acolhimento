@@ -16,42 +16,54 @@ import BlogAdmin from "./pages/admin/Blog";
 import BlogEdit from "./pages/admin/BlogEdit";
 import Integrations from "./pages/admin/Integrations";
 import Settings from "./pages/admin/Settings";
+import Login from "./pages/admin/Login";
 import NotFound from "./pages/NotFound";
 import { TrackingScripts } from "./components/TrackingScripts";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./components/admin/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <TrackingScripts />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:id" element={<BlogPost />} />
-          
-          {/* Legacy Admin Route - Now redirects to new admin dashboard */}
-          <Route path="/admin-old" element={<Admin />} />
-          
-          {/* Admin Routes */}
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="contacts" element={<Contacts />} />
-            <Route path="newsletter" element={<Newsletter />} />
-            <Route path="blog" element={<BlogAdmin />} />
-            <Route path="blog/edit" element={<BlogEdit />} />
-            <Route path="blog/edit/:id" element={<BlogEdit />} />
-            <Route path="integrations" element={<Integrations />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <TrackingScripts />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:id" element={<BlogPost />} />
+            
+            {/* Legacy Admin Route - Now redirects to new admin dashboard */}
+            <Route path="/admin-old" element={<Admin />} />
+            
+            {/* Admin Login Route */}
+            <Route path="/admin/login" element={<Login />} />
+            
+            {/* Protected Admin Routes */}
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <AdminLayout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<Dashboard />} />
+              <Route path="contacts" element={<Contacts />} />
+              <Route path="newsletter" element={<Newsletter />} />
+              <Route path="blog" element={<BlogAdmin />} />
+              <Route path="blog/edit" element={<BlogEdit />} />
+              <Route path="blog/edit/:id" element={<BlogEdit />} />
+              <Route path="integrations" element={<Integrations />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </TooltipProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 

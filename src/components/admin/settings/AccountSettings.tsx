@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface AccountSettingsProps {
   email: string;
@@ -19,21 +20,18 @@ export const AccountSettings = ({ email, name, onNameChange }: AccountSettingsPr
   const [isSaving, setIsSaving] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const { signOut } = useAuth();
 
   // Add account signout functionality
   const handleSignOut = async () => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      await signOut();
       
       toast({
         title: "Desconectado com sucesso",
         description: "Você foi desconectado de sua conta.",
       });
-      
-      // Redirect to home page
-      window.location.href = "/";
     } catch (error) {
       console.error("Erro ao desconectar:", error);
       toast({
