@@ -17,6 +17,7 @@ import BlogEdit from "./pages/admin/BlogEdit";
 import Integrations from "./pages/admin/Integrations";
 import Settings from "./pages/admin/Settings";
 import NotFound from "./pages/NotFound";
+import { TrackingScripts } from "./components/TrackingScripts";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <TrackingScripts />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
