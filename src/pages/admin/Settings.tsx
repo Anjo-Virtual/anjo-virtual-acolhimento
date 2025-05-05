@@ -43,8 +43,8 @@ const Settings = () => {
       }
       
       if (siteData && siteData.value) {
-        // Parse site settings as SiteSettings interface
-        const settings = siteData.value as SiteSettings;
+        // Cast to unknown first, then to SiteSettings
+        const settings = siteData.value as unknown as SiteSettings;
         
         // Populate form fields with saved settings
         setSiteName(settings.site_name || "");
@@ -64,8 +64,8 @@ const Settings = () => {
       }
 
       if (trackingData && trackingData.value) {
-        // Parse tracking settings
-        const trackingSettings = trackingData.value as TrackingSettings;
+        // Cast to unknown first, then to TrackingSettings
+        const trackingSettings = trackingData.value as unknown as TrackingSettings;
         
         // Populate form fields with saved settings
         setGoogleAnalyticsId(trackingSettings.google_analytics_id || "");

@@ -27,7 +27,9 @@ export const TrackingScripts = () => {
         }
 
         if (data?.value) {
-          setTrackingSettings(data.value as TrackingSettings);
+          // Cast the value to unknown first, then to TrackingSettings
+          const settings = data.value as unknown as TrackingSettings;
+          setTrackingSettings(settings);
         }
       } catch (error) {
         console.error('Erro ao carregar configurações de rastreamento:', error);
