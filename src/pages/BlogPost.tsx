@@ -1,41 +1,73 @@
+
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2, ImageIcon } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BlogPost {
-  id: number;
+  id: string;
   title: string;
   description: string;
-  date: string;
+  created_at: string;
   category: string;
-  content?: string;
+  content: string;
+  image_url?: string | null;
 }
-
-const samplePosts: BlogPost[] = [
-  {
-    id: 1,
-    title: "Lidando com o Luto: Um Guia para Iniciantes",
-    description: "Aprenda sobre as diferentes fases do luto e como lidar com cada uma delas de forma saudável.",
-    date: "2025-04-27",
-    category: "Guia",
-    content: "O luto é uma jornada única e pessoal que todos nós enfrentamos em algum momento da vida. Neste guia, vamos explorar as diferentes fases do luto e como navegar por cada uma delas de forma saudável.\n\nAs fases do luto incluem negação, raiva, barganha, depressão e aceitação. É importante lembrar que estas fases não são lineares e cada pessoa as experimenta de forma diferente.\n\nDicas para lidar com o luto:\n\n1. Permita-se sentir suas emoções\n2. Busque apoio de amigos e familiares\n3. Considere participar de grupos de apoio\n4. Mantenha uma rotina saudável\n5. Procure ajuda profissional se necessário"
-  },
-  {
-    id: 2,
-    title: "Como Ajudar Alguém em Luto",
-    description: "Dicas práticas para apoiar amigos e familiares que estão passando pelo processo de luto.",
-    date: "2025-04-26",
-    category: "Dicas",
-    content: "Apoiar alguém que está passando pelo luto pode ser desafiador. Muitas vezes, nos sentimos inseguros sobre o que dizer ou fazer. Aqui estão algumas maneiras de oferecer suporte genuíno.\n\nDicas importantes:\n\n1. Escute mais do que fale\n2. Evite tentar 'consertar' a situação\n3. Ofereça ajuda prática\n4. Respeite o tempo e o espaço da pessoa\n5. Mantenha contato regular\n\nLembre-se que sua presença constante e apoio silencioso podem ser mais valiosos do que palavras."
-  }
-];
 
 const BlogPost = () => {
   const { id } = useParams();
-  const post = samplePosts.find(p => p.id === Number(id));
+  const [post, setPost] = useState<BlogPost | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  if (!post) {
+  useEffect(() => {
+    if (id) {
+      fetchPost(id);
+    }
+  }, [id]);
+
+  const fetchPost = async (postId: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('id', postId)
+        .eq('published', true)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          setNotFound(true);
+        } else {
+          throw error;
+        }
+      } else {
+        setPost(data);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar post:", error);
+      setNotFound(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <div className="container mx-auto px-4 py-8 mt-24 flex justify-center">
+          <Loader2 className="animate-spin h-12 w-12 text-primary" />
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  if (notFound || !post) {
     return (
       <>
         <Header />
@@ -60,10 +92,24 @@ const BlogPost = () => {
         </Link>
         
         <article className="max-w-3xl mx-auto">
+          {post.image_url ? (
+            <div className="w-full h-64 md:h-96 mb-8 overflow-hidden rounded-lg">
+              <img 
+                src={post.image_url} 
+                alt={post.title} 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-full h-64 md:h-96 mb-8 flex items-center justify-center bg-gray-100 rounded-lg">
+              <ImageIcon className="h-16 w-16 text-gray-300" />
+            </div>
+          )}
+
           <header className="mb-8">
             <h1 className="text-4xl font-playfair font-bold mb-4">{post.title}</h1>
             <div className="flex items-center gap-4 text-gray-600">
-              <time>{new Date(post.date).toLocaleDateString('pt-BR')}</time>
+              <time>{new Date(post.created_at).toLocaleDateString('pt-BR')}</time>
               <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
                 {post.category}
               </span>
