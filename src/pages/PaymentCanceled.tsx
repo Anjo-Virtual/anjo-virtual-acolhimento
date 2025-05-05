@@ -10,8 +10,8 @@ const PaymentCanceled = () => {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
         <div className="flex justify-center mb-6">
-          <div className="bg-gray-100 p-3 rounded-full">
-            <XCircle className="h-8 w-8 text-gray-600" />
+          <div className="bg-red-100 p-3 rounded-full">
+            <XCircle className="h-8 w-8 text-red-600" />
           </div>
         </div>
         
