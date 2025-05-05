@@ -13,6 +13,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import Contacts from "./pages/admin/Contacts";
 import Newsletter from "./pages/admin/Newsletter";
 import BlogAdmin from "./pages/admin/Blog";
+import BlogEdit from "./pages/admin/BlogEdit";
 import Integrations from "./pages/admin/Integrations";
 import Settings from "./pages/admin/Settings";
 import NotFound from "./pages/NotFound";
@@ -39,6 +40,8 @@ const App = () => (
             <Route path="contacts" element={<Contacts />} />
             <Route path="newsletter" element={<Newsletter />} />
             <Route path="blog" element={<BlogAdmin />} />
+            <Route path="blog/edit" element={<BlogEdit />} />
+            <Route path="blog/edit/:id" element={<BlogEdit />} />
             <Route path="integrations" element={<Integrations />} />
             <Route path="settings" element={<Settings />} />
           </Route>

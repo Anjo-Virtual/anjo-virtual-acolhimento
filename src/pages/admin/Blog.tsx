@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { PlusCircle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface BlogPost {
   id: string;
@@ -23,6 +23,7 @@ const Blog = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPosts();
@@ -69,6 +70,10 @@ const Blog = () => {
     post.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     post.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  const handleNewPost = () => {
+    navigate("/admin/blog/edit");
+  };
 
   return (
     <div>
@@ -82,7 +87,7 @@ const Blog = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Button>
+          <Button onClick={handleNewPost}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Novo Post
           </Button>
@@ -116,10 +121,8 @@ const Blog = () => {
                 <p className="line-clamp-3">{post.description}</p>
               </CardContent>
               <CardFooter className="flex justify-between pt-3">
-                <Button variant="outline" size="sm" asChild>
-                  <Link to={`/admin/blog/edit/${post.id}`}>
-                    Editar
-                  </Link>
+                <Button variant="outline" size="sm" onClick={() => navigate(`/admin/blog/edit/${post.id}`)}>
+                  Editar
                 </Button>
                 <Button 
                   size="sm"
