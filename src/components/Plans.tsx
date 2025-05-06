@@ -11,12 +11,11 @@ const Plans = () => {
   const { handleCheckout, isLoading } = useCheckoutHandler();
   const { openChatModal } = useModalControls();
   
-  // Updated Stripe prices with valid IDs
-  // Note: These are placeholder IDs. In production, you should use real Stripe price IDs
+  // Updated Stripe prices with the correct IDs
   const STRIPE_PRICES = {
-    monthly: FREE_PLAN_PRICE_ID, // For now, using the free plan ID for monthly as well until valid IDs are provided
-    gift: FREE_PLAN_PRICE_ID,    // For now, using the free plan ID for gift as well until valid IDs are provided
-    free: FREE_PLAN_PRICE_ID
+    monthly: "price_1RLVbmPEI2ekVLFOvBYliVNK", // Plano Mensal
+    gift: "price_1RLVazPEI2ekVLFOqERdOweO",    // Presente de Consolo
+    free: FREE_PLAN_PRICE_ID                    // Plano Gratuito
   };
 
   // Botão com loading state
