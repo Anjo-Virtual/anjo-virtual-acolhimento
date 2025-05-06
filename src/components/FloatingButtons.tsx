@@ -4,10 +4,10 @@ import ChatModal from './modals/ChatModal';
 import WhatsAppModal from './modals/WhatsAppModal';
 import { MessageCircle, Sparkles } from 'lucide-react';
 
-const FloatingButtons = () => {
+// Export these functions to be used by other components
+export const useModalControls = () => {
   const [chatModalOpen, setChatModalOpen] = useState(false);
   const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
 
   const openChatModal = () => {
     setChatModalOpen(true);
@@ -24,6 +24,28 @@ const FloatingButtons = () => {
   const closeWhatsAppModal = () => {
     setWhatsappModalOpen(false);
   };
+
+  return {
+    chatModalOpen,
+    whatsappModalOpen,
+    openChatModal,
+    closeChatModal,
+    openWhatsAppModal,
+    closeWhatsAppModal
+  };
+};
+
+const FloatingButtons = () => {
+  const {
+    chatModalOpen,
+    whatsappModalOpen,
+    openChatModal,
+    closeChatModal,
+    openWhatsAppModal,
+    closeWhatsAppModal
+  } = useModalControls();
+  
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <>

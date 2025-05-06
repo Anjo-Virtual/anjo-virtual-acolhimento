@@ -99,9 +99,7 @@ serve(async (req) => {
       locale: "pt-BR",
       allow_promotion_codes: true,
       billing_address_collection: "auto",
-      payment_method_types: ["card"],
-      ...(isFreePlan && {
-        payment_method_configuration: "off", // For free plans, no payment method needed
+      ...(isFreePlan ? {
         custom_fields: [
           {
             key: 'phone',
@@ -115,6 +113,8 @@ serve(async (req) => {
             },
           }
         ],
+      } : {
+        payment_method_types: ["card"]
       }),
     });
 

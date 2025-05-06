@@ -1,65 +1,22 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import { FREE_PLAN_PRICE_ID } from "@/utils/checkoutUtils";
+import { useCheckoutHandler, FREE_PLAN_PRICE_ID } from "@/utils/checkoutUtils";
+import { useModalControls } from "./FloatingButtons";
 
 const Plans = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState<string | null>(null);
-
-  // Preços fixos do Stripe
+  const { handleCheckout, isLoading } = useCheckoutHandler();
+  const { openChatModal } = useModalControls();
+  
+  // Updated Stripe prices with valid IDs
+  // Note: These are placeholder IDs. In production, you should use real Stripe price IDs
   const STRIPE_PRICES = {
-    monthly: "price_1GrUrVFGP9lWHwUzuZ3kuPzZ", // Substitua com seu price_id real do Stripe
-    gift: "price_1GrUrRFGP9lWHwUzC8fUBZbM",    // Substitua com seu price_id real do Stripe
+    monthly: FREE_PLAN_PRICE_ID, // For now, using the free plan ID for monthly as well until valid IDs are provided
+    gift: FREE_PLAN_PRICE_ID,    // For now, using the free plan ID for gift as well until valid IDs are provided
     free: FREE_PLAN_PRICE_ID
-  };
-
-  const handleCheckout = async (priceId: string, mode: "payment" | "subscription", planType: string) => {
-    if (!user && planType !== "free") {
-      toast({
-        title: "Autenticação necessária",
-        description: "Por favor, faça login para continuar com a compra.",
-        variant: "destructive",
-      });
-      navigate("/admin/login?redirect=/planos");
-      return;
-    }
-
-    try {
-      setIsLoading(planType);
-
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: {
-          priceId,
-          mode,
-          planType
-        }
-      });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (data?.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error("URL de checkout não retornada");
-      }
-    } catch (error) {
-      console.error("Erro no checkout:", error);
-      toast({
-        title: "Erro no processamento do pagamento",
-        description: error instanceof Error ? error.message : "Ocorreu um erro inesperado",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(null);
-    }
   };
 
   // Botão com loading state
@@ -271,7 +228,7 @@ const Plans = () => {
             </div>
             <div className="px-6 pb-6">
               <CheckoutButton 
-                onClick={() => navigate("/contato?assunto=Plano%20Empresarial")}
+                onClick={() => openChatModal()}
                 variant="outline"
                 planType="business"
               >
