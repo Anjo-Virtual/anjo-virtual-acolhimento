@@ -90,7 +90,7 @@ const Plans = () => {
             </div>
             <div className="px-6 pb-6">
               <CheckoutButton 
-                onClick={() => handleCheckout(STRIPE_PRICES.free, "subscription", "free")}
+                onClick={() => handleCheckout(STRIPE_PRICES.free, "payment", "free")}
                 variant="outline"
                 planType="free"
               >
@@ -183,7 +183,7 @@ const Plans = () => {
             </div>
             <div className="px-6 pb-6">
               <CheckoutButton 
-                onClick={() => handleCheckout(STRIPE_PRICES.monthly, "subscription", "monthly")}
+                onClick={() => handleCheckout(STRIPE_PRICES.monthly, "payment", "monthly")}
                 variant="primary"
                 planType="monthly"
               >

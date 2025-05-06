@@ -6,7 +6,7 @@ const Hero = () => {
   const { handleCheckout, isLoading } = useCheckoutHandler();
 
   const startFreePlan = () => {
-    handleCheckout(FREE_PLAN_PRICE_ID, "subscription", "free");
+    handleCheckout(FREE_PLAN_PRICE_ID, "payment", "free");
   };
 
   return (

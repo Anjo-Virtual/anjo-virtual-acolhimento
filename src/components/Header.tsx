@@ -12,7 +12,7 @@ const Header = () => {
   };
   
   const startFreePlan = () => {
-    handleCheckout(FREE_PLAN_PRICE_ID, "subscription", "free");
+    handleCheckout(FREE_PLAN_PRICE_ID, "payment", "free");
   };
   
   return <header className="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">

@@ -44,7 +44,7 @@ serve(async (req) => {
     // Free plan doesn't require authentication
     let user = null;
     const FREE_PLAN_PRICE_ID = "price_1RLo8HPEI2ekVLFOBEJ5lP8w";
-    const isFreePlan = priceId === FREE_PLAN_PRICE_ID;
+    const isFreePlan = priceId === FREE_PLAN_PRICE_ID && planType === "free";
     
     // For paid plans, we need authentication
     if (!isFreePlan) {
