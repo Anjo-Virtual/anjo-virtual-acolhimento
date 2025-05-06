@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { FREE_PLAN_PRICE_ID } from "@/utils/checkoutUtils";
 
 const Plans = () => {
   const { user } = useAuth();
@@ -15,10 +16,11 @@ const Plans = () => {
   const STRIPE_PRICES = {
     monthly: "price_1GrUrVFGP9lWHwUzuZ3kuPzZ", // Substitua com seu price_id real do Stripe
     gift: "price_1GrUrRFGP9lWHwUzC8fUBZbM",    // Substitua com seu price_id real do Stripe
+    free: FREE_PLAN_PRICE_ID
   };
 
   const handleCheckout = async (priceId: string, mode: "payment" | "subscription", planType: string) => {
-    if (!user) {
+    if (!user && planType !== "free") {
       toast({
         title: "Autenticação necessária",
         description: "Por favor, faça login para continuar com a compra.",
@@ -79,7 +81,7 @@ const Plans = () => {
         variant === "primary" 
           ? "bg-primary text-white hover:bg-opacity-90" 
           : "bg-white border border-primary text-primary hover:bg-primary hover:text-white"
-      } text-center py-3 rounded-button transition-colors whitespace-nowrap`}
+      } text-center py-3 rounded-button transition-colors whitespace-nowrap flex items-center justify-center`}
     >
       {isLoading === planType ? (
         <span className="flex items-center justify-center">
@@ -131,7 +133,7 @@ const Plans = () => {
             </div>
             <div className="px-6 pb-6">
               <CheckoutButton 
-                onClick={() => navigate(user ? "/dashboard" : "/admin/login")}
+                onClick={() => handleCheckout(STRIPE_PRICES.free, "subscription", "free")}
                 variant="outline"
                 planType="free"
               >

@@ -41,39 +41,43 @@ serve(async (req) => {
     
     logStep("Request parameters", { priceId, mode, planType });
 
-    // Get user from auth header
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
+    // Free plan doesn't require authentication
+    let user = null;
+    const FREE_PLAN_PRICE_ID = "price_1RLo8HPEI2ekVLFOBEJ5lP8w";
+    const isFreePlan = priceId === FREE_PLAN_PRICE_ID;
     
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
-    const user = userData.user;
-    
-    if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    // For paid plans, we need authentication
+    if (!isFreePlan) {
+      // Get user from auth header
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader) throw new Error("No authorization header provided");
+      
+      const token = authHeader.replace("Bearer ", "");
+      const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+      
+      if (userError) throw new Error(`Authentication error: ${userError.message}`);
+      user = userData.user;
+      
+      if (!user?.email) throw new Error("User not authenticated or email not available");
+      logStep("User authenticated", { userId: user.id, email: user.email });
+    }
 
     // Initialize Stripe
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     
-    // Check if customer exists
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    // Check if customer exists or prepare for customer creation
     let customerId;
+    let customerEmail;
     
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-      logStep("Found existing Stripe customer", { customerId });
-    } else {
-      // Create new customer if not exists
-      const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: {
-          user_id: user.id
-        }
-      });
-      customerId = customer.id;
-      logStep("Created new Stripe customer", { customerId });
+    if (user) {
+      // For authenticated users
+      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+      
+      if (customers.data.length > 0) {
+        customerId = customers.data[0].id;
+        logStep("Found existing Stripe customer", { customerId });
+      }
+      customerEmail = user.email;
     }
 
     // Get domain for success/cancel URLs
@@ -82,6 +86,7 @@ serve(async (req) => {
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
+      customer_email: !customerId ? customerEmail : undefined,
       line_items: [
         {
           price: priceId,
@@ -95,6 +100,22 @@ serve(async (req) => {
       allow_promotion_codes: true,
       billing_address_collection: "auto",
       payment_method_types: ["card"],
+      ...(isFreePlan && {
+        payment_method_configuration: "off", // For free plans, no payment method needed
+        custom_fields: [
+          {
+            key: 'phone',
+            label: {
+              type: 'custom',
+              custom: 'Número de WhatsApp (com DDD)',
+            },
+            type: 'text',
+            text: {
+              maximum_length: 20,
+            },
+          }
+        ],
+      }),
     });
 
     logStep("Created checkout session", { sessionId: session.id, url: session.url });
