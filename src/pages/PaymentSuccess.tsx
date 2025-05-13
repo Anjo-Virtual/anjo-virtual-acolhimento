@@ -19,16 +19,6 @@ const PaymentSuccess = () => {
   const planType = queryParams.get("plan");
 
   useEffect(() => {
-    if (!user) {
-      toast({
-        title: "Autenticação necessária",
-        description: "Por favor, faça login para continuar.",
-        variant: "destructive",
-      });
-      navigate("/admin/login?redirect=/pagamento-sucesso" + location.search);
-      return;
-    }
-
     if (!sessionId) {
       navigate("/");
       return;
@@ -36,13 +26,22 @@ const PaymentSuccess = () => {
 
     const checkSubscription = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke("check-subscription");
-        
-        if (error) {
-          throw new Error(error.message);
+        // Only check subscription if user is authenticated
+        if (user) {
+          const { data, error } = await supabase.functions.invoke("check-subscription");
+          
+          if (error) {
+            throw new Error(error.message);
+          }
+          
+          setSubscriptionInfo(data);
+        } else {
+          // For non-authenticated users, just set basic plan info
+          setSubscriptionInfo({
+            subscription_tier: getPlanDescription(),
+            // No end date for non-authenticated users
+          });
         }
-        
-        setSubscriptionInfo(data);
       } catch (error) {
         console.error("Erro ao verificar assinatura:", error);
         toast({
@@ -124,13 +123,15 @@ const PaymentSuccess = () => {
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
           
-          <Button 
-            variant="outline"
-            onClick={() => navigate("/minha-conta")}
-            className="w-full"
-          >
-            Minha conta
-          </Button>
+          {user && (
+            <Button 
+              variant="outline"
+              onClick={() => navigate("/minha-conta")}
+              className="w-full"
+            >
+              Minha conta
+            </Button>
+          )}
         </div>
       </div>
     </div>

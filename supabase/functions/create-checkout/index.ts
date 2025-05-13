@@ -41,25 +41,28 @@ serve(async (req) => {
     
     logStep("Request parameters", { priceId, mode, planType });
 
-    // Free plan doesn't require authentication
+    // Authentication is now optional for all plans
     let user = null;
-    const FREE_PLAN_PRICE_ID = "price_1RLo8HPEI2ekVLFOBEJ5lP8w";
-    const isFreePlan = priceId === FREE_PLAN_PRICE_ID && planType === "free";
+    let customerEmail = null;
     
-    // For paid plans, we need authentication
-    if (!isFreePlan) {
-      // Get user from auth header
-      const authHeader = req.headers.get("Authorization");
-      if (!authHeader) throw new Error("No authorization header provided");
-      
-      const token = authHeader.replace("Bearer ", "");
-      const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-      
-      if (userError) throw new Error(`Authentication error: ${userError.message}`);
-      user = userData.user;
-      
-      if (!user?.email) throw new Error("User not authenticated or email not available");
-      logStep("User authenticated", { userId: user.id, email: user.email });
+    // Try to get user from auth header if available
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader) {
+      try {
+        const token = authHeader.replace("Bearer ", "");
+        const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+        
+        if (!userError && userData?.user) {
+          user = userData.user;
+          customerEmail = user.email;
+          logStep("User authenticated", { userId: user.id, email: user.email });
+        }
+      } catch (error) {
+        // Just log the error but continue without authentication
+        logStep("Authentication failed, continuing as guest", { error: error.message });
+      }
+    } else {
+      logStep("No authentication header, continuing as guest");
     }
 
     // Initialize Stripe
@@ -67,21 +70,22 @@ serve(async (req) => {
     
     // Check if customer exists or prepare for customer creation
     let customerId;
-    let customerEmail;
     
-    if (user) {
-      // For authenticated users
-      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    if (customerEmail) {
+      // For authenticated users, try to find existing Stripe customer
+      const customers = await stripe.customers.list({ email: customerEmail, limit: 1 });
       
       if (customers.data.length > 0) {
         customerId = customers.data[0].id;
         logStep("Found existing Stripe customer", { customerId });
       }
-      customerEmail = user.email;
     }
 
     // Get domain for success/cancel URLs
     const origin = req.headers.get("origin") || "http://localhost:3000";
+    
+    const FREE_PLAN_PRICE_ID = "price_1RLo8HPEI2ekVLFOBEJ5lP8w";
+    const isFreePlan = priceId === FREE_PLAN_PRICE_ID;
     
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
