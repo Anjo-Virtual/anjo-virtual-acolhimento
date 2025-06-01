@@ -31,6 +31,24 @@ const Header = () => {
 
   const { openChatModal } = useModalControls();
 
+  const handleCommunityScroll = () => {
+    // Scroll to the community section on home page
+    const communitySection = document.getElementById('comunidade');
+    if (communitySection) {
+      const headerOffset = 80;
+      const elementPosition = communitySection.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    } else {
+      // If not on home page, navigate to home and then scroll
+      window.location.href = '/#comunidade';
+    }
+  };
+
   const handleEmpresasClick = () => {
     // Scroll to the business section
     const businessSection = document.getElementById('empresas');
@@ -43,6 +61,9 @@ const Header = () => {
         top: offsetPosition,
         behavior: 'smooth'
       });
+    } else {
+      // If not on home page, navigate to home and then scroll
+      window.location.href = '/#empresas';
     }
   };
 
@@ -56,7 +77,7 @@ const Header = () => {
         <nav className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img src="/placeholder.svg" alt="Logo" className="h-8 w-8" />
-            <span className="text-xl font-semibold text-gray-800">Caminhos de Superação</span>
+            <span className="text-xl font-semibold text-gray-800">Anjo Virtual</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -69,10 +90,13 @@ const Header = () => {
                 <a href="#planos" className="text-gray-700 hover:text-primary transition-colors">
                   Planos
                 </a>
-                <Link to="/comunidade" className="text-gray-700 hover:text-primary transition-colors flex items-center gap-2">
+                <button 
+                  onClick={handleCommunityScroll}
+                  className="text-gray-700 hover:text-primary transition-colors flex items-center gap-2"
+                >
                   <Users size={18} />
                   Comunidade
-                </Link>
+                </button>
                 <Link to="/blog" className="text-gray-700 hover:text-primary transition-colors">
                   Blog
                 </Link>
@@ -140,14 +164,16 @@ const Header = () => {
             >
               Planos
             </a>
-            <Link
-              to="/comunidade"
-              className="block text-gray-700 hover:text-primary transition-colors py-2 flex items-center gap-2"
-              onClick={() => setMobileMenuOpen(false)}
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleCommunityScroll();
+              }}
+              className="block text-gray-700 hover:text-primary transition-colors py-2 text-left flex items-center gap-2"
             >
               <Users size={18} />
               Comunidade
-            </Link>
+            </button>
             <Link
               to="/blog"
               className="block text-gray-700 hover:text-primary transition-colors py-2"
