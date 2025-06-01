@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, MessageSquare, Shield, Heart, Calendar, BookOpen, UserPlus, Lightbulb } from "lucide-react";
+import { Users, MessageSquare, Shield, Heart, Calendar, BookOpen, UserPlus, Lightbulb, LogIn, UserCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -123,32 +124,81 @@ const Community = () => {
               </Card>
             </div>
 
-            <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl mb-4">Acesso Exclusivo para Membros</CardTitle>
-                <CardDescription className="text-lg">
-                  Para participar da nossa comunidade, você precisa fazer login ou criar uma conta.
-                  Isso garante a segurança e privacidade de todos os membros.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-center space-y-4">
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link to="/admin/login">
-                    <Button size="lg" className="w-full sm:w-auto">
-                      Fazer Login
-                    </Button>
-                  </Link>
-                  <Link to="/admin/login">
-                    <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                      Criar Conta
-                    </Button>
-                  </Link>
-                </div>
-                <p className="text-sm text-gray-500 mt-4">
-                  Sua privacidade é nossa prioridade. Você pode usar pseudônimos e manter o anonimato.
-                </p>
-              </CardContent>
-            </Card>
+            {/* Seção de Acesso/Cadastro */}
+            <div className="space-y-6">
+              <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+                <CardHeader className="text-center">
+                  <div className="flex justify-center mb-4">
+                    <LogIn className="w-16 h-16 text-primary" />
+                  </div>
+                  <CardTitle className="text-2xl mb-4">Acesse ou Cadastre-se na Comunidade</CardTitle>
+                  <CardDescription className="text-lg">
+                    Para participar dos fóruns e acessar todos os recursos da comunidade, você precisa criar uma conta ou fazer login.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="text-center p-4 border rounded-lg bg-white">
+                      <UserPlus className="w-8 h-8 text-primary mx-auto mb-2" />
+                      <h3 className="font-semibold mb-2">Novo por aqui?</h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Crie sua conta e junte-se à nossa comunidade de apoio
+                      </p>
+                      <Link to="/admin/login">
+                        <Button size="lg" className="w-full">
+                          Criar Conta
+                        </Button>
+                      </Link>
+                    </div>
+                    
+                    <div className="text-center p-4 border rounded-lg bg-white">
+                      <UserCheck className="w-8 h-8 text-primary mx-auto mb-2" />
+                      <h3 className="font-semibold mb-2">Já é membro?</h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Faça login para acessar os fóruns e grupos
+                      </p>
+                      <Link to="/admin/login">
+                        <Button variant="outline" size="lg" className="w-full">
+                          Fazer Login
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500">
+                      <Shield className="w-4 h-4 inline mr-1" />
+                      Sua privacidade é nossa prioridade. Você pode usar pseudônimos e manter o anonimato.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Preview das categorias */}
+              <Card>
+                <CardHeader className="text-center">
+                  <CardTitle>Fóruns Disponíveis</CardTitle>
+                  <CardDescription>
+                    Veja os tópicos que você poderá acessar após o cadastro
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {categories.slice(0, 8).map((category) => (
+                      <div key={category.id} className="text-center p-3 border rounded-lg bg-gray-50">
+                        <div 
+                          className="w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-2"
+                          style={{ backgroundColor: `${category.color}20`, color: category.color }}
+                        >
+                          {getIconComponent(category.icon)}
+                        </div>
+                        <h4 className="text-sm font-medium">{category.name}</h4>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>

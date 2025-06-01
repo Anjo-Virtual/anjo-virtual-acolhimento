@@ -31,12 +31,12 @@ const Header = () => {
 
   const { openChatModal } = useModalControls();
 
-  const handleComunidadeClick = () => {
-    // Scroll to the community section
-    const communitySection = document.getElementById('comunidade');
-    if (communitySection) {
+  const handleEmpresasClick = () => {
+    // Scroll to the business section
+    const businessSection = document.getElementById('empresas');
+    if (businessSection) {
       const headerOffset = 80;
-      const elementPosition = communitySection.getBoundingClientRect().top;
+      const elementPosition = businessSection.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
       
       window.scrollTo({
@@ -63,25 +63,25 @@ const Header = () => {
           {!isMobile && (
             <div className="flex items-center space-x-8">
               <div className="hidden md:flex space-x-6">
-                <Link to="/" className="text-gray-700 hover:text-primary transition-colors">
-                  Início
-                </Link>
                 <a href="#como-funciona" className="text-gray-700 hover:text-primary transition-colors">
                   Como Funciona
                 </a>
                 <a href="#planos" className="text-gray-700 hover:text-primary transition-colors">
                   Planos
                 </a>
-                <button 
-                  onClick={handleComunidadeClick}
-                  className="text-gray-700 hover:text-primary transition-colors flex items-center gap-2"
-                >
+                <Link to="/comunidade" className="text-gray-700 hover:text-primary transition-colors flex items-center gap-2">
                   <Users size={18} />
                   Comunidade
-                </button>
+                </Link>
                 <Link to="/blog" className="text-gray-700 hover:text-primary transition-colors">
                   Blog
                 </Link>
+                <button 
+                  onClick={handleEmpresasClick}
+                  className="text-gray-700 hover:text-primary transition-colors"
+                >
+                  Para Empresas
+                </button>
               </div>
               <div className="flex items-center space-x-4">
                 {user ? (
@@ -126,13 +126,6 @@ const Header = () => {
         {/* Mobile Menu */}
         {isMobile && mobileMenuOpen && (
           <div className="mt-4 pb-4 space-y-3">
-            <Link
-              to="/"
-              className="block text-gray-700 hover:text-primary transition-colors py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Início
-            </Link>
             <a
               href="#como-funciona"
               className="block text-gray-700 hover:text-primary transition-colors py-2"
@@ -147,16 +140,14 @@ const Header = () => {
             >
               Planos
             </a>
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                handleComunidadeClick();
-              }}
+            <Link
+              to="/comunidade"
               className="block text-gray-700 hover:text-primary transition-colors py-2 flex items-center gap-2"
+              onClick={() => setMobileMenuOpen(false)}
             >
               <Users size={18} />
               Comunidade
-            </button>
+            </Link>
             <Link
               to="/blog"
               className="block text-gray-700 hover:text-primary transition-colors py-2"
@@ -164,6 +155,15 @@ const Header = () => {
             >
               Blog
             </Link>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleEmpresasClick();
+              }}
+              className="block text-gray-700 hover:text-primary transition-colors py-2 text-left"
+            >
+              Para Empresas
+            </button>
             
             {user ? (
               <Link
