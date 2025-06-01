@@ -133,6 +133,131 @@ export type Database = {
           },
         ]
       }
+      community_groups: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          current_members: number | null
+          description: string | null
+          id: string
+          is_private: boolean | null
+          max_members: number | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          current_members?: number | null
+          description?: string | null
+          id?: string
+          is_private?: boolean | null
+          max_members?: number | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          current_members?: number | null
+          description?: string | null
+          id?: string
+          is_private?: boolean | null
+          max_members?: number | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_groups_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_profiles: {
+        Row: {
+          bio: string | null
+          created_at: string | null
+          display_name: string
+          grief_type: string | null
+          id: string
+          is_anonymous: boolean | null
+          joined_at: string | null
+          last_active: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string | null
+          display_name: string
+          grief_type?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          joined_at?: string | null
+          last_active?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string | null
+          display_name?: string
+          grief_type?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          joined_at?: string | null
+          last_active?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      community_user_roles: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          id: string
+          profile_id: string | null
+          role: Database["public"]["Enums"]["community_role"]
+          verified: boolean | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          profile_id?: string | null
+          role?: Database["public"]["Enums"]["community_role"]
+          verified?: boolean | null
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          profile_id?: string | null
+          role?: Database["public"]["Enums"]["community_role"]
+          verified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_user_roles_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_user_roles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_messages: {
         Row: {
           created_at: string
@@ -162,6 +287,193 @@ export type Database = {
           processed?: boolean
         }
         Relationships: []
+      }
+      forum_categories: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          moderator_only: boolean | null
+          name: string
+          slug: string
+          sort_order: number | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          moderator_only?: boolean | null
+          name: string
+          slug: string
+          sort_order?: number | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          moderator_only?: boolean | null
+          name?: string
+          slug?: string
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
+      forum_comments: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_published: boolean | null
+          parent_comment_id: string | null
+          post_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_published?: boolean | null
+          parent_comment_id?: string | null
+          post_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_published?: boolean | null
+          parent_comment_id?: string | null
+          post_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "forum_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forum_posts: {
+        Row: {
+          author_id: string | null
+          category_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_pinned: boolean | null
+          is_published: boolean | null
+          title: string
+          updated_at: string | null
+          view_count: number | null
+        }
+        Insert: {
+          author_id?: string | null
+          category_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          is_published?: boolean | null
+          title: string
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          author_id?: string | null
+          category_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          is_published?: boolean | null
+          title?: string
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "forum_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_members: {
+        Row: {
+          group_id: string | null
+          id: string
+          joined_at: string | null
+          profile_id: string | null
+          role: string | null
+        }
+        Insert: {
+          group_id?: string | null
+          id?: string
+          joined_at?: string | null
+          profile_id?: string | null
+          role?: string | null
+        }
+        Update: {
+          group_id?: string | null
+          id?: string
+          joined_at?: string | null
+          profile_id?: string | null
+          role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "community_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       integrations: {
         Row: {
@@ -306,7 +618,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      community_role: "member" | "moderator" | "professional" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -421,6 +733,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      community_role: ["member", "moderator", "professional", "admin"],
+    },
   },
 } as const

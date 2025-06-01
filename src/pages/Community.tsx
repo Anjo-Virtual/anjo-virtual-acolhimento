@@ -1,0 +1,251 @@
+
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Users, MessageSquare, Shield, Heart, Calendar, BookOpen, UserPlus, Lightbulb } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+type ForumCategory = {
+  id: string;
+  name: string;
+  description: string;
+  slug: string;
+  color: string;
+  icon: string;
+  sort_order: number;
+};
+
+const Community = () => {
+  const { user } = useAuth();
+  const [categories, setCategories] = useState<ForumCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('forum_categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order');
+
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Erro ao carregar categorias:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar as categorias do fórum.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getIconComponent = (iconName: string) => {
+    const icons: { [key: string]: any } = {
+      'user-plus': UserPlus,
+      'heart': Heart,
+      'baby': Users,
+      'users': Users,
+      'user-heart': Heart,
+      'lightbulb': Lightbulb,
+      'calendar': Calendar,
+      'book-open': BookOpen,
+    };
+    
+    const IconComponent = icons[iconName] || MessageSquare;
+    return <IconComponent size={24} />;
+  };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+        <div className="container mx-auto px-4 py-20">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="mb-8">
+              <div className="flex justify-center mb-6">
+                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
+                  <Users className="w-10 h-10 text-primary" />
+                </div>
+              </div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                Comunidade Caminhos de Superação
+              </h1>
+              <p className="text-xl text-gray-600 mb-8">
+                Um espaço seguro e acolhedor para compartilhar experiências e encontrar apoio em sua jornada de superação do luto.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6 mb-12">
+              <Card className="text-center">
+                <CardHeader>
+                  <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
+                  <CardTitle>Ambiente Seguro</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">
+                    Moderação especializada e políticas rígidas de privacidade para garantir um espaço seguro.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="text-center">
+                <CardHeader>
+                  <MessageSquare className="w-12 h-12 text-primary mx-auto mb-4" />
+                  <CardTitle>Apoio Mútuo</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">
+                    Conecte-se com pessoas que passaram por experiências similares e encontre compreensão.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="text-center">
+                <CardHeader>
+                  <Users className="w-12 h-12 text-primary mx-auto mb-4" />
+                  <CardTitle>Grupos Especializados</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">
+                    Participe de grupos focados em diferentes tipos de luto e estágios de superação.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+              <CardHeader className="text-center">
+                <CardTitle className="text-2xl mb-4">Acesso Exclusivo para Membros</CardTitle>
+                <CardDescription className="text-lg">
+                  Para participar da nossa comunidade, você precisa fazer login ou criar uma conta.
+                  Isso garante a segurança e privacidade de todos os membros.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center space-y-4">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Link to="/admin/login">
+                    <Button size="lg" className="w-full sm:w-auto">
+                      Fazer Login
+                    </Button>
+                  </Link>
+                  <Link to="/admin/login">
+                    <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                      Criar Conta
+                    </Button>
+                  </Link>
+                </div>
+                <p className="text-sm text-gray-500 mt-4">
+                  Sua privacidade é nossa prioridade. Você pode usar pseudônimos e manter o anonimato.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      <div className="container mx-auto px-4 py-20">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              Bem-vindo à Comunidade
+            </h1>
+            <p className="text-xl text-gray-600">
+              Explore os fóruns temáticos e encontre o apoio que você precisa
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-gray-600">Carregando fóruns...</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {categories.map((category) => (
+                <Card 
+                  key={category.id} 
+                  className="hover:shadow-lg transition-shadow duration-200 cursor-pointer group"
+                >
+                  <CardHeader>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div 
+                        className="w-12 h-12 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform"
+                        style={{ backgroundColor: `${category.color}20`, color: category.color }}
+                      >
+                        {getIconComponent(category.icon)}
+                      </div>
+                      <div className="flex-1">
+                        <CardTitle className="text-lg">{category.name}</CardTitle>
+                      </div>
+                    </div>
+                    <CardDescription className="text-sm">
+                      {category.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <Badge variant="secondary" className="text-xs">
+                        Em breve
+                      </Badge>
+                      <span className="text-xs text-gray-500">
+                        0 posts
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-12 text-center">
+            <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+              <CardHeader>
+                <CardTitle>Recursos da Comunidade</CardTitle>
+                <CardDescription>
+                  Ferramentas e funcionalidades disponíveis para todos os membros
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-primary" />
+                    <span>Fóruns Temáticos</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-primary" />
+                    <span>Grupos Privados</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-primary" />
+                    <span>Moderação 24/7</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Heart className="w-4 h-4 text-primary" />
+                    <span>Apoio Profissional</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Community;

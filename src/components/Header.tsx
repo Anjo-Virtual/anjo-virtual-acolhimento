@@ -56,7 +56,7 @@ const Header = () => {
         <nav className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img src="/placeholder.svg" alt="Logo" className="h-8 w-8" />
-            <span className="text-xl font-semibold text-gray-800">Console</span>
+            <span className="text-xl font-semibold text-gray-800">Caminhos de Superação</span>
           </Link>
 
           {/* Desktop Navigation */}

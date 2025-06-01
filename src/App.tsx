@@ -18,6 +18,7 @@ import Integrations from "./pages/admin/Integrations";
 import Settings from "./pages/admin/Settings";
 import Login from "./pages/admin/Login";
 import NotFound from "./pages/NotFound";
+import Community from "./pages/Community";
 import { TrackingScripts } from "./components/TrackingScripts";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/admin/ProtectedRoute";
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:id" element={<BlogPost />} />
+            <Route path="/comunidade" element={<Community />} />
             <Route path="/pagamento-sucesso" element={<PaymentSuccess />} />
             <Route path="/pagamento-cancelado" element={<PaymentCanceled />} />
             <Route path="/minha-conta" element={<ClientArea />} />

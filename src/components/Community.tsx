@@ -1,5 +1,10 @@
 
 const Community = () => {
+  const handleCommunityAccess = () => {
+    // Navigate to the dedicated community page
+    window.location.href = '/comunidade';
+  };
+
   return (
     <section id="comunidade" className="py-20 bg-cover bg-center" style={{ backgroundImage: "url('https://readdy.ai/api/search-image?query=A%20soft%2C%20blurred%20background%20image%20showing%20a%20supportive%20community%20gathering.%20The%20image%20should%20have%20a%20light%20blue%20or%20lavender%20overlay%20to%20maintain%20readability%20of%20text.%20It%20should%20depict%20silhouettes%20or%20abstract%20representations%20of%20people%20connecting%20in%20a%20supportive%20environment%2C%20with%20a%20peaceful%20and%20hopeful%20atmosphere.%20The%20style%20should%20be%20minimalist%20and%20respectful%2C%20perfect%20for%20a%20grief%20support%20community%20section.&width=1600&height=600&seq=123458&orientation=landscape')" }}>
       <div className="container mx-auto px-6">
@@ -46,7 +51,10 @@ const Community = () => {
             </div>
           </div>
           <div className="text-center">
-            <button className="bg-primary text-white px-8 py-3 rounded-button hover:bg-opacity-90 transition-colors inline-block whitespace-nowrap">
+            <button 
+              onClick={handleCommunityAccess}
+              className="bg-primary text-white px-8 py-3 rounded-button hover:bg-opacity-90 transition-colors inline-block whitespace-nowrap"
+            >
               Conhecer a Comunidade
             </button>
           </div>
