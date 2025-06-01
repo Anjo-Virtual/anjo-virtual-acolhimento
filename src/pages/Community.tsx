@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -177,37 +176,36 @@ const Community = () => {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {categories.map((category) => (
-                <Card 
-                  key={category.id} 
-                  className="hover:shadow-lg transition-shadow duration-200 cursor-pointer group"
-                >
-                  <CardHeader>
-                    <div className="flex items-center gap-3 mb-3">
-                      <div 
-                        className="w-12 h-12 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform"
-                        style={{ backgroundColor: `${category.color}20`, color: category.color }}
-                      >
-                        {getIconComponent(category.icon)}
+                <Link key={category.id} to={`/comunidade/${category.slug}`}>
+                  <Card className="hover:shadow-lg transition-shadow duration-200 cursor-pointer group h-full">
+                    <CardHeader>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div 
+                          className="w-12 h-12 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform"
+                          style={{ backgroundColor: `${category.color}20`, color: category.color }}
+                        >
+                          {getIconComponent(category.icon)}
+                        </div>
+                        <div className="flex-1">
+                          <CardTitle className="text-lg">{category.name}</CardTitle>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <CardTitle className="text-lg">{category.name}</CardTitle>
+                      <CardDescription className="text-sm">
+                        {category.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between">
+                        <Badge variant="secondary" className="text-xs">
+                          Ativo
+                        </Badge>
+                        <span className="text-xs text-gray-500">
+                          Clique para participar
+                        </span>
                       </div>
-                    </div>
-                    <CardDescription className="text-sm">
-                      {category.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <Badge variant="secondary" className="text-xs">
-                        Em breve
-                      </Badge>
-                      <span className="text-xs text-gray-500">
-                        0 posts
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           )}
