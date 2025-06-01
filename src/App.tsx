@@ -23,6 +23,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/admin/ProtectedRoute";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
+import ClientArea from "./pages/ClientArea";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/blog/:id" element={<BlogPost />} />
             <Route path="/pagamento-sucesso" element={<PaymentSuccess />} />
             <Route path="/pagamento-cancelado" element={<PaymentCanceled />} />
+            <Route path="/minha-conta" element={<ClientArea />} />
             
             {/* Legacy Admin Route - Now redirects to new admin dashboard */}
             <Route path="/admin-old" element={<Admin />} />

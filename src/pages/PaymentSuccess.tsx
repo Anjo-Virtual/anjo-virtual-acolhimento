@@ -4,13 +4,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import { Check, ArrowRight, Loader2 } from "lucide-react";
+import { Check, ArrowRight, Loader2, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, refreshSubscription } = useAuth();
   const [checking, setChecking] = useState(true);
   const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null);
   
@@ -28,6 +28,7 @@ const PaymentSuccess = () => {
       try {
         // Only check subscription if user is authenticated
         if (user) {
+          await refreshSubscription();
           const { data, error } = await supabase.functions.invoke("check-subscription");
           
           if (error) {
@@ -55,13 +56,15 @@ const PaymentSuccess = () => {
     };
 
     checkSubscription();
-  }, [user, sessionId, navigate, location.search]);
+  }, [user, sessionId, navigate, location.search, refreshSubscription]);
 
   const getPlanDescription = () => {
     if (planType === "monthly") {
       return "Plano Mensal";
     } else if (planType === "gift") {
       return "Presente de Consolo";
+    } else if (planType === "free") {
+      return "Plano Gratuito";
     } else {
       return "Plano Premium";
     }
@@ -115,21 +118,39 @@ const PaymentSuccess = () => {
         </div>
         
         <div className="flex flex-col space-y-3">
-          <Button 
-            onClick={() => navigate("/")}
-            className="w-full flex items-center justify-center"
-          >
-            Ir para a página inicial
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          {user ? (
+            <Button 
+              onClick={() => navigate("/minha-conta")}
+              className="w-full flex items-center justify-center"
+            >
+              <User className="mr-2 h-4 w-4" />
+              Ir para Minha Conta
+            </Button>
+          ) : (
+            <Button 
+              onClick={() => navigate("/")}
+              className="w-full flex items-center justify-center"
+            >
+              Ir para a página inicial
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          )}
           
-          {user && (
+          {user ? (
             <Button 
               variant="outline"
-              onClick={() => navigate("/minha-conta")}
+              onClick={() => navigate("/")}
               className="w-full"
             >
-              Minha conta
+              Voltar para a página inicial
+            </Button>
+          ) : (
+            <Button 
+              variant="outline"
+              onClick={() => navigate("/admin/login")}
+              className="w-full"
+            >
+              Fazer Login
             </Button>
           )}
         </div>

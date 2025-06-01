@@ -14,6 +14,7 @@ export const useCheckoutHandler = () => {
   const handleCheckout = async (priceId: string, mode: "payment" | "subscription", planType: string) => {
     try {
       setIsLoading(planType);
+      console.log(`Starting checkout process for plan: ${planType}, priceId: ${priceId}, mode: ${mode}`);
 
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: {
@@ -24,12 +25,22 @@ export const useCheckoutHandler = () => {
       });
 
       if (error) {
-        throw new Error(error.message);
+        console.error("Error invoking create-checkout function:", error);
+        throw new Error(error.message || "Erro ao processar o checkout");
       }
 
+      if (!data) {
+        console.error("No data returned from create-checkout function");
+        throw new Error("Nenhum dado retornado do servidor");
+      }
+
+      console.log("Checkout response:", data);
+
       if (data?.url) {
+        console.log("Redirecting to Stripe checkout URL:", data.url);
         window.location.href = data.url;
       } else {
+        console.error("No URL returned in checkout response");
         throw new Error("URL de checkout não retornada");
       }
     } catch (error) {

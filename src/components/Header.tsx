@@ -1,85 +1,181 @@
-
-import { useState } from 'react';
-import { useCheckoutHandler, FREE_PLAN_PRICE_ID } from '@/utils/checkoutUtils';
-import { Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useMobile } from "@/hooks/useMobile";
+import { Menu, X, MessageCircle, UserCircle } from "lucide-react";
+import { useModalControls } from "./FloatingButtons";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { handleCheckout, isLoading } = useCheckoutHandler();
-  
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-  
-  const startFreePlan = () => {
-    handleCheckout(FREE_PLAN_PRICE_ID, "payment", "free");
-  };
-  
-  return <header className="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
-      <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-        <a href="#" className="text-2xl font-pacifico text-primary">Anjo Virtual</a>
-        <nav className="hidden lg:flex items-center space-x-8">
-          <a href="#sobre" className="text-gray-700 hover:text-primary transition-colors">Sobre</a>
-          <a href="#como-funciona" className="text-gray-700 hover:text-primary transition-colors">Como Funciona</a>
-          <a href="#planos" className="text-gray-700 hover:text-primary transition-colors">Planos</a>
-          <a href="#comunidade" className="text-gray-700 hover:text-primary transition-colors">Comunidade do Luto</a>
-          <a href="#empresas" className="text-gray-700 hover:text-primary transition-colors">Para Empresas</a>
-        </nav>
-        <div className="flex items-center">
-          <button 
-            onClick={startFreePlan} 
-            disabled={isLoading === "free"}
-            className="hidden lg:flex items-center bg-primary text-white px-6 py-2 rounded-button hover:bg-opacity-90 transition-colors whitespace-nowrap"
-          >
-            {isLoading === "free" ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processando...
-              </>
-            ) : (
-              "Começar Gratuitamente"
-            )}
-          </button>
-          <button onClick={toggleMobileMenu} className="lg:hidden w-10 h-10 flex items-center justify-center">
-            <i className="ri-menu-line ri-lg"></i>
-          </button>
-        </div>
-      </div>
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isMobile = useMobile();
+  const { user } = useAuth();
 
-      {/* Mobile Menu */}
-      <div className={`fixed inset-0 bg-white z-50 transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="flex justify-between items-center p-6 border-b">
-          <a href="#" className="text-2xl font-pacifico text-primary">Anjo Virtual</a>
-          <button onClick={toggleMobileMenu} className="w-10 h-10 flex items-center justify-center">
-            <i className="ri-close-line ri-lg"></i>
-          </button>
-        </div>
-        <div className="p-6 flex flex-col space-y-6">
-          <a href="#sobre" onClick={toggleMobileMenu} className="text-gray-700 hover:text-primary transition-colors text-lg">Sobre</a>
-          <a href="#como-funciona" onClick={toggleMobileMenu} className="text-gray-700 hover:text-primary transition-colors text-lg">Como Funciona</a>
-          <a href="#planos" onClick={toggleMobileMenu} className="text-gray-700 hover:text-primary transition-colors text-lg">Planos</a>
-          <a href="#comunidade" onClick={toggleMobileMenu} className="text-gray-700 hover:text-primary transition-colors text-lg">Comunidade do Luto</a>
-          <a href="#empresas" onClick={toggleMobileMenu} className="text-gray-700 hover:text-primary transition-colors text-lg">Para Empresas</a>
-          <a href="#" onClick={toggleMobileMenu} className="text-gray-700 hover:text-primary transition-colors text-lg">Entrar</a>
-          <button 
-            onClick={() => {
-              startFreePlan();
-              toggleMobileMenu();
-            }}
-            disabled={isLoading === "free"}
-            className="bg-primary text-white px-6 py-3 rounded-button hover:bg-opacity-90 transition-colors text-center whitespace-nowrap flex justify-center items-center"
-          >
-            {isLoading === "free" ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processando...
-              </>
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  const { openChatModal } = useModalControls();
+
+  return (
+    <header
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+        isScrolled ? "bg-white shadow-md py-3" : "bg-transparent py-5"
+      }`}
+    >
+      <div className="container mx-auto px-4">
+        <nav className="flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/placeholder.svg" alt="Logo" className="h-8 w-8" />
+            <span className="text-xl font-semibold text-gray-800">Console</span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          {!isMobile && (
+            <div className="flex items-center space-x-8">
+              <div className="hidden md:flex space-x-6">
+                <Link to="/" className="text-gray-700 hover:text-primary transition-colors">
+                  Início
+                </Link>
+                <a href="#como-funciona" className="text-gray-700 hover:text-primary transition-colors">
+                  Como Funciona
+                </a>
+                <a href="#planos" className="text-gray-700 hover:text-primary transition-colors">
+                  Planos
+                </a>
+                <a href="#comunidade" className="text-gray-700 hover:text-primary transition-colors">
+                  Comunidade
+                </a>
+                <Link to="/blog" className="text-gray-700 hover:text-primary transition-colors">
+                  Blog
+                </Link>
+              </div>
+              <div className="flex items-center space-x-4">
+                {user ? (
+                  <Link 
+                    to="/minha-conta" 
+                    className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-button hover:bg-opacity-90 transition-colors"
+                  >
+                    <UserCircle size={18} />
+                    Minha Conta
+                  </Link>
+                ) : (
+                  <Link 
+                    to="/admin/login" 
+                    className="text-gray-700 hover:text-primary transition-colors"
+                  >
+                    Login
+                  </Link>
+                )}
+                <Button
+                  onClick={openChatModal}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <MessageCircle size={18} />
+                  Fale Conosco
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Mobile Menu Button */}
+          {isMobile && (
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="text-gray-700 focus:outline-none"
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          )}
+        </nav>
+
+        {/* Mobile Menu */}
+        {isMobile && mobileMenuOpen && (
+          <div className="mt-4 pb-4 space-y-3">
+            <Link
+              to="/"
+              className="block text-gray-700 hover:text-primary transition-colors py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Início
+            </Link>
+            <a
+              href="#como-funciona"
+              className="block text-gray-700 hover:text-primary transition-colors py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Como Funciona
+            </a>
+            <a
+              href="#planos"
+              className="block text-gray-700 hover:text-primary transition-colors py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Planos
+            </a>
+            <a
+              href="#comunidade"
+              className="block text-gray-700 hover:text-primary transition-colors py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Comunidade
+            </a>
+            <Link
+              to="/blog"
+              className="block text-gray-700 hover:text-primary transition-colors py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Blog
+            </Link>
+            
+            {user ? (
+              <Link
+                to="/minha-conta"
+                className="block text-gray-700 hover:text-primary transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Minha Conta
+              </Link>
             ) : (
-              "Começar Gratuitamente"
+              <Link
+                to="/admin/login"
+                className="block text-gray-700 hover:text-primary transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Login
+              </Link>
             )}
-          </button>
-        </div>
+            
+            <Button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                openChatModal();
+              }}
+              variant="outline"
+              className="w-full mt-2 flex items-center justify-center gap-2"
+            >
+              <MessageCircle size={18} />
+              Fale Conosco
+            </Button>
+          </div>
+        )}
       </div>
-    </header>;
+    </header>
+  );
 };
+
 export default Header;
