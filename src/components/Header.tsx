@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useMobile } from "@/hooks/useMobile";
-import { Menu, X, MessageCircle, UserCircle } from "lucide-react";
+import { Menu, X, MessageCircle, UserCircle, Users } from "lucide-react";
 import { useModalControls } from "./FloatingButtons";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -30,6 +31,21 @@ const Header = () => {
 
   const { openChatModal } = useModalControls();
 
+  const handleComunidadeClick = () => {
+    // Scroll to the community section
+    const communitySection = document.getElementById('comunidade');
+    if (communitySection) {
+      const headerOffset = 80;
+      const elementPosition = communitySection.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <header
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
@@ -56,9 +72,13 @@ const Header = () => {
                 <a href="#planos" className="text-gray-700 hover:text-primary transition-colors">
                   Planos
                 </a>
-                <a href="#comunidade" className="text-gray-700 hover:text-primary transition-colors">
+                <button 
+                  onClick={handleComunidadeClick}
+                  className="text-gray-700 hover:text-primary transition-colors flex items-center gap-2"
+                >
+                  <Users size={18} />
                   Comunidade
-                </a>
+                </button>
                 <Link to="/blog" className="text-gray-700 hover:text-primary transition-colors">
                   Blog
                 </Link>
@@ -127,13 +147,16 @@ const Header = () => {
             >
               Planos
             </a>
-            <a
-              href="#comunidade"
-              className="block text-gray-700 hover:text-primary transition-colors py-2"
-              onClick={() => setMobileMenuOpen(false)}
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleComunidadeClick();
+              }}
+              className="block text-gray-700 hover:text-primary transition-colors py-2 flex items-center gap-2"
             >
+              <Users size={18} />
               Comunidade
-            </a>
+            </button>
             <Link
               to="/blog"
               className="block text-gray-700 hover:text-primary transition-colors py-2"

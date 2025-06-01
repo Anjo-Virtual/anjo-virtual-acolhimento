@@ -46,7 +46,9 @@ const Community = () => {
             </div>
           </div>
           <div className="text-center">
-            <a href="#" className="bg-primary text-white px-8 py-3 rounded-button hover:bg-opacity-90 transition-colors inline-block whitespace-nowrap">Conhecer a Comunidade</a>
+            <button className="bg-primary text-white px-8 py-3 rounded-button hover:bg-opacity-90 transition-colors inline-block whitespace-nowrap">
+              Conhecer a Comunidade
+            </button>
           </div>
         </div>
       </div>
