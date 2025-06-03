@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Clock, User, Reply } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { MessageSquare, Clock, User, Reply, Heart, Eye, Pin } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useCommunityProfile } from "@/hooks/useCommunityProfile";
 
 type ForumPost = {
   id: string;
@@ -28,6 +30,8 @@ type ForumPost = {
     slug: string;
     color: string;
   };
+  likes_count: number;
+  user_has_liked: boolean;
 };
 
 type Comment = {
@@ -40,11 +44,14 @@ type Comment = {
   };
   parent_comment_id: string | null;
   replies?: Comment[];
+  likes_count: number;
+  user_has_liked: boolean;
 };
 
 const ForumPost = () => {
   const { slug, postId } = useParams<{ slug: string; postId: string }>();
   const { user } = useAuth();
+  const { profile } = useCommunityProfile();
   const [post, setPost] = useState<ForumPost | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -81,7 +88,26 @@ const ForumPost = () => {
         .single();
 
       if (error) throw error;
-      setPost(data);
+
+      // Buscar likes do post
+      const { count: likesCount } = await supabase
+        .from('forum_post_likes')
+        .select('*', { count: 'exact', head: true })
+        .eq('post_id', postId);
+
+      // Verificar se usuário curtiu
+      const { data: userLike } = await supabase
+        .from('forum_post_likes')
+        .select('id')
+        .eq('post_id', postId)
+        .eq('user_id', user?.id || '')
+        .single();
+
+      setPost({
+        ...data,
+        likes_count: likesCount || 0,
+        user_has_liked: !!userLike
+      });
     } catch (error) {
       console.error('Erro ao carregar post:', error);
       toast({
@@ -109,15 +135,38 @@ const ForumPost = () => {
 
       if (error) throw error;
 
-      // Organizar comentários em árvore (parent/child)
+      // Buscar likes para cada comentário
+      const commentsWithLikes = await Promise.all(
+        (data || []).map(async (comment) => {
+          const { count: likesCount } = await supabase
+            .from('forum_comment_likes')
+            .select('*', { count: 'exact', head: true })
+            .eq('comment_id', comment.id);
+
+          const { data: userLike } = await supabase
+            .from('forum_comment_likes')
+            .select('id')
+            .eq('comment_id', comment.id)
+            .eq('user_id', user?.id || '')
+            .single();
+
+          return {
+            ...comment,
+            likes_count: likesCount || 0,
+            user_has_liked: !!userLike
+          };
+        })
+      );
+
+      // Organizar comentários em árvore
       const commentMap = new Map();
       const rootComments: Comment[] = [];
 
-      data?.forEach(comment => {
+      commentsWithLikes.forEach(comment => {
         commentMap.set(comment.id, { ...comment, replies: [] });
       });
 
-      data?.forEach(comment => {
+      commentsWithLikes.forEach(comment => {
         if (comment.parent_comment_id) {
           const parent = commentMap.get(comment.parent_comment_id);
           if (parent) {
@@ -137,6 +186,8 @@ const ForumPost = () => {
   };
 
   const incrementViewCount = async () => {
+    if (!post) return;
+    
     try {
       await supabase
         .from('forum_posts')
@@ -144,6 +195,35 @@ const ForumPost = () => {
         .eq('id', postId);
     } catch (error) {
       console.error('Erro ao incrementar visualizações:', error);
+    }
+  };
+
+  const togglePostLike = async () => {
+    if (!user || !post) return;
+
+    try {
+      if (post.user_has_liked) {
+        await supabase
+          .from('forum_post_likes')
+          .delete()
+          .eq('post_id', post.id)
+          .eq('user_id', user.id);
+      } else {
+        await supabase
+          .from('forum_post_likes')
+          .insert({
+            post_id: post.id,
+            user_id: user.id
+          });
+      }
+
+      setPost(prev => prev ? {
+        ...prev,
+        user_has_liked: !prev.user_has_liked,
+        likes_count: prev.user_has_liked ? prev.likes_count - 1 : prev.likes_count + 1
+      } : null);
+    } catch (error) {
+      console.error('Erro ao curtir post:', error);
     }
   };
 
@@ -159,19 +239,18 @@ const ForumPost = () => {
       return;
     }
 
+    if (!profile) {
+      toast({
+        title: "Erro",
+        description: "Perfil da comunidade não encontrado.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSubmitting(true);
 
     try {
-      // Buscar perfil do usuário
-      const { data: profile, error: profileError } = await supabase
-        .from('community_profiles')
-        .select('id')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (profileError) throw profileError;
-
-      // Criar comentário
       const { error: commentError } = await supabase
         .from('forum_comments')
         .insert({
@@ -214,24 +293,42 @@ const ForumPost = () => {
     <div key={comment.id} className={`${depth > 0 ? 'ml-8 border-l-2 border-gray-200 pl-4' : ''}`}>
       <Card className="mb-4">
         <CardContent className="p-4">
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-            <User size={14} />
-            {comment.author?.is_anonymous ? 'Membro Anônimo' : comment.author?.display_name}
-            <Clock size={14} />
-            {formatDistanceToNow(new Date(comment.created_at), { 
-              addSuffix: true, 
-              locale: ptBR 
-            })}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Avatar className="h-6 w-6">
+                <AvatarFallback className="text-xs">
+                  {comment.author?.is_anonymous ? 'A' : comment.author?.display_name?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              {comment.author?.is_anonymous ? 'Membro Anônimo' : comment.author?.display_name}
+              <Clock size={12} />
+              {formatDistanceToNow(new Date(comment.created_at), { 
+                addSuffix: true, 
+                locale: ptBR 
+              })}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-xs text-gray-500"
+              >
+                <Heart size={12} className="mr-1" />
+                {comment.likes_count}
+              </Button>
+            </div>
           </div>
+          
           <p className="text-gray-800 mb-2">{comment.content}</p>
+          
           {user && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setReplyingTo(comment.id)}
-              className="text-xs"
+              className="text-xs h-6 px-2"
             >
-              <Reply size={14} className="mr-1" />
+              <Reply size={12} className="mr-1" />
               Responder
             </Button>
           )}
@@ -275,7 +372,7 @@ const ForumPost = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-20">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
@@ -295,7 +392,7 @@ const ForumPost = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-20">
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
@@ -308,7 +405,7 @@ const ForumPost = () => {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-20">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
@@ -324,7 +421,7 @@ const ForumPost = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-20">
         <div className="max-w-4xl mx-auto">
           {/* Navegação */}
@@ -346,22 +443,46 @@ const ForumPost = () => {
                 </div>
                 <Badge variant="secondary">{post.category.name}</Badge>
                 {post.is_pinned && (
-                  <Badge variant="default">Fixado</Badge>
+                  <Badge variant="default">
+                    <Pin size={12} className="mr-1" />
+                    Fixado
+                  </Badge>
                 )}
               </div>
               <CardTitle className="text-2xl">{post.title}</CardTitle>
-              <div className="flex items-center gap-4 text-sm text-gray-500">
-                <div className="flex items-center gap-1">
-                  <User size={14} />
-                  {post.author?.is_anonymous ? 'Membro Anônimo' : post.author?.display_name}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4 text-sm text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <Avatar className="h-6 w-6">
+                      <AvatarFallback className="text-xs">
+                        {post.author?.is_anonymous ? 'A' : post.author?.display_name?.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {post.author?.is_anonymous ? 'Membro Anônimo' : post.author?.display_name}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Clock size={14} />
+                    {formatDistanceToNow(new Date(post.created_at), { 
+                      addSuffix: true, 
+                      locale: ptBR 
+                    })}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Eye size={14} />
+                    {post.view_count} visualizações
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Clock size={14} />
-                  {formatDistanceToNow(new Date(post.created_at), { 
-                    addSuffix: true, 
-                    locale: ptBR 
-                  })}
-                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={togglePostLike}
+                  className={`flex items-center gap-1 ${
+                    post.user_has_liked ? 'text-red-500' : 'text-gray-500'
+                  }`}
+                >
+                  <Heart size={16} className={post.user_has_liked ? 'fill-current' : ''} />
+                  {post.likes_count}
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -382,7 +503,7 @@ const ForumPost = () => {
             </h3>
 
             {/* Formulário de novo comentário */}
-            {user && (
+            {user && profile && (
               <Card>
                 <CardContent className="p-4">
                   <Textarea

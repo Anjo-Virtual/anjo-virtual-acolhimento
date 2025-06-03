@@ -1,121 +1,80 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   MessageSquare, 
   Users, 
   TrendingUp, 
-  Clock,
+  Plus,
   Heart,
-  Reply,
-  Pin,
-  Eye,
-  Plus
+  Eye
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import PostList from "./PostList";
+import CreatePostForm from "./CreatePostForm";
+import { supabase } from "@/integrations/supabase/client";
 
-interface ForumPreview {
+interface ForumCategory {
   id: string;
   name: string;
   description: string;
   slug: string;
   color: string;
-  memberCount: number;
-  lastActivity: string;
-  isActive: boolean;
-  recentPosts: {
-    id: string;
-    title: string;
-    author: string;
-    authorInitials: string;
-    timeAgo: string;
-    repliesCount: number;
-    likesCount: number;
-    isPinned?: boolean;
-  }[];
+  posts_count: number;
+  last_activity: string;
 }
 
-const mockForums: ForumPreview[] = [
-  {
-    id: "1",
-    name: "Luto por Perda de Ente Querido",
-    description: "Compartilhe suas experiências e encontre apoio após a perda de familiares",
-    slug: "luto-ente-querido",
-    color: "#8A6FD6",
-    memberCount: 342,
-    lastActivity: "5 min atrás",
-    isActive: true,
-    recentPosts: [
-      {
-        id: "1",
-        title: "Como lidar com o primeiro aniversário de morte",
-        author: "Maria S.",
-        authorInitials: "MS",
-        timeAgo: "2h",
-        repliesCount: 12,
-        likesCount: 8,
-        isPinned: true
-      },
-      {
-        id: "2",
-        title: "Encontrando forças no dia a dia",
-        author: "João P.",
-        authorInitials: "JP",
-        timeAgo: "4h",
-        repliesCount: 6,
-        likesCount: 15
-      }
-    ]
-  },
-  {
-    id: "2",
-    name: "Apoio para Viúvos e Viúvas",
-    description: "Um espaço especial para quem perdeu o companheiro de vida",
-    slug: "viuvos-viuvas",
-    color: "#57B5E7",
-    memberCount: 189,
-    lastActivity: "15 min atrás",
-    isActive: true,
-    recentPosts: [
-      {
-        id: "3",
-        title: "Reconstruindo a vida após 30 anos juntos",
-        author: "Ana L.",
-        authorInitials: "AL",
-        timeAgo: "1h",
-        repliesCount: 9,
-        likesCount: 22
-      }
-    ]
-  },
-  {
-    id: "3",
-    name: "Luto Infantil",
-    description: "Apoio para pais que perderam filhos e orientações sobre luto em crianças",
-    slug: "luto-infantil",
-    color: "#F9B572",
-    memberCount: 156,
-    lastActivity: "1h atrás",
-    isActive: true,
-    recentPosts: [
-      {
-        id: "4",
-        title: "Como explicar a morte para outras crianças da família",
-        author: "Roberto M.",
-        authorInitials: "RM",
-        timeAgo: "3h",
-        repliesCount: 14,
-        likesCount: 11
-      }
-    ]
-  }
-];
-
 const CommunityDashboard = () => {
-  const [selectedForum, setSelectedForum] = useState<string | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [categories, setCategories] = useState<ForumCategory[]>([]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const { data } = await supabase
+        .from('forum_categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order');
+
+      if (data) {
+        // Buscar contadores para cada categoria
+        const categoriesWithCounts = await Promise.all(
+          data.map(async (category) => {
+            const { count } = await supabase
+              .from('forum_posts')
+              .select('*', { count: 'exact', head: true })
+              .eq('category_id', category.id)
+              .eq('is_published', true);
+
+            const { data: lastPost } = await supabase
+              .from('forum_posts')
+              .select('created_at')
+              .eq('category_id', category.id)
+              .eq('is_published', true)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single();
+
+            return {
+              ...category,
+              posts_count: count || 0,
+              last_activity: lastPost?.created_at || category.created_at || new Date().toISOString()
+            };
+          })
+        );
+
+        setCategories(categoriesWithCounts);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar categorias:', error);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -136,12 +95,13 @@ const CommunityDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="flex gap-3 flex-wrap">
-            <Link to="/comunidade/criar-post">
-              <Button className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Criar Post
-              </Button>
-            </Link>
+            <Button 
+              onClick={() => setShowCreateForm(!showCreateForm)}
+              className="flex items-center gap-2"
+            >
+              <MessageSquare className="h-4 w-4" />
+              {showCreateForm ? 'Cancelar' : 'Criar Post'}
+            </Button>
             <Button variant="outline" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Encontrar Grupos
@@ -154,109 +114,89 @@ const CommunityDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Active Forums */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        {mockForums.map((forum) => (
-          <Card 
-            key={forum.id} 
-            className={`cursor-pointer transition-all hover:shadow-lg ${
-              selectedForum === forum.id ? 'ring-2 ring-primary' : ''
-            }`}
-            onClick={() => setSelectedForum(selectedForum === forum.id ? null : forum.id)}
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="w-12 h-12 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: `${forum.color}20`, color: forum.color }}
-                  >
-                    <MessageSquare size={24} />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">{forum.name}</CardTitle>
-                    <div className="flex items-center gap-4 mt-1">
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
-                        <Users className="h-4 w-4" />
-                        {forum.memberCount} membros
-                      </div>
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
-                        <Clock className="h-4 w-4" />
-                        {forum.lastActivity}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <Badge variant={forum.isActive ? "default" : "secondary"}>
-                  {forum.isActive ? "Ativo" : "Inativo"}
-                </Badge>
-              </div>
-            </CardHeader>
-            
-            <CardContent>
-              <p className="text-sm text-gray-600 mb-4">{forum.description}</p>
-              
-              {/* Recent Posts Preview */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Discussões Recentes</span>
-                  <Link 
-                    to={`/comunidade/${forum.slug}`}
-                    className="text-sm text-primary hover:underline"
-                  >
-                    Ver todas
-                  </Link>
-                </div>
-                
-                {forum.recentPosts.map((post) => (
-                  <div key={post.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="text-xs">{post.authorInitials}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        {post.isPinned && (
-                          <Pin className="h-3 w-3 text-primary" />
-                        )}
-                        <h4 className="text-sm font-medium text-gray-900 truncate">
-                          {post.title}
-                        </h4>
-                      </div>
-                      <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
-                        <span>por {post.author}</span>
-                        <span>{post.timeAgo}</span>
-                        <div className="flex items-center gap-1">
-                          <Reply className="h-3 w-3" />
-                          {post.repliesCount}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Heart className="h-3 w-3" />
-                          {post.likesCount}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+      {/* Create Post Form */}
+      {showCreateForm && (
+        <CreatePostForm onSuccess={() => setShowCreateForm(false)} />
+      )}
 
-              <div className="mt-4">
-                <Link to={`/comunidade/${forum.slug}`}>
-                  <Button variant="outline" className="w-full" size="sm">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Participar das Discussões
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Forum Categories */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Fóruns Ativos
+          </CardTitle>
+          <CardDescription>
+            Explore as discussões em andamento
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            {categories.map((category) => (
+              <Link 
+                key={category.id} 
+                to={`/comunidade/${category.slug}`}
+                className="block"
+              >
+                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div 
+                        className="w-10 h-10 rounded-lg flex items-center justify-center"
+                        style={{ backgroundColor: `${category.color}20`, color: category.color }}
+                      >
+                        <MessageSquare size={20} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-sm leading-tight">{category.name}</h4>
+                        <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                          {category.description}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span>{category.posts_count} posts</span>
+                      <Badge variant="secondary" className="text-xs">
+                        Ativo
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent Posts */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Discussões Recentes
+              </CardTitle>
+              <CardDescription>
+                Acompanhe as conversas mais recentes da comunidade
+              </CardDescription>
+            </div>
+            <Link to="/comunidade/todos-posts">
+              <Button variant="outline" size="sm">Ver Todos</Button>
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <PostList limit={5} />
+        </CardContent>
+      </Card>
 
       {/* Community Resources */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
+            <Eye className="h-5 w-5" />
             Recursos da Comunidade
           </CardTitle>
           <CardDescription>
