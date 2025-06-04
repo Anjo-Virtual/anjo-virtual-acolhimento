@@ -22,6 +22,12 @@ import Community from "./pages/Community";
 import ForumCategory from "./pages/ForumCategory";
 import CreatePost from "./pages/CreatePost";
 import ForumPost from "./pages/ForumPost";
+import Groups from "./pages/Groups";
+import ActiveForums from "./pages/ActiveForums";
+import Messages from "./pages/Messages";
+import Events from "./pages/Events";
+import SavedPosts from "./pages/SavedPosts";
+import Notifications from "./pages/Notifications";
 import { TrackingScripts } from "./components/TrackingScripts";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/admin/ProtectedRoute";
@@ -44,6 +50,12 @@ const App = () => (
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:id" element={<BlogPost />} />
             <Route path="/comunidade" element={<Community />} />
+            <Route path="/comunidade/ativos" element={<ActiveForums />} />
+            <Route path="/comunidade/grupos" element={<Groups />} />
+            <Route path="/comunidade/mensagens" element={<Messages />} />
+            <Route path="/comunidade/eventos" element={<Events />} />
+            <Route path="/comunidade/salvos" element={<SavedPosts />} />
+            <Route path="/comunidade/notificacoes" element={<Notifications />} />
             <Route path="/pagamento-sucesso" element={<PaymentSuccess />} />
             <Route path="/pagamento-cancelado" element={<PaymentCanceled />} />
             <Route path="/minha-conta" element={<ClientArea />} />
