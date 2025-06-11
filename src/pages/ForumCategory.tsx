@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MessageSquare, Plus } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import PostList from "@/components/community/PostList";
@@ -20,7 +19,7 @@ type ForumCategory = {
 
 const ForumCategory = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { user } = useAuth();
+  const { user } = useCommunityAuth();
   const [category, setCategory] = useState<ForumCategory | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -66,7 +65,7 @@ const ForumCategory = () => {
             <p className="text-lg text-gray-600 mb-8">
               Você precisa estar logado para acessar os fóruns da comunidade.
             </p>
-            <Link to="/admin/login">
+            <Link to="/comunidade/login">
               <Button size="lg">Fazer Login</Button>
             </Link>
           </div>

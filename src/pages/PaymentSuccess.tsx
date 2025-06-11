@@ -1,16 +1,18 @@
-
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckCircle, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { toast } from "@/components/ui/use-toast";
 import { Check, ArrowRight, Loader2, User } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, refreshSubscription } = useAuth();
+  const { user, refreshSubscription } = useAdminAuth();
   const [checking, setChecking] = useState(true);
   const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null);
   
@@ -89,7 +91,7 @@ const PaymentSuccess = () => {
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
         <div className="flex justify-center mb-6">
           <div className="bg-green-100 p-3 rounded-full">
-            <Check className="h-8 w-8 text-green-600" />
+            <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
         </div>
         

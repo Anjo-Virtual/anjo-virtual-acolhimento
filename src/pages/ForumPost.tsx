@@ -1,13 +1,11 @@
-
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { MessageSquare, Clock, User, Reply, Heart, Eye, Pin } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { MessageSquare, Heart, Share2, Flag, ArrowLeft, Send, Bookmark } from "lucide-react";
+import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
@@ -50,7 +48,7 @@ type Comment = {
 
 const ForumPost = () => {
   const { slug, postId } = useParams<{ slug: string; postId: string }>();
-  const { user } = useAuth();
+  const { user } = useCommunityAuth();
   const { profile } = useCommunityProfile();
   const [post, setPost] = useState<ForumPost | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -546,3 +544,5 @@ const ForumPost = () => {
 };
 
 export default ForumPost;
+
+</initial_code>

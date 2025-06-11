@@ -5,68 +5,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAuth } from "@/contexts/AuthContext";
+import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useCommunityProfile } from "@/hooks/useCommunityProfile";
-
-type ForumCategory = {
-  id: string;
-  name: string;
-  slug: string;
-};
 
 interface CreatePostFormProps {
-  onSuccess?: () => void;
   preselectedCategory?: string;
+  onSuccess?: () => void;
 }
 
-const CreatePostForm = ({ onSuccess, preselectedCategory }: CreatePostFormProps) => {
-  const { user } = useAuth();
-  const { profile } = useCommunityProfile();
+const CreatePostForm = ({ preselectedCategory, onSuccess }: CreatePostFormProps) => {
+  const { user } = useCommunityAuth();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(preselectedCategory || "");
-  const [categories, setCategories] = useState<ForumCategory[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-
-  // Carregar categorias
-  useState(() => {
-    const fetchCategories = async () => {
-      const { data } = await supabase
-        .from('forum_categories')
-        .select('id, name, slug')
-        .eq('is_active', true)
-        .order('sort_order');
-      
-      if (data) {
-        setCategories(data);
-        if (!preselectedCategory && data.length > 0) {
-          setSelectedCategory(data[0].id);
-        }
-      }
-    };
-    fetchCategories();
-  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title.trim() || !content.trim() || !selectedCategory) {
+    if (!title.trim() || !content.trim()) {
       toast({
         title: "Erro",
-        description: "Todos os campos são obrigatórios.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!profile) {
-      toast({
-        title: "Erro",
-        description: "Perfil da comunidade não encontrado.",
+        description: "Título e conteúdo são obrigatórios.",
         variant: "destructive",
       });
       return;
@@ -75,35 +36,37 @@ const CreatePostForm = ({ onSuccess, preselectedCategory }: CreatePostFormProps)
     setLoading(true);
 
     try {
-      const { data: post, error } = await supabase
+      // Buscar perfil do usuário
+      const { data: profile, error: profileError } = await supabase
+        .from('community_profiles')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Criar post
+      const { data: post, error: postError } = await supabase
         .from('forum_posts')
         .insert({
-          category_id: selectedCategory,
+          category_id: preselectedCategory,
           author_id: profile.id,
           title: title.trim(),
           content: content.trim(),
           is_published: true
         })
-        .select(`
-          id,
-          category:forum_categories(slug)
-        `)
+        .select()
         .single();
 
-      if (error) throw error;
+      if (postError) throw postError;
 
       toast({
         title: "Sucesso",
         description: "Post criado com sucesso!",
       });
 
-      // Limpar formulário
       setTitle("");
       setContent("");
-      if (!preselectedCategory) {
-        setSelectedCategory(categories[0]?.id || "");
-      }
-
       onSuccess?.();
     } catch (error) {
       console.error('Erro ao criar post:', error);
@@ -117,19 +80,6 @@ const CreatePostForm = ({ onSuccess, preselectedCategory }: CreatePostFormProps)
     }
   };
 
-  if (!user) {
-    return (
-      <Card>
-        <CardContent className="text-center py-8">
-          <p className="text-gray-600 mb-4">
-            Você precisa estar logado para criar posts.
-          </p>
-          <Button variant="outline">Fazer Login</Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card>
       <CardHeader>
@@ -137,24 +87,6 @@ const CreatePostForm = ({ onSuccess, preselectedCategory }: CreatePostFormProps)
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {!preselectedCategory && (
-            <div>
-              <Label htmlFor="category">Categoria</Label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
           <div>
             <Label htmlFor="title">Título do Post</Label>
             <Input
@@ -186,12 +118,6 @@ const CreatePostForm = ({ onSuccess, preselectedCategory }: CreatePostFormProps)
           </div>
 
           <div className="flex justify-end gap-4">
-            <Button type="button" variant="outline" onClick={() => {
-              setTitle("");
-              setContent("");
-            }}>
-              Limpar
-            </Button>
             <Button type="submit" disabled={loading}>
               {loading ? 'Publicando...' : 'Publicar Post'}
             </Button>

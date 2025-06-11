@@ -1,5 +1,4 @@
-
-import { useAuth } from "@/contexts/AuthContext";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
@@ -7,7 +6,7 @@ import { useCheckoutHandler, FREE_PLAN_PRICE_ID } from "@/utils/checkoutUtils";
 import { useModalControls } from "./FloatingButtons";
 
 const Plans = () => {
-  const { user } = useAuth();
+  const { user } = useAdminAuth();
   const { handleCheckout, isLoading } = useCheckoutHandler();
   const { openChatModal } = useModalControls();
   

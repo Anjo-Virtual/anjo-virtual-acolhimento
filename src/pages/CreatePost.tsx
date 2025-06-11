@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,14 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/contexts/AuthContext";
+import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const CreatePost = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useCommunityAuth();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
@@ -96,7 +95,7 @@ const CreatePost = () => {
             <p className="text-lg text-gray-600 mb-8">
               Você precisa estar logado para criar posts.
             </p>
-            <Link to="/admin/login">
+            <Link to="/comunidade/login">
               <Button size="lg">Fazer Login</Button>
             </Link>
           </div>

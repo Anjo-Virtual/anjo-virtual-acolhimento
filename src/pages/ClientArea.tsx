@@ -1,9 +1,7 @@
-
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
@@ -12,7 +10,7 @@ import { Loader2, AlertCircle, CreditCard, Settings, Calendar, LogOut } from "lu
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const ClientArea = () => {
-  const { user, subscription, loading, subscriptionLoading, refreshSubscription, signOut } = useAuth();
+  const { user, subscription, loading, subscriptionLoading, refreshSubscription, signOut } = useAdminAuth();
   const [portalLoading, setPortalLoading] = useState(false);
   const navigate = useNavigate();
 
