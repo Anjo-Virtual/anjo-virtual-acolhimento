@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,10 +13,20 @@ const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, user } = useAdminAuth();
+  const { signIn, user, loading } = useAdminAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   
   const from = location.state?.from?.pathname || "/admin";
+  
+  // Aguardar o carregamento inicial antes de redirecionar
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
   
   // Se o usuário já estiver autenticado, redirecionar para o painel
   if (user) {
@@ -25,12 +35,23 @@ const AdminLogin = () => {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha email e senha.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
       const { error } = await signIn(email, password);
       
       if (error) {
+        console.error("Erro de login:", error);
         toast({
           title: "Erro de autenticação",
           description: error.message || "Falha ao fazer login. Verifique suas credenciais.",
@@ -41,8 +62,10 @@ const AdminLogin = () => {
           title: "Login bem-sucedido",
           description: "Você foi autenticado com sucesso.",
         });
+        // O redirecionamento será feito automaticamente pelo Navigate acima
       }
     } catch (error: any) {
+      console.error("Erro no processo de login:", error);
       toast({
         title: "Erro ao processar a solicitação",
         description: error.message || "Ocorreu um erro ao tentar fazer login.",
@@ -74,6 +97,7 @@ const AdminLogin = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="grid gap-2">
@@ -85,6 +109,7 @@ const AdminLogin = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <Button disabled={isLoading} className="w-full mt-4">

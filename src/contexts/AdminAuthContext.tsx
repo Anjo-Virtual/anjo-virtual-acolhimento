@@ -57,23 +57,49 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
   };
 
   useEffect(() => {
-    // Configurar o listener para mudanças de autenticação PRIMEIRO
+    let mounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        // Verificar se já existe uma sessão
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Erro ao obter sessão:", error);
+        }
+        
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Erro na inicialização da auth:", error);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    // Configurar o listener para mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+      async (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.email);
+        
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        }
       }
     );
 
-    // Verificar se já existe uma sessão
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    initializeAuth();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Verificar assinatura quando o usuário mudar
@@ -87,25 +113,35 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
 
   const signIn = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) {
+        console.error("Erro no signIn:", error);
         return { error, data: null };
       }
       
+      console.log("Login bem-sucedido:", data.user?.email);
       return { data, error: null };
     } catch (error) {
+      console.error("Erro no catch do signIn:", error);
       return { error, data: null };
+    } finally {
+      setLoading(false);
     }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setSubscription(null);
-    navigate("/admin/login");
+    try {
+      await supabase.auth.signOut();
+      setSubscription(null);
+      navigate("/admin/login");
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+    }
   };
 
   const refreshSubscription = async () => {

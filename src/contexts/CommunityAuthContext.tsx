@@ -28,44 +28,77 @@ export const CommunityAuthProvider = ({ children }: { children: React.ReactNode 
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Configurar o listener para mudanças de autenticação PRIMEIRO
+    let mounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        // Verificar se já existe uma sessão
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Erro ao obter sessão:", error);
+        }
+        
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Erro na inicialização da auth:", error);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    // Configurar o listener para mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+      async (event, session) => {
+        console.log("Community auth state changed:", event, session?.user?.email);
+        
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        }
       }
     );
 
-    // Verificar se já existe uma sessão
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    initializeAuth();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) {
+        console.error("Erro no signIn community:", error);
         return { error, data: null };
       }
       
+      console.log("Login community bem-sucedido:", data.user?.email);
       return { data, error: null };
     } catch (error) {
+      console.error("Erro no catch do signIn community:", error);
       return { error, data: null };
+    } finally {
+      setLoading(false);
     }
   };
 
   const signUp = async (email: string, password: string, displayName?: string) => {
     try {
+      setLoading(true);
       const redirectUrl = `${window.location.origin}/comunidade`;
       
       const { data, error } = await supabase.auth.signUp({
@@ -80,18 +113,27 @@ export const CommunityAuthProvider = ({ children }: { children: React.ReactNode 
       });
       
       if (error) {
+        console.error("Erro no signUp community:", error);
         return { error, data: null };
       }
       
+      console.log("Cadastro community bem-sucedido:", data.user?.email);
       return { data, error: null };
     } catch (error) {
+      console.error("Erro no catch do signUp community:", error);
       return { error, data: null };
+    } finally {
+      setLoading(false);
     }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/comunidade");
+    try {
+      await supabase.auth.signOut();
+      navigate("/comunidade");
+    } catch (error) {
+      console.error("Erro ao fazer logout community:", error);
+    }
   };
 
   const value = {

@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Navigate, useLocation, Link } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,16 +9,26 @@ import { Loader2, Heart } from "lucide-react";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { toast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "react-router-dom";
 
 const CommunityLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp, user } = useCommunityAuth();
+  const { signIn, signUp, user, loading } = useCommunityAuth();
   const location = useLocation();
   
   const from = location.state?.from?.pathname || "/comunidade";
+  
+  // Aguardar o carregamento inicial antes de redirecionar
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
   
   // Se o usuário já estiver autenticado, redirecionar para a comunidade
   if (user) {
@@ -27,12 +37,23 @@ const CommunityLogin = () => {
   
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha email e senha.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
       const { error } = await signIn(email, password);
       
       if (error) {
+        console.error("Erro de login:", error);
         toast({
           title: "Erro de autenticação",
           description: error.message || "Falha ao fazer login. Verifique suas credenciais.",
@@ -43,8 +64,10 @@ const CommunityLogin = () => {
           title: "Bem-vindo de volta!",
           description: "Você foi autenticado com sucesso na comunidade.",
         });
+        // O redirecionamento será feito automaticamente pelo Navigate acima
       }
     } catch (error: any) {
+      console.error("Erro no processo de login:", error);
       toast({
         title: "Erro ao processar a solicitação",
         description: error.message || "Ocorreu um erro ao tentar fazer login.",
@@ -57,12 +80,23 @@ const CommunityLogin = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha email e senha.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
       const { error } = await signUp(email, password, displayName);
       
       if (error) {
+        console.error("Erro de cadastro:", error);
         toast({
           title: "Erro ao criar conta",
           description: error.message || "Falha ao criar conta. Tente novamente.",
@@ -73,8 +107,13 @@ const CommunityLogin = () => {
           title: "Conta criada com sucesso!",
           description: "Verifique seu email para confirmar sua conta e fazer login.",
         });
+        // Limpar formulário após cadastro bem-sucedido
+        setEmail("");
+        setPassword("");
+        setDisplayName("");
       }
     } catch (error: any) {
+      console.error("Erro no processo de cadastro:", error);
       toast({
         title: "Erro ao processar a solicitação",
         description: error.message || "Ocorreu um erro ao tentar criar a conta.",
@@ -121,6 +160,7 @@ const CommunityLogin = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      disabled={isLoading}
                     />
                   </div>
                   <div className="space-y-2">
@@ -132,6 +172,7 @@ const CommunityLogin = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      disabled={isLoading}
                     />
                   </div>
                   <Button disabled={isLoading} className="w-full">
@@ -157,6 +198,7 @@ const CommunityLogin = () => {
                       placeholder="Como você gostaria de ser chamado"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
+                      disabled={isLoading}
                     />
                   </div>
                   <div className="space-y-2">
@@ -168,6 +210,7 @@ const CommunityLogin = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      disabled={isLoading}
                     />
                   </div>
                   <div className="space-y-2">
@@ -179,6 +222,7 @@ const CommunityLogin = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      disabled={isLoading}
                     />
                   </div>
                   <Button disabled={isLoading} className="w-full">
