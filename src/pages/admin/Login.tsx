@@ -19,22 +19,28 @@ const AdminLogin = () => {
   
   const from = location.state?.from?.pathname || "/admin";
   
+  console.log("AdminLogin - Estado atual:", { user: user?.email, loading, isAdmin });
+  
   // Aguardar o carregamento inicial antes de redirecionar
   if (loading) {
+    console.log("AdminLogin - Mostrando loading...");
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-sm text-gray-600">Carregando...</span>
       </div>
     );
   }
   
   // Se o usuário estiver autenticado e for admin, redirecionar para o painel
   if (user && isAdmin) {
+    console.log("AdminLogin - Redirecionando usuário admin para:", from);
     return <Navigate to={from} replace />;
   }
 
   // Se o usuário estiver autenticado mas não for admin, mostrar mensagem
   if (user && !isAdmin) {
+    console.log("AdminLogin - Usuário sem permissões de admin");
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <Card className="w-full max-w-md">
@@ -43,14 +49,28 @@ const AdminLogin = () => {
             <CardTitle className="text-xl">Acesso Negado</CardTitle>
             <CardDescription>
               Você não tem permissões de administrador para acessar esta área.
+              <br />
+              <small className="text-xs text-gray-500 mt-2 block">
+                Usuário: {user.email}
+              </small>
             </CardDescription>
           </CardHeader>
-          <CardFooter>
+          <CardFooter className="flex flex-col space-y-2">
             <Button 
               onClick={() => window.location.href = "/comunidade"} 
               className="w-full"
             >
               Ir para a Comunidade
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={async () => {
+                const { signOut } = useAdminAuth();
+                await signOut();
+              }}
+              className="w-full"
+            >
+              Fazer Logout
             </Button>
           </CardFooter>
         </Card>
@@ -73,6 +93,7 @@ const AdminLogin = () => {
     setIsLoading(true);
     
     try {
+      console.log("Tentando fazer login com:", email);
       const { error } = await signIn(email, password);
       
       if (error) {
@@ -83,6 +104,7 @@ const AdminLogin = () => {
           variant: "destructive",
         });
       } else {
+        console.log("Login realizado, aguardando verificação de permissões...");
         toast({
           title: "Login bem-sucedido",
           description: "Verificando permissões de administrador...",
@@ -115,6 +137,7 @@ const AdminLogin = () => {
     setIsLoading(true);
     
     try {
+      console.log("Tentando criar conta para:", email);
       const { error } = await signUp(email, password);
       
       if (error) {
@@ -143,6 +166,8 @@ const AdminLogin = () => {
       setIsLoading(false);
     }
   };
+
+  console.log("AdminLogin - Renderizando tela de login");
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">

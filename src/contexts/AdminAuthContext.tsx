@@ -45,14 +45,16 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
   // Função para verificar se o usuário é admin
   const checkAdminRole = async (userId: string) => {
     try {
+      console.log("Verificando role admin para usuário:", userId);
       const { data, error } = await supabase.rpc('is_admin', { user_uuid: userId });
       if (error) {
         console.error("Erro ao verificar role admin:", error);
         return false;
       }
+      console.log("Resultado verificação admin:", data);
       return data || false;
     } catch (error) {
-      console.error("Erro ao verificar role admin:", error);
+      console.error("Erro no catch ao verificar role admin:", error);
       return false;
     }
   };
@@ -83,6 +85,8 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
 
     const initializeAuth = async () => {
       try {
+        console.log("Inicializando autenticação admin...");
+        
         // Verificar se já existe uma sessão
         const { data: { session }, error } = await supabase.auth.getSession();
         
@@ -90,17 +94,21 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
           console.error("Erro ao obter sessão:", error);
         }
         
-        if (mounted && session?.user) {
-          setSession(session);
-          setUser(session.user);
-          
-          // Verificar se é admin
-          const adminStatus = await checkAdminRole(session.user.id);
-          setIsAdmin(adminStatus);
-        }
-        
         if (mounted) {
+          console.log("Sessão encontrada:", session?.user?.email || "nenhuma");
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            // Verificar se é admin
+            const adminStatus = await checkAdminRole(session.user.id);
+            console.log("Status admin inicial:", adminStatus);
+            setIsAdmin(adminStatus);
+          }
+          
+          // IMPORTANTE: Sempre finalizar o loading, mesmo sem sessão
           setLoading(false);
+          console.log("Loading inicial finalizado");
         }
       } catch (error) {
         console.error("Erro na inicialização da auth:", error);
@@ -122,12 +130,15 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
           if (session?.user) {
             // Verificar se é admin quando logar
             const adminStatus = await checkAdminRole(session.user.id);
+            console.log("Status admin após login:", adminStatus);
             setIsAdmin(adminStatus);
           } else {
             setIsAdmin(false);
           }
           
+          // Sempre finalizar o loading após mudança de estado
           setLoading(false);
+          console.log("Loading finalizado após mudança de estado:", event);
         }
       }
     );
@@ -151,6 +162,7 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log("Tentando login admin para:", email);
       setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -159,21 +171,23 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
       
       if (error) {
         console.error("Erro no signIn admin:", error);
+        setLoading(false);
         return { error, data: null };
       }
       
       console.log("Login admin bem-sucedido:", data.user?.email);
+      // Não definir loading como false aqui, deixar o onAuthStateChange fazer isso
       return { data, error: null };
     } catch (error) {
       console.error("Erro no catch do signIn admin:", error);
-      return { error, data: null };
-    } finally {
       setLoading(false);
+      return { error, data: null };
     }
   };
 
   const signUp = async (email: string, password: string) => {
     try {
+      console.log("Tentando cadastro admin para:", email);
       setLoading(true);
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -185,21 +199,23 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
       
       if (error) {
         console.error("Erro no signUp admin:", error);
+        setLoading(false);
         return { error, data: null };
       }
       
       console.log("Cadastro admin bem-sucedido:", data.user?.email);
+      setLoading(false);
       return { data, error: null };
     } catch (error) {
       console.error("Erro no catch do signUp admin:", error);
-      return { error, data: null };
-    } finally {
       setLoading(false);
+      return { error, data: null };
     }
   };
 
   const makeUserAdmin = async (userId: string) => {
     try {
+      console.log("Tornando usuário admin:", userId);
       const { error } = await supabase
         .from('user_roles')
         .insert({
@@ -212,6 +228,7 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
         return { error };
       }
       
+      console.log("Usuário promovido a admin com sucesso");
       return { error: null };
     } catch (error) {
       console.error("Erro ao tornar usuário admin:", error);
@@ -221,6 +238,7 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
 
   const signOut = async () => {
     try {
+      console.log("Fazendo logout admin");
       await supabase.auth.signOut();
       setSubscription(null);
       setIsAdmin(false);
