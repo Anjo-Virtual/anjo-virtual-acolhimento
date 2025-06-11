@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { useMobile } from "@/hooks/useMobile";
 import { Menu, X, MessageCircle, UserCircle, Users } from "lucide-react";
 import { useModalControls } from "./FloatingButtons";
-import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { useSafeAdminAuth } from "@/hooks/useSafeAdminAuth";
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useMobile();
-  const { user } = useAdminAuth();
+  const { user } = useSafeAdminAuth();
 
   useEffect(() => {
     const handleScroll = () => {
