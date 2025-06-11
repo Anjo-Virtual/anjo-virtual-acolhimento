@@ -1,10 +1,12 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Heart, Share2, Flag, ArrowLeft, Send, Bookmark } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { MessageSquare, Heart, Share2, Flag, ArrowLeft, Send, Bookmark, Clock, Eye, Pin, Reply } from "lucide-react";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -379,7 +381,7 @@ const ForumPost = () => {
             <p className="text-lg text-gray-600 mb-8">
               Você precisa estar logado para visualizar os posts.
             </p>
-            <Link to="/admin/login">
+            <Link to="/comunidade/login">
               <Button size="lg">Fazer Login</Button>
             </Link>
           </div>
@@ -544,5 +546,3 @@ const ForumPost = () => {
 };
 
 export default ForumPost;
-
-</initial_code>
