@@ -78,16 +78,11 @@ const App = () => (
             </Route>
             
             {/* Community Routes with CommunityAuthProvider */}
-            <Route path="/comunidade/login" element={
-              <CommunityAuthProvider>
-                <CommunityLogin />
-              </CommunityAuthProvider>
-            } />
-            
             <Route path="/comunidade/*" element={
               <CommunityAuthProvider>
                 <Routes>
                   <Route index element={<Community />} />
+                  <Route path="login" element={<CommunityLogin />} />
                   <Route path="ativos" element={
                     <ProtectedCommunityRoute>
                       <ActiveForums />

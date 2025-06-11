@@ -1,32 +1,32 @@
 
-import { Link, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { 
   Home, 
+  TrendingUp, 
   Users, 
   MessageSquare, 
   Calendar,
-  Settings,
-  Bell,
   Bookmark,
-  TrendingUp,
-  Heart
+  Bell,
+  Plus
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const sidebarItems = [
   {
-    title: "Visão Geral",
+    title: "Feed",
     href: "/comunidade",
     icon: Home,
     exact: true
   },
   {
-    title: "Fóruns Ativos",
+    title: "Discussões Ativas",
     href: "/comunidade/ativos",
     icon: TrendingUp
   },
   {
-    title: "Meus Grupos",
+    title: "Grupos",
     href: "/comunidade/grupos",
     icon: Users
   },
@@ -53,58 +53,105 @@ const sidebarItems = [
 ];
 
 const CommunitySidebar = () => {
-  const location = useLocation();
-
   return (
-    <div className="w-64 bg-white border-r border-gray-200 h-full">
+    <aside className="w-64 bg-white border-r border-gray-200 min-h-screen">
       <div className="p-6">
-        <div className="space-y-2">
-          {sidebarItems.map((item) => {
-            const isActive = item.exact 
-              ? location.pathname === item.href
-              : location.pathname.startsWith(item.href);
-            
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
-                  isActive
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                )}
-              >
-                <item.icon size={20} />
-                <span>{item.title}</span>
-              </Link>
-            );
-          })}
-        </div>
+        {/* Botão de criar post */}
+        <NavLink to="/comunidade/criar-post">
+          <Button className="w-full mb-6 justify-start" size="sm">
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Discussão
+          </Button>
+        </NavLink>
 
-        {/* Quick Stats Widget */}
-        <div className="mt-8 p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg">
-          <div className="flex items-center gap-2 mb-3">
-            <Heart className="h-5 w-5 text-primary" />
-            <span className="font-medium text-gray-900">Seu Progresso</span>
-          </div>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Posts criados</span>
-              <span className="font-medium">12</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Comentários</span>
-              <span className="font-medium">47</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Curtidas recebidas</span>
-              <span className="font-medium">89</span>
-            </div>
+        {/* Menu de navegação */}
+        <nav className="space-y-1">
+          {sidebarItems.map((item) => (
+            <NavLink
+              key={item.href}
+              to={item.href}
+              end={item.exact}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                )
+              }
+            >
+              <item.icon className="w-5 h-5 mr-3" />
+              {item.title}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Seção de categorias */}
+        <div className="mt-8">
+          <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            Categorias
+          </h3>
+          <div className="space-y-1">
+            <NavLink
+              to="/comunidade/apoio-emocional"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center px-3 py-2 text-sm rounded-lg transition-colors",
+                  isActive
+                    ? "bg-blue-50 text-blue-700"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                )
+              }
+            >
+              <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+              Apoio Emocional
+            </NavLink>
+            <NavLink
+              to="/comunidade/historias-superacao"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center px-3 py-2 text-sm rounded-lg transition-colors",
+                  isActive
+                    ? "bg-green-50 text-green-700"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                )
+              }
+            >
+              <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+              Histórias de Superação
+            </NavLink>
+            <NavLink
+              to="/comunidade/duvidas-orientacoes"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center px-3 py-2 text-sm rounded-lg transition-colors",
+                  isActive
+                    ? "bg-yellow-50 text-yellow-700"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                )
+              }
+            >
+              <div className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
+              Dúvidas e Orientações
+            </NavLink>
+            <NavLink
+              to="/comunidade/grupos-apoio"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center px-3 py-2 text-sm rounded-lg transition-colors",
+                  isActive
+                    ? "bg-purple-50 text-purple-700"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                )
+              }
+            >
+              <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
+              Grupos de Apoio
+            </NavLink>
           </div>
         </div>
       </div>
-    </div>
+    </aside>
   );
 };
 

@@ -1,76 +1,84 @@
 
-import { Users, Star, MessageSquare, TrendingUp } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Bell, Search, Settings, LogOut, Home } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
+import { Input } from "@/components/ui/input";
 
 interface CommunityHeaderProps {
-  totalMembers?: number;
-  activeToday?: number;
-  totalPosts?: number;
-  isLoggedIn?: boolean;
+  isLoggedIn: boolean;
 }
 
-const CommunityHeader = ({ 
-  totalMembers = 1247, 
-  activeToday = 89, 
-  totalPosts = 3421,
-  isLoggedIn = false 
-}: CommunityHeaderProps) => {
+const CommunityHeader = ({ isLoggedIn }: CommunityHeaderProps) => {
+  const { signOut, user } = useCommunityAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
   return (
-    <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/5 border-b">
-      <div className="container mx-auto px-6 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Comunidade Anjo Virtual
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Um espaço seguro e acolhedor para compartilhar experiências e encontrar apoio em sua jornada
-          </p>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-          <Card className="text-center border-0 bg-white/50 backdrop-blur-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-center mb-2">
-                <Users className="h-6 w-6 text-primary" />
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <div className="px-6 py-3">
+        <div className="flex items-center justify-between">
+          {/* Logo e navegação */}
+          <div className="flex items-center space-x-6">
+            <Link to="/comunidade" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <Home className="w-5 h-5 text-white" />
               </div>
-              <div className="text-2xl font-bold text-gray-900">{totalMembers.toLocaleString()}</div>
-              <div className="text-sm text-gray-600">Membros</div>
-            </CardContent>
-          </Card>
+              <span className="text-xl font-semibold text-gray-900">Comunidade</span>
+            </Link>
+          </div>
 
-          <Card className="text-center border-0 bg-white/50 backdrop-blur-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-center mb-2">
-                <TrendingUp className="h-6 w-6 text-secondary" />
+          {/* Barra de pesquisa - apenas para usuários logados */}
+          {isLoggedIn && (
+            <div className="flex-1 max-w-md mx-8">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Pesquisar discussões..."
+                  className="pl-10 bg-gray-50 border-0 focus:bg-white focus:ring-1 focus:ring-primary"
+                />
               </div>
-              <div className="text-2xl font-bold text-gray-900">{activeToday}</div>
-              <div className="text-sm text-gray-600">Ativos hoje</div>
-            </CardContent>
-          </Card>
+            </div>
+          )}
 
-          <Card className="text-center border-0 bg-white/50 backdrop-blur-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-center mb-2">
-                <MessageSquare className="h-6 w-6 text-tertiary" />
-              </div>
-              <div className="text-2xl font-bold text-gray-900">{totalPosts.toLocaleString()}</div>
-              <div className="text-sm text-gray-600">Discussões</div>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center border-0 bg-white/50 backdrop-blur-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-center mb-2">
-                <Star className="h-6 w-6 text-yellow-500" />
-              </div>
-              <div className="text-2xl font-bold text-gray-900">4.9</div>
-              <div className="text-sm text-gray-600">Avaliação</div>
-            </CardContent>
-          </Card>
+          {/* Ações do usuário */}
+          <div className="flex items-center space-x-3">
+            {isLoggedIn ? (
+              <>
+                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                  <Bell className="w-5 h-5" />
+                </Button>
+                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                  <Settings className="w-5 h-5" />
+                </Button>
+                <div className="flex items-center space-x-3">
+                  <Avatar className="w-8 h-8">
+                    <AvatarFallback className="bg-primary text-white text-sm">
+                      {user?.email?.charAt(0).toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleSignOut}
+                    className="text-gray-600 hover:text-gray-900"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <Link to="/comunidade/login">
+                <Button size="sm">Entrar</Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 

@@ -21,17 +21,20 @@ export const useCommunityProfile = () => {
     if (user) {
       fetchOrCreateProfile();
     } else {
+      setProfile(null);
       setLoading(false);
     }
   }, [user]);
 
   const fetchOrCreateProfile = async () => {
+    if (!user) return;
+    
     try {
       // Tentar buscar perfil existente
       let { data: existingProfile, error: fetchError } = await supabase
         .from('community_profiles')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .single();
 
       if (fetchError && fetchError.code !== 'PGRST116') {
@@ -43,8 +46,8 @@ export const useCommunityProfile = () => {
         const { data: newProfile, error: createError } = await supabase
           .from('community_profiles')
           .insert({
-            user_id: user?.id,
-            display_name: user?.email?.split('@')[0] || 'Membro Anônimo',
+            user_id: user.id,
+            display_name: user.email?.split('@')[0] || 'Membro Anônimo',
             is_anonymous: true
           })
           .select()

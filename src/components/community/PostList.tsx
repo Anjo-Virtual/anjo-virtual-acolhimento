@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageSquare, Clock, User, Eye, Pin } from "lucide-react";
+import { Heart, MessageSquare, Clock, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -17,7 +17,6 @@ type Post = {
   content: string;
   created_at: string;
   view_count: number;
-  is_pinned: boolean;
   author: {
     display_name: string;
     is_anonymous: boolean;
@@ -56,12 +55,10 @@ const PostList = ({ categorySlug, limit }: PostListProps) => {
           content,
           created_at,
           view_count,
-          is_pinned,
-          author:community_profiles(display_name, is_anonymous),
-          category:forum_categories(name, slug, color)
+          author:community_profiles!forum_posts_author_id_fkey(display_name, is_anonymous),
+          category:forum_categories!forum_posts_category_id_fkey(name, slug, color)
         `)
         .eq('is_published', true)
-        .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (categorySlug) {
@@ -112,7 +109,9 @@ const PostList = ({ categorySlug, limit }: PostListProps) => {
             ...post,
             likes_count: likesCount || 0,
             comments_count: commentsCount || 0,
-            user_has_liked: !!userLike
+            user_has_liked: !!userLike,
+            author: post.author || { display_name: 'Membro Anônimo', is_anonymous: true },
+            category: post.category || { name: 'Geral', slug: 'geral', color: '#3B82F6' }
           };
         })
       );
@@ -139,14 +138,12 @@ const PostList = ({ categorySlug, limit }: PostListProps) => {
       if (!post) return;
 
       if (post.user_has_liked) {
-        // Remover like
         await supabase
           .from('forum_post_likes')
           .delete()
           .eq('post_id', postId)
           .eq('user_id', user.id);
       } else {
-        // Adicionar like
         await supabase
           .from('forum_post_likes')
           .insert({
@@ -155,7 +152,6 @@ const PostList = ({ categorySlug, limit }: PostListProps) => {
           });
       }
 
-      // Atualizar estado local
       setPosts(prev => prev.map(p => 
         p.id === postId 
           ? {
@@ -179,7 +175,7 @@ const PostList = ({ categorySlug, limit }: PostListProps) => {
     return (
       <div className="space-y-4">
         {[...Array(3)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
+          <Card key={i} className="animate-pulse border-0 shadow-sm">
             <CardContent className="p-6">
               <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
               <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
@@ -193,13 +189,13 @@ const PostList = ({ categorySlug, limit }: PostListProps) => {
 
   if (posts.length === 0) {
     return (
-      <Card>
+      <Card className="border-0 shadow-sm">
         <CardContent className="text-center py-12">
-          <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Nenhum post encontrado
+            Nenhuma discussão encontrada
           </h3>
-          <p className="text-gray-600">
+          <p className="text-gray-500">
             Seja o primeiro a compartilhar nesta categoria.
           </p>
         </CardContent>
@@ -210,85 +206,76 @@ const PostList = ({ categorySlug, limit }: PostListProps) => {
   return (
     <div className="space-y-4">
       {posts.map((post) => (
-        <Card key={post.id} className="hover:shadow-md transition-shadow">
+        <Card key={post.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div 
-                  className="w-10 h-10 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: `${post.category.color}20`, color: post.category.color }}
-                >
-                  <MessageSquare size={20} />
-                </div>
-                <div>
-                  <Badge variant="secondary" className="mb-1">
+            <div className="flex items-start space-x-4">
+              <Avatar className="w-10 h-10 flex-shrink-0">
+                <AvatarFallback className="bg-gray-100 text-gray-600">
+                  {post.author?.is_anonymous ? 'A' : post.author?.display_name?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge 
+                    variant="secondary" 
+                    className="text-xs"
+                    style={{ backgroundColor: `${post.category.color}15`, color: post.category.color }}
+                  >
                     {post.category.name}
                   </Badge>
-                  {post.is_pinned && (
-                    <Badge variant="default" className="ml-2">
-                      <Pin size={12} className="mr-1" />
-                      Fixado
-                    </Badge>
-                  )}
+                  <span className="text-sm text-gray-500">
+                    {post.author?.is_anonymous ? 'Membro Anônimo' : post.author?.display_name}
+                  </span>
+                  <span className="text-sm text-gray-400">·</span>
+                  <span className="text-sm text-gray-500">
+                    {formatDistanceToNow(new Date(post.created_at), { 
+                      addSuffix: true, 
+                      locale: ptBR 
+                    })}
+                  </span>
                 </div>
-              </div>
-            </div>
 
-            <Link 
-              to={`/comunidade/${post.category.slug}/post/${post.id}`}
-              className="block hover:text-primary transition-colors"
-            >
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                {post.title}
-              </h3>
-            </Link>
-            
-            <p className="text-gray-600 mb-4 line-clamp-3">
-              {post.content.substring(0, 200)}...
-            </p>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-6 text-sm text-gray-500">
-                <div className="flex items-center gap-1">
-                  <Avatar className="h-6 w-6">
-                    <AvatarFallback className="text-xs">
-                      {post.author?.is_anonymous ? 'A' : post.author?.display_name?.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  {post.author?.is_anonymous ? 'Membro Anônimo' : post.author?.display_name}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock size={14} />
-                  {formatDistanceToNow(new Date(post.created_at), { 
-                    addSuffix: true, 
-                    locale: ptBR 
-                  })}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Eye size={14} />
-                  {post.view_count}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => toggleLike(post.id)}
-                  className={`flex items-center gap-1 ${
-                    post.user_has_liked ? 'text-red-500' : 'text-gray-500'
-                  }`}
+                <Link 
+                  to={`/comunidade/post/${post.id}`}
+                  className="block hover:text-primary transition-colors"
                 >
-                  <Heart size={16} className={post.user_has_liked ? 'fill-current' : ''} />
-                  {post.likes_count}
-                </Button>
-                
-                <Link to={`/comunidade/${post.category.slug}/post/${post.id}`}>
-                  <Button variant="ghost" size="sm" className="flex items-center gap-1 text-gray-500">
-                    <MessageSquare size={16} />
-                    {post.comments_count}
-                  </Button>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                    {post.title}
+                  </h3>
                 </Link>
+                
+                <p className="text-gray-600 mb-4 line-clamp-3">
+                  {post.content.substring(0, 200)}
+                  {post.content.length > 200 && '...'}
+                </p>
+                
+                <div className="flex items-center space-x-6 text-sm text-gray-500">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleLike(post.id)}
+                    className={`flex items-center space-x-1 h-auto p-0 ${
+                      post.user_has_liked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
+                    }`}
+                  >
+                    <Heart size={16} className={post.user_has_liked ? 'fill-current' : ''} />
+                    <span>{post.likes_count}</span>
+                  </Button>
+                  
+                  <Link 
+                    to={`/comunidade/post/${post.id}`}
+                    className="flex items-center space-x-1 hover:text-primary transition-colors"
+                  >
+                    <MessageSquare size={16} />
+                    <span>{post.comments_count}</span>
+                  </Link>
+
+                  <div className="flex items-center space-x-1">
+                    <Eye size={16} />
+                    <span>{post.view_count}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
