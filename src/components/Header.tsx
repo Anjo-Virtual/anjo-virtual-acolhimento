@@ -1,70 +1,23 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { useMobile } from "@/hooks/useMobile";
-import { Menu, X, MessageCircle, UserCircle, Users } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useModalControls } from "./FloatingButtons";
 import { useSafeAdminAuth } from "@/hooks/useSafeAdminAuth";
+import { useHeaderScroll } from "@/hooks/useHeaderScroll";
+import { useHeaderNavigation } from "@/hooks/useHeaderNavigation";
+import { NavigationLinks } from "./header/NavigationLinks";
+import { HeaderActions } from "./header/HeaderActions";
+import { MobileMenu } from "./header/MobileMenu";
 
 const Header = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useMobile();
   const { user } = useSafeAdminAuth();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-
+  const isScrolled = useHeaderScroll();
+  const { handleCommunityScroll, handleEmpresasClick } = useHeaderNavigation();
   const { openChatModal } = useModalControls();
-
-  const handleCommunityScroll = () => {
-    // Scroll to the community section on home page
-    const communitySection = document.getElementById('comunidade');
-    if (communitySection) {
-      const headerOffset = 80;
-      const elementPosition = communitySection.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    } else {
-      // If not on home page, navigate to home and then scroll
-      window.location.href = '/#comunidade';
-    }
-  };
-
-  const handleEmpresasClick = () => {
-    // Scroll to the business section
-    const businessSection = document.getElementById('empresas');
-    if (businessSection) {
-      const headerOffset = 80;
-      const elementPosition = businessSection.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    } else {
-      // If not on home page, navigate to home and then scroll
-      window.location.href = '/#empresas';
-    }
-  };
 
   return (
     <header
@@ -82,56 +35,14 @@ const Header = () => {
           {/* Desktop Navigation */}
           {!isMobile && (
             <div className="flex items-center space-x-8">
-              <div className="hidden md:flex space-x-6">
-                <a href="#como-funciona" className="text-gray-700 hover:text-primary transition-colors">
-                  Como Funciona
-                </a>
-                <a href="#planos" className="text-gray-700 hover:text-primary transition-colors">
-                  Planos
-                </a>
-                <button 
-                  onClick={handleCommunityScroll}
-                  className="text-gray-700 hover:text-primary transition-colors flex items-center gap-2"
-                >
-                  <Users size={18} />
-                  Comunidade
-                </button>
-                <Link to="/blog" className="text-gray-700 hover:text-primary transition-colors">
-                  Blog
-                </Link>
-                <button 
-                  onClick={handleEmpresasClick}
-                  className="text-gray-700 hover:text-primary transition-colors"
-                >
-                  Para Empresas
-                </button>
-              </div>
-              <div className="flex items-center space-x-4">
-                {user ? (
-                  <Link 
-                    to="/minha-conta" 
-                    className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-button hover:bg-opacity-90 transition-colors"
-                  >
-                    <UserCircle size={18} />
-                    Minha Conta
-                  </Link>
-                ) : (
-                  <Link 
-                    to="/admin/login" 
-                    className="text-gray-700 hover:text-primary transition-colors"
-                  >
-                    Login
-                  </Link>
-                )}
-                <Button
-                  onClick={openChatModal}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  <MessageCircle size={18} />
-                  Fale Conosco
-                </Button>
-              </div>
+              <NavigationLinks 
+                onCommunityScroll={handleCommunityScroll}
+                onEmpresasClick={handleEmpresasClick}
+              />
+              <HeaderActions 
+                user={user}
+                openChatModal={openChatModal}
+              />
             </div>
           )}
 
@@ -147,79 +58,15 @@ const Header = () => {
         </nav>
 
         {/* Mobile Menu */}
-        {isMobile && mobileMenuOpen && (
-          <div className="mt-4 pb-4 space-y-3">
-            <a
-              href="#como-funciona"
-              className="block text-gray-700 hover:text-primary transition-colors py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Como Funciona
-            </a>
-            <a
-              href="#planos"
-              className="block text-gray-700 hover:text-primary transition-colors py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Planos
-            </a>
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                handleCommunityScroll();
-              }}
-              className="block text-gray-700 hover:text-primary transition-colors py-2 text-left flex items-center gap-2"
-            >
-              <Users size={18} />
-              Comunidade
-            </button>
-            <Link
-              to="/blog"
-              className="block text-gray-700 hover:text-primary transition-colors py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Blog
-            </Link>
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                handleEmpresasClick();
-              }}
-              className="block text-gray-700 hover:text-primary transition-colors py-2 text-left"
-            >
-              Para Empresas
-            </button>
-            
-            {user ? (
-              <Link
-                to="/minha-conta"
-                className="block text-gray-700 hover:text-primary transition-colors py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Minha Conta
-              </Link>
-            ) : (
-              <Link
-                to="/admin/login"
-                className="block text-gray-700 hover:text-primary transition-colors py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Login
-              </Link>
-            )}
-            
-            <Button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                openChatModal();
-              }}
-              variant="outline"
-              className="w-full mt-2 flex items-center justify-center gap-2"
-            >
-              <MessageCircle size={18} />
-              Fale Conosco
-            </Button>
-          </div>
+        {isMobile && (
+          <MobileMenu
+            isOpen={mobileMenuOpen}
+            onClose={() => setMobileMenuOpen(false)}
+            user={user}
+            onCommunityScroll={handleCommunityScroll}
+            onEmpresasClick={handleEmpresasClick}
+            openChatModal={openChatModal}
+          />
         )}
       </div>
     </header>
