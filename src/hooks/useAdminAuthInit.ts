@@ -54,9 +54,12 @@ export const useAdminAuthInit = () => {
           setUser(session?.user ?? null);
           
           if (session?.user) {
-            const adminStatus = await checkAdminRole(session.user.id);
-            console.log("Status admin após login:", adminStatus);
-            setIsAdmin(adminStatus);
+            // Use setTimeout para evitar deadlock no callback
+            setTimeout(async () => {
+              const adminStatus = await checkAdminRole(session.user.id);
+              console.log("Status admin após login:", adminStatus);
+              setIsAdmin(adminStatus);
+            }, 0);
           } else {
             setIsAdmin(false);
           }
