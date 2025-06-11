@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,9 +41,9 @@ const Groups = () => {
     try {
       setLoading(true);
       
-      // Fetch user's groups
+      // Fetch user's groups through group_members table
       const { data: userGroups, error: userGroupsError } = await supabase
-        .from('community_group_members')
+        .from('group_members')
         .select(`
           group:community_groups(
             id,
@@ -50,11 +51,10 @@ const Groups = () => {
             description,
             is_private,
             created_at,
-            image_url,
-            member_count
+            current_members
           )
         `)
-        .eq('user_id', user?.id);
+        .eq('profile_id', user?.id);
       
       if (userGroupsError) throw userGroupsError;
       
@@ -63,22 +63,29 @@ const Groups = () => {
         .from('community_groups')
         .select('*')
         .eq('is_private', false)
-        .order('member_count', { ascending: false });
+        .order('current_members', { ascending: false });
       
       if (publicGroupsError) throw publicGroupsError;
       
       // Format user groups
       const formattedUserGroups = userGroups
         .map(item => item.group)
-        .filter(Boolean) as Group[];
+        .filter(Boolean)
+        .map(group => ({
+          ...group,
+          member_count: group.current_members
+        })) as Group[];
       
       setMyGroups(formattedUserGroups);
       
       // Filter out groups the user is already a member of
       const userGroupIds = new Set(formattedUserGroups.map(g => g.id));
-      const filteredPublicGroups = allPublicGroups.filter(
-        g => !userGroupIds.has(g.id)
-      ) as Group[];
+      const filteredPublicGroups = (allPublicGroups || [])
+        .filter(g => !userGroupIds.has(g.id))
+        .map(group => ({
+          ...group,
+          member_count: group.current_members
+        })) as Group[];
       
       setPublicGroups(filteredPublicGroups);
     } catch (error) {
@@ -96,10 +103,10 @@ const Groups = () => {
   const joinGroup = async (groupId: string) => {
     try {
       const { error } = await supabase
-        .from('community_group_members')
+        .from('group_members')
         .insert({
           group_id: groupId,
-          user_id: user?.id,
+          profile_id: user?.id,
           role: 'member'
         });
       
@@ -217,7 +224,10 @@ const Groups = () => {
                   <p className="text-gray-600 mb-4">
                     Encontre grupos de apoio na aba "Descobrir Grupos"
                   </p>
-                  <Button onClick={() => document.querySelector('[value="discover"]')?.click()}>
+                  <Button onClick={() => {
+                    const discoverTab = document.querySelector('[value="discover"]') as HTMLElement;
+                    discoverTab?.click();
+                  }}>
                     Descobrir Grupos
                   </Button>
                 </CardContent>

@@ -1,13 +1,12 @@
+
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Loader2 } from "lucide-react";
+import { CheckCircle, Loader2, ArrowRight, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
-import { toast } from "@/components/ui/use-toast";
-import { Check, ArrowRight, Loader2, User } from "lucide-react";
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
@@ -15,6 +14,7 @@ const PaymentSuccess = () => {
   const { user, refreshSubscription } = useAdminAuth();
   const [checking, setChecking] = useState(true);
   const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null);
+  const { toast } = useToast();
   
   const queryParams = new URLSearchParams(location.search);
   const sessionId = queryParams.get("session_id");
