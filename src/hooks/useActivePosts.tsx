@@ -15,23 +15,12 @@ export const useActivePosts = (filter: ForumFilter) => {
 
   const fetchActivePosts = async () => {
     try {
-      let query = supabase
-        .from('forum_posts')
-        .select(`
-          id,
-          title,
-          content,
-          created_at,
-          updated_at,
-          view_count,
-          category:forum_categories(name, color),
-          author:community_profiles!forum_posts_author_id_fkey(display_name, is_anonymous),
-          forum_post_likes(count),
-          forum_comments(count)
-        `)
-        .eq('is_published', true);
-
-      const { data: rawData, error } = await query.limit(20);
+      // Usar a view otimizada
+      const { data: rawData, error } = await supabase
+        .from('forum_posts_with_stats')
+        .select('*')
+        .eq('is_published', true)
+        .limit(20);
 
       if (error) throw error;
 
@@ -43,10 +32,16 @@ export const useActivePosts = (filter: ForumFilter) => {
         created_at: post.created_at,
         updated_at: post.updated_at,
         view_count: post.view_count || 0,
-        likes_count: post.forum_post_likes?.length || 0,
-        replies_count: post.forum_comments?.length || 0,
-        category: post.category || { name: 'Geral', color: '#3B82F6' },
-        author: post.author || { display_name: 'Membro Anônimo', is_anonymous: true }
+        likes_count: post.likes_count,
+        replies_count: post.comments_count,
+        category: { 
+          name: post.category_name || 'Geral', 
+          color: post.category_color || '#3B82F6' 
+        },
+        author: { 
+          display_name: post.author_display_name || 'Membro Anônimo', 
+          is_anonymous: post.author_is_anonymous !== false 
+        }
       })) || [];
 
       // Apply sorting based on filter

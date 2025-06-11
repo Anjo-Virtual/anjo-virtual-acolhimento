@@ -409,6 +409,13 @@ export type Database = {
             referencedRelation: "forum_posts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "forum_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts_with_stats"
+            referencedColumns: ["id"]
+          },
         ]
       }
       forum_post_likes: {
@@ -436,6 +443,13 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "forum_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts_with_stats"
             referencedColumns: ["id"]
           },
         ]
@@ -697,7 +711,43 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      forum_posts_with_stats: {
+        Row: {
+          author_display_name: string | null
+          author_id: string | null
+          author_is_anonymous: boolean | null
+          category_color: string | null
+          category_id: string | null
+          category_name: string | null
+          category_slug: string | null
+          comments_count: number | null
+          content: string | null
+          created_at: string | null
+          id: string | null
+          is_pinned: boolean | null
+          is_published: boolean | null
+          likes_count: number | null
+          title: string | null
+          updated_at: string | null
+          view_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "forum_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       has_role: {
@@ -709,6 +759,10 @@ export type Database = {
       }
       is_admin: {
         Args: { user_uuid: string }
+        Returns: boolean
+      }
+      user_has_liked_post: {
+        Args: { user_uuid: string; post_uuid: string }
         Returns: boolean
       }
     }
