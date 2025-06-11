@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, MessageSquare, Shield, Heart, LogIn, UserCheck, UserPlus } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -22,7 +22,7 @@ type ForumCategory = {
 };
 
 const Community = () => {
-  const { user } = useAuth();
+  const { user } = useCommunityAuth();
   const [categories, setCategories] = useState<ForumCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -120,7 +120,7 @@ const Community = () => {
                       <p className="text-gray-600 mb-6">
                         Crie sua conta gratuita e junte-se à nossa comunidade de apoio e compreensão.
                       </p>
-                      <Link to="/admin/login">
+                      <Link to="/comunidade/login">
                         <Button size="lg" className="w-full text-lg py-3">
                           Criar Conta Gratuita
                         </Button>
@@ -135,7 +135,7 @@ const Community = () => {
                       <p className="text-gray-600 mb-6">
                         Faça login para acessar os fóruns, grupos e todos os recursos da comunidade.
                       </p>
-                      <Link to="/admin/login">
+                      <Link to="/comunidade/login">
                         <Button variant="outline" size="lg" className="w-full text-lg py-3 border-2">
                           Fazer Login
                         </Button>

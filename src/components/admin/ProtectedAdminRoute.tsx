@@ -1,9 +1,9 @@
 
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 
-export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+export const ProtectedAdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAdminAuth();
   const location = useLocation();
   
   if (loading) {

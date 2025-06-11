@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 
 export interface AccountSettingsProps {
   email: string;
@@ -20,7 +20,7 @@ export const AccountSettings = ({ email, name, onNameChange }: AccountSettingsPr
   const [isSaving, setIsSaving] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const { signOut } = useAuth();
+  const { signOut } = useAdminAuth();
 
   // Add account signout functionality
   const handleSignOut = async () => {

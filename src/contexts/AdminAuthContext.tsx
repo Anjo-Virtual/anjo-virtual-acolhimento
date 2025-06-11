@@ -11,7 +11,7 @@ type SubscriptionInfo = {
   one_time_payment: boolean;
 };
 
-type AuthContextType = {
+type AdminAuthContextType = {
   session: Session | null;
   user: User | null;
   loading: boolean;
@@ -25,9 +25,9 @@ type AuthContextType = {
   refreshSubscription: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -123,13 +123,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     refreshSubscription,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
+export const useAdminAuth = () => {
+  const context = useContext(AdminAuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error("useAdminAuth must be used within an AdminAuthProvider");
   }
   return context;
 };
