@@ -53,7 +53,7 @@ const CommunityLogin = () => {
       const { error } = await signIn(email, password);
       
       if (error) {
-        console.error("Erro de login:", error);
+        console.error("Erro de login comunidade:", error);
         toast({
           title: "Erro de autenticação",
           description: error.message || "Falha ao fazer login. Verifique suas credenciais.",
@@ -64,10 +64,9 @@ const CommunityLogin = () => {
           title: "Bem-vindo de volta!",
           description: "Você foi autenticado com sucesso na comunidade.",
         });
-        // O redirecionamento será feito automaticamente pelo Navigate acima
       }
     } catch (error: any) {
-      console.error("Erro no processo de login:", error);
+      console.error("Erro no processo de login comunidade:", error);
       toast({
         title: "Erro ao processar a solicitação",
         description: error.message || "Ocorreu um erro ao tentar fazer login.",
@@ -96,7 +95,7 @@ const CommunityLogin = () => {
       const { error } = await signUp(email, password, displayName);
       
       if (error) {
-        console.error("Erro de cadastro:", error);
+        console.error("Erro de cadastro comunidade:", error);
         toast({
           title: "Erro ao criar conta",
           description: error.message || "Falha ao criar conta. Tente novamente.",
@@ -107,13 +106,12 @@ const CommunityLogin = () => {
           title: "Conta criada com sucesso!",
           description: "Verifique seu email para confirmar sua conta e fazer login.",
         });
-        // Limpar formulário após cadastro bem-sucedido
         setEmail("");
         setPassword("");
         setDisplayName("");
       }
     } catch (error: any) {
-      console.error("Erro no processo de cadastro:", error);
+      console.error("Erro no processo de cadastro comunidade:", error);
       toast({
         title: "Erro ao processar a solicitação",
         description: error.message || "Ocorreu um erro ao tentar criar a conta.",
