@@ -1,4 +1,4 @@
-import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { useSafeAdminAuth } from "@/hooks/useSafeAdminAuth";
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
@@ -6,7 +6,7 @@ import { useCheckoutHandler, FREE_PLAN_PRICE_ID } from "@/utils/checkoutUtils";
 import { useModalControls } from "./FloatingButtons";
 
 const Plans = () => {
-  const { user } = useAdminAuth();
+  const { user } = useSafeAdminAuth();
   const { handleCheckout, isLoading } = useCheckoutHandler();
   const { openChatModal } = useModalControls();
   
