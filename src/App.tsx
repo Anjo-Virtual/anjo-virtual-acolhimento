@@ -16,12 +16,12 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AdminAuthProvider>
-      <CommunityAuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <AdminAuthProvider>
+          <CommunityAuthProvider>
             <TrackingScripts />
             <Routes>
               <Route path="/" element={<Index />} />
@@ -29,10 +29,10 @@ const App = () => (
               <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />
               <Route path="/politica-de-cookies" element={<PoliticaDeCookies />} />
             </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </CommunityAuthProvider>
-    </AdminAuthProvider>
+          </CommunityAuthProvider>
+        </AdminAuthProvider>
+      </BrowserRouter>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 
