@@ -1,12 +1,12 @@
 
-import { useCheckoutHandler, FREE_PLAN_PRICE_ID } from '@/utils/checkoutUtils';
+import { useCheckoutHandler } from '@/utils/checkoutUtils';
 import { Loader2 } from "lucide-react";
 
 const Hero = () => {
   const { handleCheckout, isLoading } = useCheckoutHandler();
 
   const startFreePlan = () => {
-    handleCheckout(FREE_PLAN_PRICE_ID, "payment", "free");
+    handleCheckout("price_1RLo8HPEI2ekVLFOBEJ5lP8w", "payment", "free");
   };
 
   return (
