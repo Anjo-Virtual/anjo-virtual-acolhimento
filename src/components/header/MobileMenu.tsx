@@ -49,13 +49,6 @@ export const MobileMenu = ({
         <Users size={18} />
         Comunidade
       </button>
-      <Link
-        to="/blog"
-        className="block text-gray-700 hover:text-primary transition-colors py-2"
-        onClick={onClose}
-      >
-        Blog
-      </Link>
       <button
         onClick={() => {
           onClose();
@@ -65,6 +58,13 @@ export const MobileMenu = ({
       >
         Para Empresas
       </button>
+      <Link
+        to="/blog"
+        className="block text-gray-700 hover:text-primary transition-colors py-2"
+        onClick={onClose}
+      >
+        Blog
+      </Link>
       
       {user ? (
         <Link

@@ -23,15 +23,15 @@ export const NavigationLinks = ({ onCommunityScroll, onEmpresasClick }: Navigati
         <Users size={18} />
         Comunidade
       </button>
-      <Link to="/blog" className="text-gray-700 hover:text-primary transition-colors">
-        Blog
-      </Link>
       <button 
         onClick={onEmpresasClick}
         className="text-gray-700 hover:text-primary transition-colors"
       >
         Para Empresas
       </button>
+      <Link to="/blog" className="text-gray-700 hover:text-primary transition-colors">
+        Blog
+      </Link>
     </div>
   );
 };

@@ -28,8 +28,7 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <nav className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/placeholder.svg" alt="Logo" className="h-8 w-8" />
-            <span className="text-xl font-semibold text-gray-800">Anjo Virtual</span>
+            <img src="/lovable-uploads/cc2c200f-dee8-4469-950f-eba3fd8b9f40.png" alt="Anjo Virtual" className="h-8" />
           </Link>
 
           {/* Desktop Navigation */}
