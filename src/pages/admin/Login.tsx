@@ -13,10 +13,10 @@ const AdminLogin = () => {
   
   console.log("AdminLogin - Estado atual:", { user: user?.email, loading, isAdmin });
   
-  // Aguardar o carregamento inicial antes de redirecionar
+  // Aguardar o carregamento inicial antes de qualquer redirecionamento
   if (loading) {
     console.log("AdminLogin - Mostrando loading...");
-    return <LoadingSpinner />;
+    return <LoadingSpinner message="Verificando autenticação..." />;
   }
   
   // Se o usuário estiver autenticado e for admin, redirecionar para o painel
@@ -25,14 +25,14 @@ const AdminLogin = () => {
     return <Navigate to={from} replace />;
   }
 
-  // Se o usuário estiver autenticado mas não for admin, mostrar mensagem
-  if (user && !isAdmin) {
+  // Se o usuário estiver autenticado mas não for admin, mostrar tela de acesso negado
+  if (user && !loading && !isAdmin) {
     console.log("AdminLogin - Usuário sem permissões de admin");
     return <AccessDenied userEmail={user.email} />;
   }
   
+  // Se não estiver autenticado, mostrar tela de login
   console.log("AdminLogin - Renderizando tela de login");
-
   return <AdminLoginCard onSignIn={signIn} onSignUp={signUp} />;
 };
 
