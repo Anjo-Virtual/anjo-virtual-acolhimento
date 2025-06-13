@@ -1,145 +1,73 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AdminAuthProvider } from "@/contexts/AdminAuthContext";
+import { CommunityAuthProvider } from "@/contexts/CommunityAuthContext";
+import TrackingScripts from "@/components/TrackingScripts";
+import AdminLayout from "@/layouts/AdminLayout";
+import AdminLogin from "@/pages/admin/Login";
+import AdminDashboard from "@/pages/admin/Dashboard";
+import AdminBlog from "@/pages/admin/Blog";
+import AdminBlogCreate from "@/pages/admin/BlogCreate";
+import AdminBlogEdit from "@/pages/admin/BlogEdit";
+import AdminSettings from "@/pages/admin/Settings";
+import CommunityLogin from "@/pages/community/Login";
+import CommunityRegister from "@/pages/community/Register";
+import CommunityDashboard from "@/pages/community/Dashboard";
+import CommunityLayout from "@/layouts/CommunityLayout";
+import CommunityProfile from "@/pages/community/Profile";
+import CommunityBlog from "@/pages/community/Blog";
+import CommunityBlogPost from "@/pages/community/BlogPost";
 import Index from "./pages/Index";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
-import Admin from "./pages/Admin";
-import { AdminLayout } from "./components/admin/AdminLayout";
-import Dashboard from "./pages/admin/Dashboard";
-import Contacts from "./pages/admin/Contacts";
-import Newsletter from "./pages/admin/Newsletter";
-import BlogAdmin from "./pages/admin/Blog";
-import BlogEdit from "./pages/admin/BlogEdit";
-import Integrations from "./pages/admin/Integrations";
-import Settings from "./pages/admin/Settings";
-import Login from "./pages/admin/Login";
-import NotFound from "./pages/NotFound";
-import Community from "./pages/Community";
-import ForumCategory from "./pages/ForumCategory";
-import CreatePost from "./pages/CreatePost";
-import ForumPost from "./pages/ForumPost";
-import Groups from "./pages/Groups";
-import ActiveForums from "./pages/ActiveForums";
-import Messages from "./pages/Messages";
-import Events from "./pages/Events";
-import SavedPosts from "./pages/SavedPosts";
-import Notifications from "./pages/Notifications";
-import CommunityLogin from "./pages/community/Login";
-import { TrackingScripts } from "./components/TrackingScripts";
-import { AdminAuthProvider } from "./contexts/AdminAuthContext";
-import { CommunityAuthProvider } from "./contexts/CommunityAuthContext";
-import { ProtectedAdminRoute } from "./components/admin/ProtectedAdminRoute";
-import { ProtectedCommunityRoute } from "./components/community/ProtectedCommunityRoute";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentCanceled from "./pages/PaymentCanceled";
-import ClientArea from "./pages/ClientArea";
+import TermosDeUso from "./pages/TermosDeUso";
+import PoliticaDePrivacidade from "./pages/PoliticaDePrivacidade";
+import PoliticaDeCookies from "./pages/PoliticaDeCookies";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <TrackingScripts />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:id" element={<BlogPost />} />
-          <Route path="/pagamento-sucesso" element={<PaymentSuccess />} />
-          <Route path="/pagamento-cancelado" element={<PaymentCanceled />} />
-          <Route path="/minha-conta" element={<ClientArea />} />
-          
-          {/* Legacy Admin Route - Now redirects to new admin dashboard */}
-          <Route path="/admin-old" element={<Admin />} />
-          
-          {/* Admin Routes with isolated AdminAuthProvider */}
-          <Route path="/admin/*" element={
-            <AdminAuthProvider>
-              <Routes>
-                <Route path="login" element={<Login />} />
-                <Route path="*" element={
-                  <ProtectedAdminRoute>
-                    <AdminLayout />
-                  </ProtectedAdminRoute>
-                }>
-                  <Route index element={<Dashboard />} />
-                  <Route path="contacts" element={<Contacts />} />
-                  <Route path="newsletter" element={<Newsletter />} />
-                  <Route path="blog" element={<BlogAdmin />} />
-                  <Route path="blog/edit" element={<BlogEdit />} />
-                  <Route path="blog/edit/:id" element={<BlogEdit />} />
-                  <Route path="integrations" element={<Integrations />} />
-                  <Route path="settings" element={<Settings />} />
-                </Route>
-              </Routes>
-            </AdminAuthProvider>
-          } />
-          
-          {/* Community Routes with isolated CommunityAuthProvider */}
-          <Route path="/comunidade/*" element={
-            <CommunityAuthProvider>
-              <Routes>
-                <Route index element={<Community />} />
-                <Route path="login" element={<CommunityLogin />} />
-                <Route path="ativos" element={
-                  <ProtectedCommunityRoute>
-                    <ActiveForums />
-                  </ProtectedCommunityRoute>
-                } />
-                <Route path="grupos" element={
-                  <ProtectedCommunityRoute>
-                    <Groups />
-                  </ProtectedCommunityRoute>
-                } />
-                <Route path="mensagens" element={
-                  <ProtectedCommunityRoute>
-                    <Messages />
-                  </ProtectedCommunityRoute>
-                } />
-                <Route path="eventos" element={
-                  <ProtectedCommunityRoute>
-                    <Events />
-                  </ProtectedCommunityRoute>
-                } />
-                <Route path="salvos" element={
-                  <ProtectedCommunityRoute>
-                    <SavedPosts />
-                  </ProtectedCommunityRoute>
-                } />
-                <Route path="notificacoes" element={
-                  <ProtectedCommunityRoute>
-                    <Notifications />
-                  </ProtectedCommunityRoute>
-                } />
-                <Route path="criar-post" element={
-                  <ProtectedCommunityRoute>
-                    <CreatePost />
-                  </ProtectedCommunityRoute>
-                } />
-                <Route path=":categoria" element={
-                  <ProtectedCommunityRoute>
-                    <ForumCategory />
-                  </ProtectedCommunityRoute>
-                } />
-                <Route path="post/:id" element={
-                  <ProtectedCommunityRoute>
-                    <ForumPost />
-                  </ProtectedCommunityRoute>
-                } />
-              </Routes>
-            </CommunityAuthProvider>
-          } />
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </TooltipProvider>
-    </BrowserRouter>
+    <AdminAuthProvider>
+      <CommunityAuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <TrackingScripts />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/termos-de-uso" element={<TermosDeUso />} />
+              <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />
+              <Route path="/politica-de-cookies" element={<PoliticaDeCookies />} />
+              
+              {/* Admin Routes */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="blog" element={<AdminBlog />} />
+                <Route path="blog/create" element={<AdminBlogCreate />} />
+                <Route path="blog/edit/:id" element={<AdminBlogEdit />} />
+                <Route path="settings" element={<AdminSettings />} />
+              </Route>
+
+              {/* Community Routes */}
+              <Route path="/comunidade/login" element={<CommunityLogin />} />
+              <Route path="/comunidade/register" element={<CommunityRegister />} />
+              <Route path="/comunidade" element={<CommunityLayout />}>
+                <Route index element={<CommunityDashboard />} />
+                <Route path="dashboard" element={<CommunityDashboard />} />
+                <Route path="profile" element={<CommunityProfile />} />
+                <Route path="blog" element={<CommunityBlog />} />
+                <Route path="blog/:id" element={<CommunityBlogPost />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </CommunityAuthProvider>
+    </AdminAuthProvider>
   </QueryClientProvider>
 );
 

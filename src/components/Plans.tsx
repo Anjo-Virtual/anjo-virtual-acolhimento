@@ -1,19 +1,19 @@
+
 import { useSafeAdminAuth } from "@/hooks/useSafeAdminAuth";
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import { useCheckoutHandler, FREE_PLAN_PRICE_ID } from "@/utils/checkoutUtils";
-import { useModalControls } from "./FloatingButtons";
 
 const Plans = () => {
   const { user } = useSafeAdminAuth();
   const { handleCheckout, isLoading } = useCheckoutHandler();
-  const { openChatModal } = useModalControls();
   
   // Updated Stripe prices with the correct IDs
   const STRIPE_PRICES = {
     monthly: "price_1RLVbmPEI2ekVLFOvBYliVNK", // Plano Mensal
     gift: "price_1RLVazPEI2ekVLFOqERdOweO",    // Presente de Consolo
+    family: "price_family_placeholder",          // Plano Família (placeholder)
     free: FREE_PLAN_PRICE_ID                    // Plano Gratuito
   };
 
@@ -190,47 +190,48 @@ const Plans = () => {
             </div>
           </div>
 
-          {/* Plano para Empresas */}
+          {/* Plano Família */}
           <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105">
             <div className="p-6">
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">Para Empresas</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">Plano Família</h3>
               <div className="flex items-end gap-1 mb-6">
-                <span className="text-3xl font-bold text-gray-800">Sob Consulta</span>
+                <span className="text-3xl font-bold text-gray-800">R$49,90</span>
+                <span className="text-gray-500">/mês</span>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start gap-2">
                   <div className="w-5 h-5 flex items-center justify-center text-primary mt-0.5">
                     <i className="ri-check-line"></i>
                   </div>
-                  <span className="text-gray-600">Suporte para colaboradores</span>
+                  <span className="text-gray-600">Conversas ilimitadas</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <div className="w-5 h-5 flex items-center justify-center text-primary mt-0.5">
                     <i className="ri-check-line"></i>
                   </div>
-                  <span className="text-gray-600">Dashboard para gestão</span>
+                  <span className="text-gray-600">Acesso completo aos conteúdos</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <div className="w-5 h-5 flex items-center justify-center text-primary mt-0.5">
                     <i className="ri-check-line"></i>
                   </div>
-                  <span className="text-gray-600">Relatórios de utilização</span>
+                  <span className="text-gray-600">Participação em grupos exclusivos</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <div className="w-5 h-5 flex items-center justify-center text-primary mt-0.5">
                     <i className="ri-check-line"></i>
                   </div>
-                  <span className="text-gray-600">Personalização para sua empresa</span>
+                  <span className="text-gray-600">Para 4 pessoas da família</span>
                 </li>
               </ul>
             </div>
             <div className="px-6 pb-6">
               <CheckoutButton 
-                onClick={() => openChatModal()}
+                onClick={() => handleCheckout(STRIPE_PRICES.family, "payment", "family")}
                 variant="outline"
-                planType="business"
+                planType="family"
               >
-                Solicitar Proposta
+                Assinar Plano Família
               </CheckoutButton>
             </div>
           </div>

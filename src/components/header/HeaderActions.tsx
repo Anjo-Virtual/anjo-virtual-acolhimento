@@ -10,6 +10,11 @@ interface HeaderActionsProps {
 }
 
 export const HeaderActions = ({ user, openChatModal }: HeaderActionsProps) => {
+  const handleChatClick = () => {
+    console.log("Botão Fale Conosco clicado"); // Debug
+    openChatModal();
+  };
+
   return (
     <div className="flex items-center space-x-4">
       {user ? (
@@ -29,7 +34,7 @@ export const HeaderActions = ({ user, openChatModal }: HeaderActionsProps) => {
         </Link>
       )}
       <Button
-        onClick={openChatModal}
+        onClick={handleChatClick}
         variant="outline"
         className="flex items-center gap-2"
       >

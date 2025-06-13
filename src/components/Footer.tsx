@@ -37,9 +37,9 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-medium mb-4">Legal</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Termos de Uso</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Política de Privacidade</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Política de Cookies</a></li>
+              <li><a href="/termos-de-uso" className="text-gray-300 hover:text-white transition-colors">Termos de Uso</a></li>
+              <li><a href="/politica-de-privacidade" className="text-gray-300 hover:text-white transition-colors">Política de Privacidade</a></li>
+              <li><a href="/politica-de-cookies" className="text-gray-300 hover:text-white transition-colors">Política de Cookies</a></li>
             </ul>
           </div>
           <div>
@@ -55,7 +55,7 @@ const Footer = () => {
                 <div className="w-5 h-5 flex items-center justify-center text-primary mt-0.5">
                   <i className="ri-whatsapp-line"></i>
                 </div>
-                <span className="text-gray-300">(11) 99999-9999</span>
+                <span className="text-gray-300">(82) 99922-9634</span>
               </li>
             </ul>
             <div className="mt-6">
@@ -66,7 +66,7 @@ const Footer = () => {
         </div>
         <div className="border-t border-gray-700 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm mb-4 md:mb-0">© 2025 Anjo Virtual. Todos os direitos reservados.</p>
+            <p className="text-gray-400 text-sm mb-4 md:mb-0">© 2025 Anjo Virtual. Todos os direitos reservados. <a href="https://maestrix.com.br" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary-foreground">Maestrix</a></p>
             <div className="flex items-center space-x-4">
               <span className="text-gray-400 text-sm">Formas de pagamento:</span>
               <i className="ri-visa-fill ri-lg"></i>
