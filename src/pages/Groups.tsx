@@ -69,7 +69,7 @@ const Groups = () => {
               <div className="mb-8">
                 <CreateGroupForm 
                   onSuccess={() => setShowCreateForm(false)}
-                  onCreate={createGroup}
+                  onSubmit={createGroup}
                 />
               </div>
             )}
