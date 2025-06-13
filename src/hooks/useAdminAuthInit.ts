@@ -15,27 +15,26 @@ export const useAdminAuthInit = () => {
 
     const initializeAuth = async () => {
       try {
-        console.log("Inicializando autenticação admin...");
-        
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error("Erro ao obter sessão:", error);
+          if (mounted) {
+            setLoading(false);
+          }
+          return;
         }
         
         if (mounted) {
-          console.log("Sessão encontrada:", session?.user?.email || "nenhuma");
           setSession(session);
           setUser(session?.user ?? null);
           
           if (session?.user) {
             const adminStatus = await checkAdminRole(session.user.id);
-            console.log("Status admin inicial:", adminStatus);
             setIsAdmin(adminStatus);
           }
           
           setLoading(false);
-          console.log("Loading inicial finalizado");
         }
       } catch (error) {
         console.error("Erro na inicialização da auth:", error);
@@ -47,8 +46,6 @@ export const useAdminAuthInit = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("Admin auth state changed:", event, session?.user?.email);
-        
         if (mounted) {
           setSession(session);
           setUser(session?.user ?? null);
@@ -56,16 +53,16 @@ export const useAdminAuthInit = () => {
           if (session?.user) {
             // Use setTimeout para evitar deadlock no callback
             setTimeout(async () => {
-              const adminStatus = await checkAdminRole(session.user.id);
-              console.log("Status admin após login:", adminStatus);
-              setIsAdmin(adminStatus);
+              if (mounted) {
+                const adminStatus = await checkAdminRole(session.user.id);
+                setIsAdmin(adminStatus);
+              }
             }, 0);
           } else {
             setIsAdmin(false);
           }
           
           setLoading(false);
-          console.log("Loading finalizado após mudança de estado:", event);
         }
       }
     );

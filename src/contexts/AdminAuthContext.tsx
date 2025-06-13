@@ -20,9 +20,14 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
     const fetchSubscription = async () => {
       if (user && isAdmin) {
         setSubscriptionLoading(true);
-        const subscriptionData = await checkSubscription(user);
-        setSubscription(subscriptionData);
-        setSubscriptionLoading(false);
+        try {
+          const subscriptionData = await checkSubscription(user);
+          setSubscription(subscriptionData);
+        } catch (error) {
+          console.error("Erro ao verificar assinatura:", error);
+        } finally {
+          setSubscriptionLoading(false);
+        }
       } else {
         setSubscription(null);
       }
@@ -51,9 +56,14 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
   const refreshSubscription = async () => {
     if (user && isAdmin) {
       setSubscriptionLoading(true);
-      const subscriptionData = await checkSubscription(user);
-      setSubscription(subscriptionData);
-      setSubscriptionLoading(false);
+      try {
+        const subscriptionData = await checkSubscription(user);
+        setSubscription(subscriptionData);
+      } catch (error) {
+        console.error("Erro ao atualizar assinatura:", error);
+      } finally {
+        setSubscriptionLoading(false);
+      }
     }
   };
 

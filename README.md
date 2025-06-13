@@ -1,73 +1,159 @@
-# Welcome to your Lovable project
 
-## Project info
+# Comunidade do Luto - Plataforma de Apoio
 
-**URL**: https://lovable.dev/projects/b4d3145a-c324-48af-8c6a-a4f91a16afbc
+Uma plataforma completa de apoio ao luto com comunidade, blog e sistema administrativo.
 
-## How can I edit this code?
+## 🚀 Tecnologias
 
-There are several ways of editing your application.
+- **Frontend**: React 18 + TypeScript + Vite
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Backend**: Supabase (Database, Auth, Storage)
+- **Estado**: React Query (@tanstack/react-query)
+- **Roteamento**: React Router DOM
 
-**Use Lovable**
+## 📋 Funcionalidades
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/b4d3145a-c324-48af-8c6a-a4f91a16afbc) and start prompting.
+### 🏠 Site Principal
+- Landing page com informações sobre a plataforma
+- Sistema de contato
+- Newsletter
+- Blog público
+- Planos e preços
 
-Changes made via Lovable will be committed automatically to this repo.
+### 👥 Comunidade
+- **Fóruns de discussão** organizados por categorias
+- **Grupos privados** de apoio (máximo 12 membros)
+- **Sistema de posts** com likes e comentários
+- **Perfis anônimos** para privacidade
+- **Moderação** integrada
 
-**Use your preferred IDE**
+### 🛠️ Painel Administrativo
+- **Dashboard** com estatísticas
+- **Gestão de contatos** e mensagens
+- **Administração da newsletter**
+- **Editor de blog** com upload de imagens
+- **Configurações** do site e rastreamento
+- **Gestão de integrações**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🔐 Autenticação
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Tipos de Usuários
+- **Visitantes**: Acesso ao site público e blog
+- **Membros da Comunidade**: Acesso aos fóruns e grupos
+- **Administradores**: Acesso ao painel administrativo
 
-Follow these steps:
+### Fluxos de Login
+- **Comunidade**: `/comunidade/login`
+- **Administração**: `/admin/login`
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+## 📱 Links de Acesso
+
+### 🎯 Páginas Principais
+- **Home**: `/`
+- **Blog**: `/blog`
+- **Comunidade**: `/comunidade`
+
+### 👥 Área da Comunidade (Requer Login)
+- **Login/Cadastro**: `/comunidade/login`
+- **Dashboard**: `/comunidade` (após login)
+- **Grupos**: `/comunidade/grupos`
+- **Discussões Ativas**: `/comunidade/ativos`
+- **Categorias**: `/comunidade/:slug`
+
+### 🛠️ Painel Administrativo (Requer Permissões Admin)
+- **Login Admin**: `/admin/login`
+- **Dashboard**: `/admin`
+- **Contatos**: `/admin/contacts`
+- **Newsletter**: `/admin/newsletter`
+- **Blog**: `/admin/blog`
+- **Integrações**: `/admin/integrations`
+- **Configurações**: `/admin/settings`
+
+### 📄 Páginas Legais
+- **Termos de Uso**: `/termos-de-uso`
+- **Política de Privacidade**: `/politica-de-privacidade`
+- **Política de Cookies**: `/politica-de-cookies`
+
+## 🚀 Como Executar
+
+```bash
+# 1. Clone o repositório
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# 2. Instale as dependências
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 3. Configure as variáveis de ambiente no Supabase
+# - Acesse o painel do Supabase
+# - Configure as integrações necessárias
+
+# 4. Execute o projeto
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 📊 Estrutura do Banco de Dados
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Principais Tabelas
+- `community_profiles` - Perfis dos usuários da comunidade
+- `forum_categories` - Categorias dos fóruns
+- `forum_posts` - Posts dos fóruns
+- `forum_comments` - Comentários dos posts
+- `community_groups` - Grupos privados
+- `group_members` - Membros dos grupos
+- `blog_posts` - Posts do blog
+- `contact_messages` - Mensagens de contato
+- `newsletter_subscriptions` - Assinantes da newsletter
+- `user_roles` - Roles dos usuários (admin, etc.)
 
-**Use GitHub Codespaces**
+## 🔧 Configuração de Produção
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Supabase
+1. **URL Configuration** em Authentication:
+   - Site URL: URL do seu domínio
+   - Redirect URLs: URLs autorizadas para redirect
 
-## What technologies are used for this project?
+2. **Email Templates**: Configure templates personalizados
 
-This project is built with:
+3. **RLS Policies**: Já configuradas para segurança
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Deploy
+1. **Conecte seu domínio** nas configurações do projeto
+2. **Configure variáveis de ambiente** no Supabase
+3. **Publique** usando o botão "Publish" no Lovable
 
-## How can I deploy this project?
+## 🛡️ Segurança
 
-Simply open [Lovable](https://lovable.dev/projects/b4d3145a-c324-48af-8c6a-a4f91a16afbc) and click on Share -> Publish.
+- **Row Level Security (RLS)** habilitado em todas as tabelas
+- **Autenticação** via Supabase Auth
+- **Validação** de permissões em todas as operações
+- **Anonimato** opcional para membros da comunidade
 
-## Can I connect a custom domain to my Lovable project?
+## 📈 Performance
 
-Yes, you can!
+- **React Query** para cache de dados
+- **Lazy loading** de componentes
+- **Otimização** de re-renders
+- **Compressão** de imagens automática
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🤝 Contribuindo
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature
+3. Commit suas mudanças
+4. Push para a branch
+5. Abra um Pull Request
+
+## 📞 Suporte
+
+Para suporte técnico ou dúvidas sobre a plataforma, acesse:
+- **Comunidade**: Para discussões e apoio entre usuários
+- **Contato**: Formulário de contato no site principal
+
+## 📝 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+
+---
+
+**Desenvolvido com ❤️ para apoiar pessoas em processo de luto**

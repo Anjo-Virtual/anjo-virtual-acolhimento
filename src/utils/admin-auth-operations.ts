@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const signInAdmin = async (email: string, password: string) => {
   try {
-    console.log("Tentando login admin para:", email);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -14,7 +13,6 @@ export const signInAdmin = async (email: string, password: string) => {
       return { error, data: null };
     }
     
-    console.log("Login admin bem-sucedido:", data.user?.email);
     return { data, error: null };
   } catch (error) {
     console.error("Erro no catch do signIn admin:", error);
@@ -24,7 +22,6 @@ export const signInAdmin = async (email: string, password: string) => {
 
 export const signUpAdmin = async (email: string, password: string) => {
   try {
-    console.log("Tentando cadastro admin para:", email);
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -38,7 +35,6 @@ export const signUpAdmin = async (email: string, password: string) => {
       return { error, data: null };
     }
     
-    console.log("Cadastro admin bem-sucedido:", data.user?.email);
     return { data, error: null };
   } catch (error) {
     console.error("Erro no catch do signUp admin:", error);
@@ -48,7 +44,6 @@ export const signUpAdmin = async (email: string, password: string) => {
 
 export const signOutAdmin = async () => {
   try {
-    console.log("Fazendo logout admin");
     await supabase.auth.signOut();
   } catch (error) {
     console.error("Erro ao fazer logout admin:", error);
