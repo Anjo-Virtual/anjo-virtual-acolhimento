@@ -15,6 +15,9 @@ import Blog from "./pages/Blog";
 import Community from "./pages/Community";
 import CommunityLogin from "./pages/community/Login";
 import AdminLogin from "./pages/admin/Login";
+import Groups from "./pages/Groups";
+import ActiveForums from "./pages/ActiveForums";
+import ForumCategory from "./pages/ForumCategory";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +35,9 @@ const App = () => (
               <Route path="/blog" element={<Blog />} />
               <Route path="/comunidade" element={<Community />} />
               <Route path="/comunidade/login" element={<CommunityLogin />} />
+              <Route path="/comunidade/grupos" element={<Groups />} />
+              <Route path="/comunidade/ativos" element={<ActiveForums />} />
+              <Route path="/comunidade/:slug" element={<ForumCategory />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/termos-de-uso" element={<TermosDeUso />} />
               <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />
