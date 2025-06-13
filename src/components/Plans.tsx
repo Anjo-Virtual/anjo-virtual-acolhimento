@@ -9,12 +9,12 @@ const Plans = () => {
   const { user } = useSafeAdminAuth();
   const { handleCheckout, isLoading } = useCheckoutHandler();
   
-  // Updated Stripe prices with the correct IDs
+  // Updated Stripe prices with the correct IDs provided by the user
   const STRIPE_PRICES = {
-    monthly: "price_1RLVbmPEI2ekVLFOvBYliVNK", // Plano Mensal
-    gift: "price_1RLVazPEI2ekVLFOqERdOweO",    // Presente de Consolo
-    family: "price_family_placeholder",          // Plano Família (placeholder)
-    free: FREE_PLAN_PRICE_ID                    // Plano Gratuito
+    free: "price_1RLo8HPEI2ekVLFOBEJ5lP8w",       // Plano Gratuito
+    gift: "price_1RLVazPEI2ekVLFOqERdOweO",       // Presente de Consolo
+    monthly: "price_1RLVbmPEI2ekVLFOvBYliVNK",    // Plano Individual
+    family: "price_1RZM6jPEI2ekVLFOhb5nyQoa"      // Plano Família
   };
 
   // Botão com loading state
@@ -143,11 +143,11 @@ const Plans = () => {
             </div>
           </div>
 
-          {/* Plano Mensal */}
+          {/* Plano Individual */}
           <div className="bg-primary bg-opacity-5 rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 relative">
             <div className="absolute top-0 right-0 bg-primary text-white text-xs font-medium px-3 py-1 rounded-bl-lg">Mais Popular</div>
             <div className="p-6">
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">Plano Mensal</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">Plano Individual</h3>
               <div className="flex items-end gap-1 mb-6">
                 <span className="text-3xl font-bold text-gray-800">R$29,90</span>
                 <span className="text-gray-500">/mês</span>

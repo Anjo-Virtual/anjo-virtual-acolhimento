@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 
-// Free plan price ID from Stripe
+// Free plan price ID from Stripe - updated with the correct ID
 export const FREE_PLAN_PRICE_ID = "price_1RLo8HPEI2ekVLFOBEJ5lP8w";
 
 export const useCheckoutHandler = () => {
