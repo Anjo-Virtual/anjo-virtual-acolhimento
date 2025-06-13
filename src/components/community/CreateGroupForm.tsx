@@ -7,16 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
+import { CreateGroupData } from "@/types/groups";
 
 interface CreateGroupFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
-  onSubmit: (data: {
-    name: string;
-    description: string;
-    is_private: boolean;
-    max_members: number;
-  }) => Promise<boolean>;
+  onSubmit: (data: CreateGroupData) => Promise<boolean>;
 }
 
 const CreateGroupForm = ({ onSuccess, onCancel, onSubmit }: CreateGroupFormProps) => {

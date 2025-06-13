@@ -3,22 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, Lock, Globe, UserMinus, UserPlus } from "lucide-react";
-
-type CommunityGroup = {
-  id: string;
-  name: string;
-  description: string;
-  is_private: boolean;
-  max_members: number;
-  current_members: number;
-  created_by: string;
-  created_at: string;
-  creator?: {
-    display_name: string;
-  };
-  is_member?: boolean;
-  member_role?: string;
-};
+import { CommunityGroup } from "@/types/groups";
 
 interface GroupCardProps {
   group: CommunityGroup;
