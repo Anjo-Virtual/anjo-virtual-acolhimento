@@ -133,6 +133,62 @@ export type Database = {
           },
         ]
       }
+      community_events: {
+        Row: {
+          created_at: string
+          current_participants: number | null
+          description: string | null
+          end_date: string | null
+          event_date: string
+          id: string
+          is_active: boolean | null
+          is_online: boolean | null
+          location: string | null
+          max_participants: number | null
+          organizer_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_participants?: number | null
+          description?: string | null
+          end_date?: string | null
+          event_date: string
+          id?: string
+          is_active?: boolean | null
+          is_online?: boolean | null
+          location?: string | null
+          max_participants?: number | null
+          organizer_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_participants?: number | null
+          description?: string | null
+          end_date?: string | null
+          event_date?: string
+          id?: string
+          is_active?: boolean | null
+          is_online?: boolean | null
+          location?: string | null
+          max_participants?: number | null
+          organizer_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_events_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_groups: {
         Row: {
           created_at: string | null
@@ -287,6 +343,42 @@ export type Database = {
           processed?: boolean
         }
         Relationships: []
+      }
+      event_participants: {
+        Row: {
+          event_id: string
+          id: string
+          joined_at: string
+          participant_id: string
+        }
+        Insert: {
+          event_id: string
+          id?: string
+          joined_at?: string
+          participant_id: string
+        }
+        Update: {
+          event_id?: string
+          id?: string
+          joined_at?: string
+          participant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_participants_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "community_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_participants_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       forum_categories: {
         Row: {
@@ -621,6 +713,138 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          related_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          related_id?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          related_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      private_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean | null
+          recipient_id: string
+          sender_id: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          recipient_id: string
+          sender_id: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          recipient_id?: string
+          sender_id?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "private_messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "private_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_posts: {
+        Row: {
+          id: string
+          post_id: string
+          saved_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          post_id: string
+          saved_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          post_id?: string
+          saved_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts_with_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_settings: {
         Row: {
