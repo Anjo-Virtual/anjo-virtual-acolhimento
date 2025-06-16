@@ -1,7 +1,6 @@
 
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AdminAuthProvider } from "@/contexts/AdminAuthContext";
@@ -32,49 +31,47 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AdminAuthProvider>
-          <CommunityAuthProvider>
-            <TrackingScripts />
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/comunidade" element={<Community />} />
-              <Route path="/comunidade/login" element={<CommunityLogin />} />
-              <Route path="/comunidade/grupos" element={<Groups />} />
-              <Route path="/comunidade/ativos" element={<ActiveForums />} />
-              <Route path="/comunidade/:slug" element={<ForumCategory />} />
-              <Route path="/termos-de-uso" element={<TermosDeUso />} />
-              <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />
-              <Route path="/politica-de-cookies" element={<PoliticaDeCookies />} />
-              
-              {/* Admin Login Route */}
-              <Route path="/admin/login" element={<AdminLogin />} />
-              
-              {/* Protected Admin Routes */}
-              <Route path="/admin" element={
-                <ProtectedAdminRoute>
-                  <AdminLayout />
-                </ProtectedAdminRoute>
-              }>
-                <Route index element={<Dashboard />} />
-                <Route path="contacts" element={<Contacts />} />
-                <Route path="newsletter" element={<Newsletter />} />
-                <Route path="blog" element={<AdminBlog />} />
-                <Route path="blog/create" element={<BlogEdit />} />
-                <Route path="blog/edit/:id" element={<BlogEdit />} />
-                <Route path="integrations" element={<Integrations />} />
-                <Route path="settings" element={<Settings />} />
-              </Route>
-            </Routes>
-          </CommunityAuthProvider>
-        </AdminAuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+    <Toaster />
+    <Sonner />
+    <BrowserRouter>
+      <AdminAuthProvider>
+        <CommunityAuthProvider>
+          <TrackingScripts />
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Index />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/comunidade" element={<Community />} />
+            <Route path="/comunidade/login" element={<CommunityLogin />} />
+            <Route path="/comunidade/grupos" element={<Groups />} />
+            <Route path="/comunidade/ativos" element={<ActiveForums />} />
+            <Route path="/comunidade/:slug" element={<ForumCategory />} />
+            <Route path="/termos-de-uso" element={<TermosDeUso />} />
+            <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />
+            <Route path="/politica-de-cookies" element={<PoliticaDeCookies />} />
+            
+            {/* Admin Login Route */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            
+            {/* Protected Admin Routes */}
+            <Route path="/admin" element={
+              <ProtectedAdminRoute>
+                <AdminLayout />
+              </ProtectedAdminRoute>
+            }>
+              <Route index element={<Dashboard />} />
+              <Route path="contacts" element={<Contacts />} />
+              <Route path="newsletter" element={<Newsletter />} />
+              <Route path="blog" element={<AdminBlog />} />
+              <Route path="blog/create" element={<BlogEdit />} />
+              <Route path="blog/edit/:id" element={<BlogEdit />} />
+              <Route path="integrations" element={<Integrations />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+          </Routes>
+        </CommunityAuthProvider>
+      </AdminAuthProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 
