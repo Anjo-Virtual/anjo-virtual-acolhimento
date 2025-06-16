@@ -8,9 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { saveSettingsToDatabase } from "@/utils/settingsUtils";
 
 const whatsAppConfigSchema = z.object({
-  destinationNumber: z.string().min(10, "Número de WhatsApp inválido"),
+  destinationNumber: z.string().min(10, "Número de WhatsApp inválido").regex(/^\d+$/, "Apenas números são permitidos"),
 });
 
 type FormData = z.infer<typeof whatsAppConfigSchema>;
@@ -18,18 +19,6 @@ type FormData = z.infer<typeof whatsAppConfigSchema>;
 interface WhatsAppConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
-}
-
-// Definindo interface para os dados provenientes do Supabase
-interface SiteSettings {
-  id: string;
-  key: string;
-  value: {
-    destination_number?: string;
-    [key: string]: any;
-  };
-  created_at: string;
-  updated_at: string;
 }
 
 const WhatsAppConfigModal = ({ isOpen, onClose }: WhatsAppConfigModalProps) => {
@@ -44,19 +33,18 @@ const WhatsAppConfigModal = ({ isOpen, onClose }: WhatsAppConfigModalProps) => {
 
   useEffect(() => {
     const fetchConfig = async () => {
+      if (!isOpen) return;
+      
       setLoading(true);
       try {
-        // Usando any para bypass da tipagem e especificando formato da resposta
         const { data, error } = await supabase
-          .from('site_settings' as any)
-          .select()
-          .eq("key", "whatsapp_config")
-          .single() as { data: SiteSettings | null, error: any };
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'whatsapp_config')
+          .single();
 
-        if (error) throw error;
-        
-        if (data && data.value) {
-          form.setValue("destinationNumber", data.value.destination_number || "");
+        if (!error && data?.value?.destination_number) {
+          form.setValue("destinationNumber", data.value.destination_number);
         }
       } catch (error) {
         console.error("Erro ao buscar configuração:", error);
@@ -65,28 +53,19 @@ const WhatsAppConfigModal = ({ isOpen, onClose }: WhatsAppConfigModalProps) => {
       }
     };
 
-    if (isOpen) {
-      fetchConfig();
-    }
+    fetchConfig();
   }, [isOpen, form]);
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      // Usando tipagem genérica para o update
-      const { error } = await supabase
-        .from('site_settings' as any)
-        .update({
-          value: { destination_number: data.destinationNumber },
-          updated_at: new Date().toISOString(),
-        } as any)
-        .eq("key", "whatsapp_config");
-
-      if (error) throw error;
+      await saveSettingsToDatabase('whatsapp_config', {
+        destination_number: data.destinationNumber
+      });
       
       toast({
         title: "Configuração salva",
-        description: "A configuração do WhatsApp foi atualizada com sucesso.",
+        description: "O número do WhatsApp foi configurado com sucesso.",
       });
       
       onClose();
@@ -125,15 +104,18 @@ const WhatsAppConfigModal = ({ isOpen, onClose }: WhatsAppConfigModalProps) => {
               name="destinationNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Número para redirecionamento (com DDD)</FormLabel>
+                  <FormLabel>Número para redirecionamento (com código do país)</FormLabel>
                   <FormControl>
                     <Input 
                       type="tel" 
-                      placeholder="11999999999"
+                      placeholder="5511999999999"
                       {...field}
                     />
                   </FormControl>
                   <FormMessage />
+                  <div className="text-sm text-gray-500 mt-1">
+                    Exemplo: 5511999999999 (55 = Brasil, 11 = São Paulo, 999999999 = número)
+                  </div>
                 </FormItem>
               )}
             />
