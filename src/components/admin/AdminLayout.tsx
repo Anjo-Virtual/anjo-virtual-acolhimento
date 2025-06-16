@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AdminSidebar } from "./AdminSidebar";
 import { Outlet } from "react-router-dom";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
-import { LogOut } from "lucide-react";
+import { LogOut, Users, Home } from "lucide-react";
 
 export const AdminLayout = () => {
   const { signOut, user } = useAdminAuth();
@@ -35,7 +35,16 @@ export const AdminLayout = () => {
                     size="sm"
                     onClick={() => window.location.href = "/"}
                   >
-                    Voltar ao site
+                    <Home className="mr-2 h-4 w-4" />
+                    Site Principal
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => window.location.href = "/comunidade"}
+                  >
+                    <Users className="mr-2 h-4 w-4" />
+                    Comunidade
                   </Button>
                   <Button 
                     variant="outline" 

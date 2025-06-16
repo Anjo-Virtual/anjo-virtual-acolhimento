@@ -1,104 +1,75 @@
 
-import { useState } from 'react';
-import ChatModal from './modals/ChatModal';
-import WhatsAppModal from './modals/WhatsAppModal';
-import { MessageCircle, Sparkles } from 'lucide-react';
-
-// Export these functions to be used by other components
-export const useModalControls = () => {
-  const [chatModalOpen, setChatModalOpen] = useState(false);
-  const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
-
-  const openChatModal = () => {
-    setChatModalOpen(true);
-  };
-
-  const closeChatModal = () => {
-    setChatModalOpen(false);
-  };
-
-  const openWhatsAppModal = () => {
-    setWhatsappModalOpen(true);
-  };
-
-  const closeWhatsAppModal = () => {
-    setWhatsappModalOpen(false);
-  };
-
-  return {
-    chatModalOpen,
-    whatsappModalOpen,
-    openChatModal,
-    closeChatModal,
-    openWhatsAppModal,
-    closeWhatsAppModal
-  };
-};
+import { useState } from "react";
+import { MessageCircle, Phone } from "lucide-react";
+import WhatsAppModal from "./modals/WhatsAppModal";
+import ChatModal from "./modals/ChatModal";
+import ContactModal from "./modals/ContactModal";
 
 const FloatingButtons = () => {
-  const {
-    chatModalOpen,
-    whatsappModalOpen,
-    openChatModal,
-    closeChatModal,
-    openWhatsAppModal,
-    closeWhatsAppModal
-  } = useModalControls();
-  
-  const [isHovered, setIsHovered] = useState(false);
+  const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+  const [chatModalOpen, setChatModalOpen] = useState(false);
+  const [contactModalOpen, setContactModalOpen] = useState(false);
 
   return (
     <>
-      <div 
-        className="floating-buttons"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <div className={`flex flex-col gap-3 items-end transition-all duration-300 ${isHovered ? 'mb-3' : ''}`}>
-          {isHovered && (
-            <div className="flex items-center gap-3 animate-fadeInUp">
-              <span className="bg-white text-gray-700 py-1 px-3 rounded-lg shadow-md text-sm">
-                Fale com Anjo Virtual
-              </span>
-              <button 
-                onClick={openChatModal} 
-                className="bg-primary text-white w-12 h-12 rounded-full shadow-lg hover:bg-opacity-90 transition-all hover:-translate-y-1 hover:shadow-soft flex items-center justify-center"
-              >
-                <MessageCircle className="w-5 h-5" />
-              </button>
-            </div>
-          )}
-          
-          {isHovered && (
-            <div className="flex items-center gap-3 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
-              <span className="bg-white text-gray-700 py-1 px-3 rounded-lg shadow-md text-sm">
-                Fale pelo WhatsApp
-              </span>
-              <button 
-                onClick={openWhatsAppModal} 
-                className="bg-[#25D366] text-white w-12 h-12 rounded-full shadow-lg hover:bg-opacity-90 transition-all hover:-translate-y-1 hover:shadow-soft flex items-center justify-center"
-              >
-                <i className="ri-whatsapp-line ri-lg"></i>
-              </button>
-            </div>
-          )}
-        </div>
-        
-        {!isHovered && (
-          <button 
-            className="bg-primary text-white w-14 h-14 rounded-full shadow-lg hover:bg-opacity-90 transition-all hover:-translate-y-1 hover:shadow-soft flex items-center justify-center relative group"
-            onMouseEnter={() => setIsHovered(true)}
-          >
-            <Sparkles className="w-6 h-6" />
-            <span className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full animate-pulse"></span>
-          </button>
-        )}
+      <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-50">
+        {/* WhatsApp Button */}
+        <button
+          onClick={() => setWhatsAppModalOpen(true)}
+          className="whatsapp-button bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110"
+          aria-label="Contato via WhatsApp"
+        >
+          <Phone size={24} />
+        </button>
+
+        {/* Chat Button */}
+        <button
+          onClick={() => setChatModalOpen(true)}
+          className="chat-button bg-primary hover:bg-primary/90 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110"
+          aria-label="Iniciar chat"
+        >
+          <MessageCircle size={24} />
+        </button>
       </div>
 
-      <ChatModal isOpen={chatModalOpen} onClose={closeChatModal} />
-      <WhatsAppModal isOpen={whatsappModalOpen} onClose={closeWhatsAppModal} />
+      <WhatsAppModal
+        isOpen={whatsAppModalOpen}
+        onClose={() => setWhatsAppModalOpen(false)}
+      />
+      <ChatModal
+        isOpen={chatModalOpen}
+        onClose={() => setChatModalOpen(false)}
+      />
+      <ContactModal
+        isOpen={contactModalOpen}
+        onClose={() => setContactModalOpen(false)}
+      />
     </>
   );
+};
+
+// Hook para controlar os modais de qualquer lugar da aplicação
+export const useModalControls = () => {
+  const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+  const [chatModalOpen, setChatModalOpen] = useState(false);
+  const [contactModalOpen, setContactModalOpen] = useState(false);
+
+  return {
+    // WhatsApp Modal
+    whatsAppModalOpen,
+    openWhatsAppModal: () => setWhatsAppModalOpen(true),
+    closeWhatsAppModal: () => setWhatsAppModalOpen(false),
+    
+    // Chat Modal
+    chatModalOpen,
+    openChatModal: () => setChatModalOpen(true),
+    closeChatModal: () => setChatModalOpen(false),
+    
+    // Contact Modal
+    contactModalOpen,
+    openContactModal: () => setContactModalOpen(true),
+    closeContactModal: () => setContactModalOpen(false),
+  };
 };
 
 export default FloatingButtons;

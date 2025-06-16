@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Users, ArrowRight } from "lucide-react";
 
 interface AdminStats {
   contactMessages: number;
@@ -58,7 +60,17 @@ const Dashboard = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <Button 
+          onClick={() => window.location.href = "/comunidade"}
+          className="flex items-center gap-2"
+        >
+          <Users className="w-4 h-4" />
+          Acessar Comunidade
+          <ArrowRight className="w-4 h-4" />
+        </Button>
+      </div>
       
       {loading ? (
         <div className="flex items-center justify-center h-64">
