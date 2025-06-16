@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import PostList from "@/components/community/PostList";
 import CreatePostForm from "@/components/community/CreatePostForm";
+import CommunityHeader from "@/components/community/CommunityHeader";
+import CommunitySidebar from "@/components/community/CommunitySidebar";
 
 type ForumCategory = {
   id: string;
@@ -15,6 +18,34 @@ type ForumCategory = {
   description: string;
   color: string;
   slug: string;
+};
+
+// Mapeamento de slugs para categorias predefinidas
+const categoryMap = {
+  'apoio-emocional': {
+    name: 'Apoio Emocional',
+    description: 'Compartilhe seus sentimentos e encontre apoio da comunidade',
+    color: '#3B82F6',
+    slug: 'apoio-emocional'
+  },
+  'historias-superacao': {
+    name: 'Histórias de Superação',
+    description: 'Inspire-se e inspire outros com histórias de força e esperança',
+    color: '#10B981',
+    slug: 'historias-superacao'
+  },
+  'duvidas-orientacoes': {
+    name: 'Dúvidas e Orientações',
+    description: 'Tire suas dúvidas e compartilhe orientações úteis',
+    color: '#F59E0B',
+    slug: 'duvidas-orientacoes'
+  },
+  'grupos-apoio': {
+    name: 'Grupos de Apoio',
+    description: 'Conecte-se com grupos específicos de apoio',
+    color: '#8B5CF6',
+    slug: 'grupos-apoio'
+  }
 };
 
 const ForumCategory = () => {
@@ -33,6 +64,7 @@ const ForumCategory = () => {
 
   const fetchCategory = async () => {
     try {
+      // Primeiro tentar buscar no banco
       const { data: categoryData, error: categoryError } = await supabase
         .from('forum_categories')
         .select('*')
@@ -40,8 +72,18 @@ const ForumCategory = () => {
         .eq('is_active', true)
         .single();
 
-      if (categoryError) throw categoryError;
-      setCategory(categoryData);
+      if (categoryData) {
+        setCategory(categoryData);
+      } else if (slug && categoryMap[slug as keyof typeof categoryMap]) {
+        // Se não encontrar no banco, usar o mapeamento predefinido
+        const predefinedCategory = categoryMap[slug as keyof typeof categoryMap];
+        setCategory({
+          id: slug,
+          ...predefinedCategory
+        });
+      } else {
+        throw new Error('Categoria não encontrada');
+      }
     } catch (error) {
       console.error('Erro ao carregar categoria:', error);
       toast({
@@ -57,6 +99,7 @@ const ForumCategory = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50">
+        <CommunityHeader isLoggedIn={false} />
         <div className="container mx-auto px-4 py-20">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
@@ -77,6 +120,7 @@ const ForumCategory = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
+        <CommunityHeader isLoggedIn={true} />
         <div className="container mx-auto px-4 py-20">
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
@@ -90,6 +134,7 @@ const ForumCategory = () => {
   if (!category) {
     return (
       <div className="min-h-screen bg-gray-50">
+        <CommunityHeader isLoggedIn={true} />
         <div className="container mx-auto px-4 py-20">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
@@ -106,53 +151,57 @@ const ForumCategory = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-20">
-        <div className="max-w-6xl mx-auto">
-          {/* Header da categoria */}
-          <div className="mb-8">
-            <div className="flex items-center gap-4 mb-4">
-              <Link to="/comunidade">
-                <Button variant="outline" size="sm">← Voltar</Button>
-              </Link>
-              <div 
-                className="w-12 h-12 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: `${category.color}20`, color: category.color }}
-              >
-                <MessageSquare size={24} />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">{category.name}</h1>
-                <p className="text-gray-600">{category.description}</p>
-              </div>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <div className="text-sm text-gray-500">
-                Discussões da categoria
-              </div>
-              <Button 
-                onClick={() => setShowCreateForm(!showCreateForm)}
-                className="flex items-center gap-2"
-              >
-                <Plus size={18} />
-                {showCreateForm ? 'Cancelar' : 'Novo Post'}
-              </Button>
-            </div>
-          </div>
-
-          {/* Create Post Form */}
-          {showCreateForm && (
+      <CommunityHeader isLoggedIn={true} />
+      
+      <div className="flex">
+        <CommunitySidebar />
+        <main className="flex-1 p-6">
+          <div className="max-w-6xl mx-auto">
+            {/* Header da categoria */}
             <div className="mb-8">
-              <CreatePostForm 
-                preselectedCategory={category.id}
-                onSuccess={() => setShowCreateForm(false)} 
-              />
+              <div className="flex items-center gap-4 mb-4">
+                <Link to="/comunidade">
+                  <Button variant="outline" size="sm">← Voltar</Button>
+                </Link>
+                <div 
+                  className="w-12 h-12 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: `${category.color}20`, color: category.color }}
+                >
+                  <MessageSquare size={24} />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">{category.name}</h1>
+                  <p className="text-gray-600">{category.description}</p>
+                </div>
+              </div>
+              
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-gray-500">
+                  Discussões da categoria
+                </div>
+                <Link to="/comunidade/criar-post">
+                  <Button className="flex items-center gap-2">
+                    <Plus size={18} />
+                    Novo Post
+                  </Button>
+                </Link>
+              </div>
             </div>
-          )}
 
-          {/* Lista de posts */}
-          <PostList categorySlug={slug} />
-        </div>
+            {/* Create Post Form */}
+            {showCreateForm && (
+              <div className="mb-8">
+                <CreatePostForm 
+                  preselectedCategory={category.id}
+                  onSuccess={() => setShowCreateForm(false)} 
+                />
+              </div>
+            )}
+
+            {/* Lista de posts */}
+            <PostList categorySlug={slug} />
+          </div>
+        </main>
       </div>
     </div>
   );

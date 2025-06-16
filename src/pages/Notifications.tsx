@@ -3,10 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Bell, MessageSquare, Users, Heart, Settings } from "lucide-react";
+import { Link } from "react-router-dom";
 import CommunityHeader from "@/components/community/CommunityHeader";
 import CommunitySidebar from "@/components/community/CommunitySidebar";
+import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 
 const Notifications = () => {
+  const { user } = useCommunityAuth();
+
   // Notificações de exemplo (futuro: vir do banco de dados)
   const mockNotifications = [
     {
@@ -37,6 +41,27 @@ const Notifications = () => {
       icon: Users
     }
   ];
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <CommunityHeader isLoggedIn={false} />
+        <div className="container mx-auto px-4 py-20">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              Acesso Restrito
+            </h1>
+            <p className="text-lg text-gray-600 mb-8">
+              Você precisa estar logado para acessar as notificações.
+            </p>
+            <Link to="/comunidade/login">
+              <Button size="lg">Fazer Login</Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

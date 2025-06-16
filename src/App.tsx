@@ -19,6 +19,11 @@ import AdminLogin from "./pages/admin/Login";
 import Groups from "./pages/Groups";
 import ActiveForums from "./pages/ActiveForums";
 import ForumCategory from "./pages/ForumCategory";
+import CreatePost from "./pages/CreatePost";
+import Messages from "./pages/Messages";
+import Events from "./pages/Events";
+import SavedPosts from "./pages/SavedPosts";
+import Notifications from "./pages/Notifications";
 import Dashboard from "./pages/admin/Dashboard";
 import Contacts from "./pages/admin/Contacts";
 import Newsletter from "./pages/admin/Newsletter";
@@ -45,6 +50,15 @@ const App = () => (
             <Route path="/comunidade/login" element={<CommunityLogin />} />
             <Route path="/comunidade/grupos" element={<Groups />} />
             <Route path="/comunidade/ativos" element={<ActiveForums />} />
+            <Route path="/comunidade/mensagens" element={<Messages />} />
+            <Route path="/comunidade/eventos" element={<Events />} />
+            <Route path="/comunidade/salvos" element={<SavedPosts />} />
+            <Route path="/comunidade/notificacoes" element={<Notifications />} />
+            <Route path="/comunidade/criar-post" element={<CreatePost />} />
+            <Route path="/comunidade/apoio-emocional" element={<ForumCategory />} />
+            <Route path="/comunidade/historias-superacao" element={<ForumCategory />} />
+            <Route path="/comunidade/duvidas-orientacoes" element={<ForumCategory />} />
+            <Route path="/comunidade/grupos-apoio" element={<ForumCategory />} />
             <Route path="/comunidade/:slug" element={<ForumCategory />} />
             <Route path="/termos-de-uso" element={<TermosDeUso />} />
             <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />
