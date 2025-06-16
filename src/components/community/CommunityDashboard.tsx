@@ -1,32 +1,24 @@
 
-import { useState } from "react";
-import WelcomeSection from "./WelcomeSection";
-import QuickActions from "./QuickActions";
-import CategoriesSection from "./CategoriesSection";
+import FeedHeader from "./FeedHeader";
+import RightSidebar from "./RightSidebar";
+import SimplifiedWelcome from "./SimplifiedWelcome";
 import RecentPostsSection from "./RecentPostsSection";
-import CreatePostForm from "./CreatePostForm";
-import { useCommunityDashboard } from "@/hooks/useCommunityDashboard";
 
 const CommunityDashboard = () => {
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const { categories } = useCommunityDashboard();
-
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <WelcomeSection />
-      
-      <QuickActions 
-        showCreateForm={showCreateForm}
-        setShowCreateForm={setShowCreateForm}
-      />
+    <div className="flex min-h-screen">
+      {/* Feed Central */}
+      <div className="flex-1">
+        <FeedHeader />
+        
+        <div className="p-6">
+          <SimplifiedWelcome />
+          <RecentPostsSection />
+        </div>
+      </div>
 
-      {showCreateForm && (
-        <CreatePostForm onSuccess={() => setShowCreateForm(false)} />
-      )}
-
-      <CategoriesSection categories={categories} />
-
-      <RecentPostsSection />
+      {/* Sidebar Direita */}
+      <RightSidebar />
     </div>
   );
 };
