@@ -1,10 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
-interface WhatsAppConfig {
-  destination_number: string;
-}
+import { WhatsAppConfig, isWhatsAppConfig } from "@/types/whatsapp";
 
 // Este componente não é mais usado diretamente, mas mantido para compatibilidade
 // O redirecionamento agora é feito diretamente no FloatingButtons
@@ -23,7 +20,7 @@ export const openWhatsApp = async (customMessage?: string) => {
 
     let destinationNumber = "5511999999999";
     
-    if (!error && data?.value?.destination_number) {
+    if (!error && data?.value && isWhatsAppConfig(data.value)) {
       destinationNumber = data.value.destination_number;
     }
 

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { saveSettingsToDatabase } from "@/utils/settingsUtils";
+import { WhatsAppConfig, isWhatsAppConfig } from "@/types/whatsapp";
 
 const whatsAppConfigSchema = z.object({
   destinationNumber: z.string().min(10, "Número de WhatsApp inválido").regex(/^\d+$/, "Apenas números são permitidos"),
@@ -43,7 +44,7 @@ const WhatsAppConfigModal = ({ isOpen, onClose }: WhatsAppConfigModalProps) => {
           .eq('key', 'whatsapp_config')
           .single();
 
-        if (!error && data?.value?.destination_number) {
+        if (!error && data?.value && isWhatsAppConfig(data.value)) {
           form.setValue("destinationNumber", data.value.destination_number);
         }
       } catch (error) {

@@ -4,6 +4,7 @@ import { MessageCircle, Phone } from "lucide-react";
 import ChatModal from "./modals/ChatModal";
 import ContactModal from "./modals/ContactModal";
 import { supabase } from "@/integrations/supabase/client";
+import { WhatsAppConfig, isWhatsAppConfig } from "@/types/whatsapp";
 
 const FloatingButtons = () => {
   const [chatModalOpen, setChatModalOpen] = useState(false);
@@ -22,7 +23,7 @@ const FloatingButtons = () => {
 
       let destinationNumber = "5511999999999"; // Número padrão
       
-      if (!error && data?.value?.destination_number) {
+      if (!error && data?.value && isWhatsAppConfig(data.value)) {
         destinationNumber = data.value.destination_number;
       }
 
