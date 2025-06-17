@@ -80,25 +80,25 @@ const Blog = () => {
             {filteredPosts.map((post) => (
               <Link to={`/blog/${post.id}`} key={post.id}>
                 <Card className="hover:shadow-lg transition-shadow h-full overflow-hidden">
-                  <div className="w-full h-48 overflow-hidden">
+                  <div className="w-full aspect-video overflow-hidden bg-gray-100">
                     {post.image_url ? (
                       <img 
                         src={post.image_url} 
                         alt={post.title} 
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <div className="w-full h-full flex items-center justify-center">
                         <ImageIcon className="h-12 w-12 text-gray-300" />
                       </div>
                     )}
                   </div>
                   <CardHeader>
-                    <CardTitle className="text-xl">{post.title}</CardTitle>
+                    <CardTitle className="text-xl line-clamp-2">{post.title}</CardTitle>
                     <CardDescription>{new Date(post.created_at).toLocaleDateString('pt-BR')}</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-600">{post.description}</p>
+                    <p className="text-gray-600 line-clamp-3">{post.description}</p>
                     <div className="mt-4">
                       <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
                         {post.category}

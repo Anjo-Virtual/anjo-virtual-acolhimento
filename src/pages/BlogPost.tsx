@@ -91,13 +91,13 @@ const BlogPost = () => {
           Voltar para o blog
         </Link>
         
-        <article className="max-w-3xl mx-auto">
+        <article className="max-w-4xl mx-auto">
           {post.image_url ? (
-            <div className="w-full h-64 md:h-96 mb-8 overflow-hidden rounded-lg">
+            <div className="w-full max-w-3xl mx-auto mb-8 overflow-hidden rounded-lg bg-gray-100">
               <img 
                 src={post.image_url} 
                 alt={post.title} 
-                className="w-full h-full object-cover"
+                className="w-full h-auto object-contain max-h-96"
               />
             </div>
           ) : (
@@ -118,7 +118,7 @@ const BlogPost = () => {
 
           <div className="prose prose-gray max-w-none">
             {post.content?.split('\n\n').map((paragraph, index) => (
-              <p key={index} className="mb-4">{paragraph}</p>
+              <p key={index} className="mb-4 text-lg leading-relaxed">{paragraph}</p>
             ))}
           </div>
         </article>
