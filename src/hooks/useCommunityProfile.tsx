@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 type CommunityProfile = {
   id: string;
   display_name: string;
+  bio: string;
   is_anonymous: boolean;
   user_id: string;
 };
@@ -48,6 +49,7 @@ export const useCommunityProfile = () => {
           .insert({
             user_id: user.id,
             display_name: user.email?.split('@')[0] || 'Membro Anônimo',
+            bio: '',
             is_anonymous: true
           })
           .select()

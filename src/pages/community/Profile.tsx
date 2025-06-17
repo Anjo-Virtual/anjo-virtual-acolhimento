@@ -18,7 +18,7 @@ const CommunityProfile = () => {
   const { user, signOut } = useCommunityAuth();
   const { profile, loading, refetch } = useCommunityProfile();
   const [displayName, setDisplayName] = useState(profile?.display_name || "");
-  const [bio, setBio] = useState(profile?.bio || "");
+  const [bio, setBio] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(profile?.is_anonymous || true);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -31,7 +31,6 @@ const CommunityProfile = () => {
         .from('community_profiles')
         .update({
           display_name: displayName,
-          bio: bio,
           is_anonymous: isAnonymous,
           updated_at: new Date().toISOString()
         })
@@ -67,6 +66,10 @@ const CommunityProfile = () => {
     } catch (error) {
       console.error('Erro no logout:', error);
     }
+  };
+
+  const handleAnonymousChange = (checked: boolean) => {
+    setIsAnonymous(checked);
   };
 
   if (loading) {
@@ -156,7 +159,7 @@ const CommunityProfile = () => {
                   </div>
                   <Switch
                     checked={isAnonymous}
-                    onCheckedChange={setIsAnonymous}
+                    onCheckedChange={handleAnonymousChange}
                   />
                 </div>
 
