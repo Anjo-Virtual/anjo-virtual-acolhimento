@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { useCommunityProfile } from "@/hooks/useCommunityProfile";
 import { Button } from "@/components/ui/button";
@@ -17,10 +16,19 @@ import CommunityHeader from "@/components/community/CommunityHeader";
 const CommunityProfile = () => {
   const { user, signOut } = useCommunityAuth();
   const { profile, loading, refetch } = useCommunityProfile();
-  const [displayName, setDisplayName] = useState(profile?.display_name || "");
-  const [bio, setBio] = useState("");
-  const [isAnonymous, setIsAnonymous] = useState(profile?.is_anonymous || true);
+  const [displayName, setDisplayName] = useState<string>("");
+  const [bio, setBio] = useState<string>("");
+  const [isAnonymous, setIsAnonymous] = useState<boolean>(true);
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Update state when profile loads
+  useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.display_name || "");
+      setBio(profile.bio || "");
+      setIsAnonymous(profile.is_anonymous ?? true);
+    }
+  }, [profile]);
 
   const handleUpdateProfile = async () => {
     if (!profile) return;
