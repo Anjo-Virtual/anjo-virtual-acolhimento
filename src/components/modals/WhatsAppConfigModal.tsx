@@ -10,9 +10,14 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { saveSettingsToDatabase } from "@/utils/settingsUtils";
 import { WhatsAppConfig, isWhatsAppConfig } from "@/types/whatsapp";
+import { validateWhatsAppNumber, sanitizeInput, secureLog } from "@/utils/security";
 
 const whatsAppConfigSchema = z.object({
-  destinationNumber: z.string().min(10, "Número de WhatsApp inválido").regex(/^\d+$/, "Apenas números são permitidos"),
+  destinationNumber: z.string()
+    .min(10, "Número de WhatsApp deve ter pelo menos 10 dígitos")
+    .max(15, "Número de WhatsApp deve ter no máximo 15 dígitos")
+    .regex(/^\d+$/, "Apenas números são permitidos")
+    .refine(validateWhatsAppNumber, "Formato de número WhatsApp inválido"),
 });
 
 type FormData = z.infer<typeof whatsAppConfigSchema>;
@@ -44,11 +49,26 @@ const WhatsAppConfigModal = ({ isOpen, onClose }: WhatsAppConfigModalProps) => {
           .eq('key', 'whatsapp_config')
           .single();
 
-        if (!error && data?.value && isWhatsAppConfig(data.value)) {
-          form.setValue("destinationNumber", data.value.destination_number);
+        if (error && error.code !== 'PGRST116') {
+          secureLog('error', 'Erro ao buscar configuração WhatsApp:', error);
+          throw error;
+        }
+
+        if (data?.value && isWhatsAppConfig(data.value)) {
+          const sanitizedNumber = sanitizeInput(data.value.destination_number);
+          if (validateWhatsAppNumber(sanitizedNumber)) {
+            form.setValue("destinationNumber", sanitizedNumber);
+          } else {
+            secureLog('warn', 'Número WhatsApp armazenado está em formato inválido');
+          }
         }
       } catch (error) {
-        console.error("Erro ao buscar configuração:", error);
+        secureLog('error', 'Erro ao buscar configuração WhatsApp:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar as configurações do WhatsApp.",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
@@ -60,9 +80,20 @@ const WhatsAppConfigModal = ({ isOpen, onClose }: WhatsAppConfigModalProps) => {
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      await saveSettingsToDatabase('whatsapp_config', {
-        destination_number: data.destinationNumber
-      });
+      // Sanitize and validate input
+      const sanitizedNumber = sanitizeInput(data.destinationNumber);
+      
+      if (!validateWhatsAppNumber(sanitizedNumber)) {
+        throw new Error("Número WhatsApp inválido");
+      }
+
+      const configData: WhatsAppConfig = {
+        destination_number: sanitizedNumber
+      };
+      
+      await saveSettingsToDatabase('whatsapp_config', configData);
+      
+      secureLog('info', 'Configuração WhatsApp salva com sucesso');
       
       toast({
         title: "Configuração salva",
@@ -70,11 +101,11 @@ const WhatsAppConfigModal = ({ isOpen, onClose }: WhatsAppConfigModalProps) => {
       });
       
       onClose();
-    } catch (error) {
-      console.error("Erro ao salvar configuração:", error);
+    } catch (error: any) {
+      secureLog('error', 'Erro ao salvar configuração WhatsApp:', error);
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao salvar a configuração.",
+        description: error.message || "Ocorreu um erro ao salvar a configuração.",
         variant: "destructive",
       });
     } finally {
@@ -93,6 +124,7 @@ const WhatsAppConfigModal = ({ isOpen, onClose }: WhatsAppConfigModalProps) => {
         <button 
           onClick={onClose}
           className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+          aria-label="Fechar modal"
         >
           <i className="ri-close-line ri-lg"></i>
         </button>
@@ -110,7 +142,13 @@ const WhatsAppConfigModal = ({ isOpen, onClose }: WhatsAppConfigModalProps) => {
                     <Input 
                       type="tel" 
                       placeholder="5511999999999"
+                      maxLength={15}
                       {...field}
+                      onChange={(e) => {
+                        // Only allow numbers
+                        const value = e.target.value.replace(/\D/g, '');
+                        field.onChange(value);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />

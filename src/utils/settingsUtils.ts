@@ -1,8 +1,12 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { secureLog, maskSensitiveData } from "@/utils/security";
 
 export const saveSettingsToDatabase = async (key: string, value: any) => {
   try {
+    // Log the operation (with masked sensitive data)
+    secureLog('info', `Attempting to save setting: ${key}`, { key, value: maskSensitiveData(value) });
+    
     // Verificar se a configuração já existe
     const { data: existingSettings, error: fetchError } = await supabase
       .from('site_settings')
@@ -11,6 +15,7 @@ export const saveSettingsToDatabase = async (key: string, value: any) => {
       .single();
     
     if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 é "No rows found"
+      secureLog('error', 'Error fetching existing settings:', fetchError);
       throw fetchError;
     }
     
@@ -43,14 +48,14 @@ export const saveSettingsToDatabase = async (key: string, value: any) => {
     }
     
     if (saveError) {
-      console.error('Erro ao salvar configuração:', saveError);
+      secureLog('error', 'Erro ao salvar configuração:', saveError);
       throw saveError;
     }
     
-    console.log(`Configuração ${key} salva com sucesso:`, value);
+    secureLog('info', `Configuração ${key} salva com sucesso`);
     return true;
   } catch (error) {
-    console.error('Erro na função saveSettingsToDatabase:', error);
+    secureLog('error', 'Erro na função saveSettingsToDatabase:', error);
     throw error;
   }
 };
@@ -65,12 +70,43 @@ export const getSettingsFromDatabase = async (key: string) => {
       .single();
 
     if (error && error.code !== 'PGRST116') {
+      secureLog('error', `Erro ao buscar configuração ${key}:`, error);
       throw error;
     }
 
     return data?.value || null;
   } catch (error) {
-    console.error(`Erro ao buscar configuração ${key}:`, error);
+    secureLog('error', `Erro ao buscar configuração ${key}:`, error);
     return null;
+  }
+};
+
+// Função para validar se o usuário tem permissão para acessar configurações
+export const validateSettingsAccess = async (): Promise<boolean> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      secureLog('warn', 'Tentativa de acesso a configurações sem autenticação');
+      return false;
+    }
+    
+    // Verificar se é admin usando a função do banco
+    const { data: isAdmin, error } = await supabase.rpc('is_admin', { user_uuid: user.id });
+    
+    if (error) {
+      secureLog('error', 'Erro ao verificar permissões de admin:', error);
+      return false;
+    }
+    
+    if (!isAdmin) {
+      secureLog('warn', `Usuário ${user.email} tentou acessar configurações sem permissão de admin`);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    secureLog('error', 'Erro ao validar acesso a configurações:', error);
+    return false;
   }
 };
