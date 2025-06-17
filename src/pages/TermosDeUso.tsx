@@ -1,4 +1,3 @@
-
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ChevronRight, Shield, User, FileText, Mail, Clock, ArrowUp } from "lucide-react";
@@ -15,7 +14,7 @@ const TermosDeUso = () => {
       let current = "";
       
       sections.forEach((section) => {
-        const sectionTop = section.offsetTop;
+        const sectionTop = (section as HTMLElement).offsetTop;
         if (window.pageYOffset >= sectionTop - 100) {
           current = section.getAttribute("id") || "";
         }
