@@ -13,6 +13,7 @@ import TermosDeUso from "./pages/TermosDeUso";
 import PoliticaDePrivacidade from "./pages/PoliticaDePrivacidade";
 import PoliticaDeCookies from "./pages/PoliticaDeCookies";
 import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import Community from "./pages/Community";
 import CommunityLogin from "./pages/community/Login";
 import CommunityProfile from "./pages/community/Profile";
@@ -47,6 +48,7 @@ const App = () => (
             {/* Public Routes */}
             <Route path="/" element={<Index />} />
             <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:id" element={<BlogPost />} />
             <Route path="/comunidade" element={<Community />} />
             <Route path="/comunidade/login" element={<CommunityLogin />} />
             <Route path="/comunidade/perfil" element={<CommunityProfile />} />
