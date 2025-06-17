@@ -15,6 +15,7 @@ import PoliticaDeCookies from "./pages/PoliticaDeCookies";
 import Blog from "./pages/Blog";
 import Community from "./pages/Community";
 import CommunityLogin from "./pages/community/Login";
+import CommunityProfile from "./pages/community/Profile";
 import AdminLogin from "./pages/admin/Login";
 import Groups from "./pages/Groups";
 import ActiveForums from "./pages/ActiveForums";
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/blog" element={<Blog />} />
             <Route path="/comunidade" element={<Community />} />
             <Route path="/comunidade/login" element={<CommunityLogin />} />
+            <Route path="/comunidade/perfil" element={<CommunityProfile />} />
             <Route path="/comunidade/grupos" element={<Groups />} />
             <Route path="/comunidade/ativos" element={<ActiveForums />} />
             <Route path="/comunidade/mensagens" element={<Messages />} />

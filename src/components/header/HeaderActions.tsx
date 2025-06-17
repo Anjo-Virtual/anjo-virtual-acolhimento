@@ -19,7 +19,7 @@ export const HeaderActions = ({ user, openChatModal }: HeaderActionsProps) => {
     <div className="flex items-center space-x-4">
       {user ? (
         <Link 
-          to="/minha-conta" 
+          to="/comunidade/perfil" 
           className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-button hover:bg-opacity-90 transition-colors"
         >
           <UserCircle size={18} />
@@ -27,7 +27,7 @@ export const HeaderActions = ({ user, openChatModal }: HeaderActionsProps) => {
         </Link>
       ) : (
         <Link 
-          to="/admin/login" 
+          to="/comunidade/login" 
           className="text-gray-700 hover:text-primary transition-colors"
         >
           Login

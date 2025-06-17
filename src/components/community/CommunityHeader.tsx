@@ -1,79 +1,99 @@
 
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bell, Search, Settings, LogOut, Home } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Heart, Settings, LogOut, User } from "lucide-react";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
-import { Input } from "@/components/ui/input";
+import NotificationButton from "./NotificationButton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface CommunityHeaderProps {
   isLoggedIn: boolean;
 }
 
 const CommunityHeader = ({ isLoggedIn }: CommunityHeaderProps) => {
-  const { signOut, user } = useCommunityAuth();
+  const { user, signOut } = useCommunityAuth();
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Erro no logout:', error);
+    }
   };
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="px-6 py-3">
-        <div className="flex items-center justify-between">
-          {/* Logo e navegação */}
-          <div className="flex items-center space-x-6">
-            <Link to="/comunidade" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Home className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-semibold text-gray-900">Comunidade</span>
-            </Link>
-          </div>
-
-          {/* Barra de pesquisa - apenas para usuários logados */}
-          {isLoggedIn && (
-            <div className="flex-1 max-w-md mx-8">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Pesquisar discussões..."
-                  className="pl-10 bg-gray-50 border-0 focus:bg-white focus:ring-1 focus:ring-primary"
-                />
-              </div>
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to="/comunidade" className="flex items-center gap-3">
+            <div className="bg-primary rounded-lg p-2">
+              <Heart className="w-6 h-6 text-white" />
             </div>
-          )}
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Comunidade do Luto</h1>
+              <p className="text-sm text-gray-600">Apoio e compreensão</p>
+            </div>
+          </Link>
 
-          {/* Ações do usuário */}
-          <div className="flex items-center space-x-3">
+          {/* Actions */}
+          <div className="flex items-center gap-4">
             {isLoggedIn ? (
               <>
-                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                  <Bell className="w-5 h-5" />
-                </Button>
-                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                  <Settings className="w-5 h-5" />
-                </Button>
-                <div className="flex items-center space-x-3">
-                  <Avatar className="w-8 h-8">
-                    <AvatarFallback className="bg-primary text-white text-sm">
-                      {user?.email?.charAt(0).toUpperCase() || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handleSignOut}
-                    className="text-gray-600 hover:text-gray-900"
-                  >
-                    <LogOut className="w-4 h-4" />
-                  </Button>
-                </div>
+                {/* Notificações */}
+                <NotificationButton />
+                
+                {/* Menu do usuário */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                      <Settings className="w-5 h-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>
+                      {user?.email}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/comunidade/perfil" className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        Meu Perfil
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/comunidade/notificacoes" className="flex items-center gap-2">
+                        <Settings className="w-4 h-4" />
+                        Configurações
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={handleSignOut}
+                      className="flex items-center gap-2 text-red-600"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sair
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             ) : (
-              <Link to="/comunidade/login">
-                <Button size="sm">Entrar</Button>
-              </Link>
+              <div className="flex items-center gap-3">
+                <Link to="/comunidade/login">
+                  <Button variant="outline">Entrar</Button>
+                </Link>
+                <Link to="/comunidade/login">
+                  <Button>Criar Conta</Button>
+                </Link>
+              </div>
             )}
           </div>
         </div>
