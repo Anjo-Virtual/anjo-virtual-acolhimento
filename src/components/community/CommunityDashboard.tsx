@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { useCommunityDashboard } from "@/hooks/useCommunityDashboard";
 import WelcomeSection from "./WelcomeSection";
@@ -9,7 +10,8 @@ import RightSidebar from "./RightSidebar";
 
 const CommunityDashboard = () => {
   const { user } = useCommunityAuth();
-  const { categories, recentPosts, loading } = useCommunityDashboard();
+  const { categories } = useCommunityDashboard();
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   if (!user) {
     return (
@@ -33,8 +35,11 @@ const CommunityDashboard = () => {
           {/* Main Content */}
           <div className="flex-1 space-y-6">
             <WelcomeSection />
-            <QuickActions />
-            <RecentPostsSection posts={recentPosts} loading={loading} />
+            <QuickActions 
+              showCreateForm={showCreateForm} 
+              setShowCreateForm={setShowCreateForm} 
+            />
+            <RecentPostsSection />
             <CategoriesSection categories={categories} />
           </div>
 
