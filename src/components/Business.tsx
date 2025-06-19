@@ -47,7 +47,6 @@ const Business = () => {
             </div>
 
             <div className="lg:col-span-3 bg-white rounded-lg shadow-lg p-8">
-              <h3 className="text-2xl font-semibold text-center mb-6">Entre em contato</h3>
               <ContactForm />
             </div>
           </div>
