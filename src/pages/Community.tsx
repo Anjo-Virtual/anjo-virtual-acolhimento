@@ -8,8 +8,15 @@ const Community = () => {
   const { user } = useCommunityAuth();
   const { categories } = useCommunityDashboard();
 
+  // Transform categories to match the expected type for UnauthenticatedCommunityView
+  const transformedCategories = categories.map(category => ({
+    ...category,
+    icon: category.icon || 'MessageSquare',
+    sort_order: category.sort_order || 0
+  }));
+
   if (!user) {
-    return <UnauthenticatedCommunityView categories={categories} />;
+    return <UnauthenticatedCommunityView categories={transformedCategories} />;
   }
 
   return <AuthenticatedCommunityView />;
