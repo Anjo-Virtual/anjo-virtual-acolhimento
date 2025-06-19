@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -103,7 +102,7 @@ const CreatePost = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <CommunityHeader isLoggedIn={true} />
+      <CommunityHeader />
       
       <div className="flex">
         <CommunitySidebar />

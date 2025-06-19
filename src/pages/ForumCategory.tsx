@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -99,7 +98,7 @@ const ForumCategory = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <CommunityHeader isLoggedIn={false} />
+        <CommunityHeader />
         <div className="container mx-auto px-4 py-20">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
@@ -120,7 +119,7 @@ const ForumCategory = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <CommunityHeader isLoggedIn={true} />
+        <CommunityHeader />
         <div className="container mx-auto px-4 py-20">
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
@@ -134,7 +133,7 @@ const ForumCategory = () => {
   if (!category) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <CommunityHeader isLoggedIn={true} />
+        <CommunityHeader />
         <div className="container mx-auto px-4 py-20">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
@@ -151,7 +150,7 @@ const ForumCategory = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <CommunityHeader isLoggedIn={true} />
+      <CommunityHeader />
       
       <div className="flex">
         <CommunitySidebar />
