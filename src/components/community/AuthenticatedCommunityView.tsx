@@ -8,7 +8,8 @@ const AuthenticatedCommunityView = () => {
     <div className="min-h-screen bg-gray-50">
       <CommunityHeader />
       
-      <div className="flex">
+      {/* Adicionar padding-top para compensar o header fixo */}
+      <div className="flex pt-16">
         <CommunitySidebar />
         <main className="flex-1">
           <CommunityDashboard />

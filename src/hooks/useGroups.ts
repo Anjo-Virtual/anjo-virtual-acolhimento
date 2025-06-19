@@ -13,10 +13,15 @@ export const useGroups = () => {
   const { profile } = useCommunityProfile();
 
   const fetchGroupsData = async () => {
-    if (!profile) return;
+    if (!profile) {
+      setLoading(false);
+      return;
+    }
 
     try {
-      // Buscar todos os grupos com informações do criador
+      setLoading(true);
+      
+      // Buscar todos os grupos
       const { data: groupsData, error: groupsError } = await supabase
         .from('community_groups')
         .select(`
@@ -25,7 +30,10 @@ export const useGroups = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (groupsError) throw groupsError;
+      if (groupsError) {
+        console.error('Erro ao buscar grupos:', groupsError);
+        throw groupsError;
+      }
 
       // Buscar memberships do usuário atual
       const { data: memberships, error: membershipError } = await supabase
@@ -33,7 +41,10 @@ export const useGroups = () => {
         .select('group_id, role')
         .eq('profile_id', profile.id);
 
-      if (membershipError) throw membershipError;
+      if (membershipError) {
+        console.error('Erro ao buscar memberships:', membershipError);
+        throw membershipError;
+      }
 
       const membershipMap = new Map(
         memberships?.map(m => [m.group_id, m.role]) || []
@@ -91,7 +102,7 @@ export const useGroups = () => {
         description: "Grupo criado com sucesso!",
       });
 
-      fetchGroupsData();
+      await fetchGroupsData();
       return true;
     } catch (error) {
       console.error('Erro ao criar grupo:', error);
@@ -123,7 +134,7 @@ export const useGroups = () => {
         description: "Você entrou no grupo!",
       });
 
-      fetchGroupsData();
+      await fetchGroupsData();
       return true;
     } catch (error) {
       console.error('Erro ao entrar no grupo:', error);
@@ -153,7 +164,7 @@ export const useGroups = () => {
         description: "Você saiu do grupo.",
       });
 
-      fetchGroupsData();
+      await fetchGroupsData();
       return true;
     } catch (error) {
       console.error('Erro ao sair do grupo:', error);
@@ -167,9 +178,7 @@ export const useGroups = () => {
   };
 
   useEffect(() => {
-    if (profile) {
-      fetchGroupsData();
-    }
+    fetchGroupsData();
   }, [profile]);
 
   return {

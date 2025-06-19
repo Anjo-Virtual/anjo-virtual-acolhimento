@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,7 +40,8 @@ const Groups = () => {
     <div className="min-h-screen bg-gray-50">
       <CommunityHeader />
       
-      <div className="flex">
+      {/* Adicionar padding-top para compensar o header fixo */}
+      <div className="flex pt-16">
         <CommunitySidebar />
         <main className="flex-1 p-6">
           <div className="max-w-6xl mx-auto">
