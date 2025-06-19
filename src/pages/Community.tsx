@@ -10,9 +10,13 @@ const Community = () => {
 
   // Transform categories to match the expected type for UnauthenticatedCommunityView
   const transformedCategories = categories.map(category => ({
-    ...category,
-    icon: category.icon || 'MessageSquare',
-    sort_order: category.sort_order || 0
+    id: category.id,
+    name: category.name,
+    description: category.description,
+    slug: category.slug,
+    color: category.color,
+    icon: 'MessageSquare', // Default icon for all categories
+    sort_order: 0 // Default sort order
   }));
 
   if (!user) {
