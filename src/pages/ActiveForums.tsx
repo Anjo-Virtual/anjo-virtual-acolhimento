@@ -17,7 +17,7 @@ const ActiveForums = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <CommunityHeader isLoggedIn={true} />
+      <CommunityHeader />
       
       <div className="flex">
         <CommunitySidebar />

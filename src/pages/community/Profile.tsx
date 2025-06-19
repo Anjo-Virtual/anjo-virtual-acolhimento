@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { useCommunityProfile } from "@/hooks/useCommunityProfile";
@@ -83,7 +84,7 @@ const CommunityProfile = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <CommunityHeader isLoggedIn={true} />
+        <CommunityHeader />
         <div className="flex items-center justify-center pt-20">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -93,7 +94,7 @@ const CommunityProfile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <CommunityHeader isLoggedIn={true} />
+      <CommunityHeader />
       
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">
