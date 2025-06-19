@@ -2,8 +2,13 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useCommunityProfile } from "./useCommunityProfile";
-import { CommunityGroup } from "@/types/groups";
-import { fetchGroups, createGroup, joinGroup, leaveGroup } from "@/services/groupsService";
+import { CommunityGroup, CreateGroupData } from "@/types/groups";
+import { 
+  fetchAllGroups, 
+  createNewGroup, 
+  joinExistingGroup, 
+  leaveExistingGroup 
+} from "@/services/groupService";
 
 export const useGroupsData = () => {
   const [groups, setGroups] = useState<CommunityGroup[]>([]);
@@ -20,7 +25,7 @@ export const useGroupsData = () => {
 
     try {
       setLoading(true);
-      const { groups: allGroups, myGroups: userGroups } = await fetchGroups(profile.id);
+      const { groups: allGroups, myGroups: userGroups } = await fetchAllGroups(profile.id);
       setGroups(allGroups);
       setMyGroups(userGroups);
     } catch (error) {
@@ -35,11 +40,11 @@ export const useGroupsData = () => {
     }
   };
 
-  const createGroupHandler = async (groupData: any): Promise<boolean> => {
+  const createGroupHandler = async (groupData: CreateGroupData): Promise<boolean> => {
     if (!profile) return false;
 
     try {
-      await createGroup(groupData, profile.id);
+      await createNewGroup(groupData, profile.id);
       toast({
         title: "Sucesso",
         description: "Grupo criado com sucesso!",
@@ -61,7 +66,7 @@ export const useGroupsData = () => {
     if (!profile) return false;
 
     try {
-      await joinGroup(groupId, profile.id);
+      await joinExistingGroup(groupId, profile.id);
       toast({
         title: "Sucesso",
         description: "Você entrou no grupo!",
@@ -83,7 +88,7 @@ export const useGroupsData = () => {
     if (!profile) return false;
 
     try {
-      await leaveGroup(groupId, profile.id);
+      await leaveExistingGroup(groupId, profile.id);
       toast({
         title: "Sucesso",
         description: "Você saiu do grupo.",

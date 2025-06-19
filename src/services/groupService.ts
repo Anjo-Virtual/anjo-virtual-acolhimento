@@ -2,12 +2,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CommunityGroup, CreateGroupData } from "@/types/groups";
 
-export const fetchGroups = async (profileId: string): Promise<{
-  groups: CommunityGroup[];
-  myGroups: CommunityGroup[];
-}> => {
-  // Buscar grupos públicos e grupos que o usuário é membro
-  const { data: groupsData, error } = await supabase
+export const fetchAllGroups = async (profileId: string) => {
+  // Buscar todos os grupos
+  const { data: groupsData, error: groupsError } = await supabase
     .from('community_groups')
     .select(`
       *,
@@ -15,13 +12,21 @@ export const fetchGroups = async (profileId: string): Promise<{
     `)
     .order('created_at', { ascending: false });
 
-  if (error) throw error;
+  if (groupsError) {
+    console.error('Erro ao buscar grupos:', groupsError);
+    throw groupsError;
+  }
 
-  // Verificar quais grupos o usuário é membro
-  const { data: memberships } = await supabase
+  // Buscar memberships do usuário atual
+  const { data: memberships, error: membershipError } = await supabase
     .from('group_members')
     .select('group_id, role')
     .eq('profile_id', profileId);
+
+  if (membershipError) {
+    console.error('Erro ao buscar memberships:', membershipError);
+    throw membershipError;
+  }
 
   const membershipMap = new Map(
     memberships?.map(m => [m.group_id, m.role]) || []
@@ -39,10 +44,7 @@ export const fetchGroups = async (profileId: string): Promise<{
   };
 };
 
-export const createGroup = async (
-  groupData: CreateGroupData,
-  profileId: string
-): Promise<void> => {
+export const createNewGroup = async (groupData: CreateGroupData, profileId: string) => {
   const { data: newGroup, error } = await supabase
     .from('community_groups')
     .insert({
@@ -65,12 +67,11 @@ export const createGroup = async (
     });
 
   if (memberError) throw memberError;
+
+  return newGroup;
 };
 
-export const joinGroup = async (
-  groupId: string,
-  profileId: string
-): Promise<void> => {
+export const joinExistingGroup = async (groupId: string, profileId: string) => {
   const { error } = await supabase
     .from('group_members')
     .insert({
@@ -82,10 +83,7 @@ export const joinGroup = async (
   if (error) throw error;
 };
 
-export const leaveGroup = async (
-  groupId: string,
-  profileId: string
-): Promise<void> => {
+export const leaveExistingGroup = async (groupId: string, profileId: string) => {
   const { error } = await supabase
     .from('group_members')
     .delete()
