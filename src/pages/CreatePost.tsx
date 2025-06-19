@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,8 +11,7 @@ import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useCommunityCategories } from "@/hooks/useCommunityCategories";
-import CommunityHeader from "@/components/community/CommunityHeader";
-import CommunitySidebar from "@/components/community/CommunitySidebar";
+import CommunityPageLayout from "@/components/community/CommunityPageLayout";
 
 const CreatePost = () => {
   const navigate = useNavigate();
@@ -82,107 +82,98 @@ const CreatePost = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-20">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Acesso Restrito
-            </h1>
-            <p className="text-lg text-gray-600 mb-8">
-              Você precisa estar logado para criar posts.
-            </p>
-            <Link to="/comunidade/login">
-              <Button size="lg">Fazer Login</Button>
-            </Link>
-          </div>
+      <CommunityPageLayout>
+        <div className="max-w-4xl mx-auto text-center py-20">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+            Acesso Restrito
+          </h1>
+          <p className="text-lg text-gray-600 mb-8">
+            Você precisa estar logado para criar posts.
+          </p>
+          <Link to="/comunidade/login">
+            <Button size="lg">Fazer Login</Button>
+          </Link>
         </div>
-      </div>
+      </CommunityPageLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <CommunityHeader />
-      
-      <div className="flex">
-        <CommunitySidebar />
-        <main className="flex-1 p-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-8">
-              <Link to="/comunidade">
-                <Button variant="outline" size="sm">← Voltar à Comunidade</Button>
-              </Link>
-            </div>
+    <CommunityPageLayout>
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <Link to="/comunidade">
+            <Button variant="outline" size="sm">← Voltar à Comunidade</Button>
+          </Link>
+        </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Criar Nova Discussão</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div>
-                    <Label htmlFor="category">Categoria</Label>
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger className="mt-2">
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Criar Nova Discussão</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <Label htmlFor="category">Categoria</Label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-                  <div>
-                    <Label htmlFor="title">Título do Post</Label>
-                    <Input
-                      id="title"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Digite o título do seu post..."
-                      maxLength={200}
-                      className="mt-2"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      {title.length}/200 caracteres
-                    </p>
-                  </div>
+              <div>
+                <Label htmlFor="title">Título do Post</Label>
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Digite o título do seu post..."
+                  maxLength={200}
+                  className="mt-2"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {title.length}/200 caracteres
+                </p>
+              </div>
 
-                  <div>
-                    <Label htmlFor="content">Conteúdo</Label>
-                    <Textarea
-                      id="content"
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      placeholder="Compartilhe sua experiência, dúvida ou reflexão..."
-                      rows={12}
-                      className="mt-2"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Seja respeitoso e compartilhe com empatia. Sua experiência pode ajudar outros membros.
-                    </p>
-                  </div>
+              <div>
+                <Label htmlFor="content">Conteúdo</Label>
+                <Textarea
+                  id="content"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Compartilhe sua experiência, dúvida ou reflexão..."
+                  rows={12}
+                  className="mt-2"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Seja respeitoso e compartilhe com empatia. Sua experiência pode ajudar outros membros.
+                </p>
+              </div>
 
-                  <div className="flex justify-end gap-4">
-                    <Link to="/comunidade">
-                      <Button type="button" variant="outline">
-                        Cancelar
-                      </Button>
-                    </Link>
-                    <Button type="submit" disabled={loading}>
-                      {loading ? 'Publicando...' : 'Publicar Post'}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
-        </main>
+              <div className="flex flex-col sm:flex-row justify-end gap-4">
+                <Link to="/comunidade">
+                  <Button type="button" variant="outline" className="w-full sm:w-auto">
+                    Cancelar
+                  </Button>
+                </Link>
+                <Button type="submit" disabled={loading} className="w-full sm:w-auto">
+                  {loading ? 'Publicando...' : 'Publicar Post'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </CommunityPageLayout>
   );
 };
 
