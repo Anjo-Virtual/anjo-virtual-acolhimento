@@ -29,23 +29,21 @@ const CommunityDashboard = () => {
   }
 
   return (
-    <div className="flex-1 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex gap-6">
-          {/* Main Content */}
-          <div className="flex-1 space-y-6">
-            <WelcomeSection />
-            <QuickActions 
-              showCreateForm={showCreateForm} 
-              setShowCreateForm={setShowCreateForm} 
-            />
-            <RecentPostsSection />
-            <CategoriesSection categories={categories} />
-          </div>
-
-          {/* Right Sidebar */}
-          <RightSidebar />
+    <div className="max-w-7xl mx-auto">
+      <div className="flex gap-6">
+        {/* Main Content */}
+        <div className="flex-1 space-y-6">
+          <WelcomeSection />
+          <QuickActions 
+            showCreateForm={showCreateForm} 
+            setShowCreateForm={setShowCreateForm} 
+          />
+          <RecentPostsSection />
+          <CategoriesSection categories={categories} />
         </div>
+
+        {/* Right Sidebar */}
+        <RightSidebar />
       </div>
     </div>
   );

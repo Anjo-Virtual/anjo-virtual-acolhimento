@@ -1013,6 +1013,10 @@ export type Database = {
       }
     }
     Functions: {
+      get_current_user_profile_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       has_role: {
         Args: {
           user_uuid: string
@@ -1022,14 +1026,6 @@ export type Database = {
       }
       is_admin: {
         Args: { user_uuid: string }
-        Returns: boolean
-      }
-      is_group_creator: {
-        Args: { group_uuid: string; user_uuid: string }
-        Returns: boolean
-      }
-      is_group_member: {
-        Args: { group_uuid: string; user_uuid: string }
         Returns: boolean
       }
       user_has_liked_post: {
