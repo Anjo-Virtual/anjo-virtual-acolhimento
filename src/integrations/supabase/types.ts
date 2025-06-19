@@ -1024,6 +1024,14 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: boolean
       }
+      is_group_creator: {
+        Args: { group_uuid: string; user_uuid: string }
+        Returns: boolean
+      }
+      is_group_member: {
+        Args: { group_uuid: string; user_uuid: string }
+        Returns: boolean
+      }
       user_has_liked_post: {
         Args: { user_uuid: string; post_uuid: string }
         Returns: boolean
