@@ -22,25 +22,26 @@ const CommunityPageLayout = ({ children }: CommunityPageLayoutProps) => {
         {/* Mobile Sidebar Overlay */}
         {isMobile && sidebarOpen && (
           <div 
-            className="fixed inset-0 z-40 bg-black bg-opacity-50"
+            className="fixed inset-0 z-50 bg-black bg-opacity-50"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
         {/* Sidebar */}
         <div className={`
-          ${isMobile ? 'fixed z-50' : 'relative'}
+          ${isMobile ? 'fixed z-[60]' : 'relative'}
           ${isMobile && !sidebarOpen ? '-translate-x-full' : 'translate-x-0'}
           transition-transform duration-300 ease-in-out
+          w-64 flex-shrink-0
         `}>
           <CommunitySidebar />
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 pt-20">
+        <main className="flex-1 pt-20 min-w-0">
           {/* Mobile Menu Button */}
           {isMobile && (
-            <div className="p-4 border-b bg-white">
+            <div className="p-4 border-b bg-white sticky top-20 z-40">
               <Button
                 variant="ghost"
                 size="sm"
@@ -53,7 +54,7 @@ const CommunityPageLayout = ({ children }: CommunityPageLayoutProps) => {
             </div>
           )}
           
-          <div className="p-4 md:p-6">
+          <div className="p-4 md:p-6 lg:p-8">
             {children}
           </div>
         </main>

@@ -1013,6 +1013,15 @@ export type Database = {
       }
     }
     Functions: {
+      debug_user_profile: {
+        Args: { user_uuid?: string }
+        Returns: {
+          profile_exists: boolean
+          profile_id: string
+          display_name: string
+          user_id: string
+        }[]
+      }
       get_current_user_profile_id: {
         Args: Record<PropertyKey, never>
         Returns: string
