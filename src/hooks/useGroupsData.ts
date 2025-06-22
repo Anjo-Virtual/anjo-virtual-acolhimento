@@ -14,22 +14,35 @@ export const useGroupsData = () => {
   const [groups, setGroups] = useState<CommunityGroup[]>([]);
   const [myGroups, setMyGroups] = useState<CommunityGroup[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { profile } = useCommunityProfile();
 
   const fetchGroupsData = async () => {
     if (!profile) {
+      console.log('[useGroupsData] Perfil não disponível, parando busca');
       setLoading(false);
       return;
     }
 
     try {
       setLoading(true);
-      const { groups: allGroups, myGroups: userGroups } = await fetchAllGroups(profile.id);
-      setGroups(allGroups);
-      setMyGroups(userGroups);
-    } catch (error) {
-      console.error('Erro ao carregar grupos:', error);
+      setError(null);
+      console.log('[useGroupsData] Iniciando busca de grupos para perfil:', profile.id);
+      
+      const result = await fetchAllGroups(profile.id);
+      
+      setGroups(result.groups);
+      setMyGroups(result.myGroups);
+      
+      console.log('[useGroupsData] Dados carregados:', {
+        totalGroups: result.groups.length,
+        myGroups: result.myGroups.length
+      });
+      
+    } catch (error: any) {
+      console.error('[useGroupsData] Erro ao carregar grupos:', error);
+      setError(error.message || 'Erro ao carregar grupos');
       toast({
         title: "Erro",
         description: "Não foi possível carregar os grupos.",
@@ -41,7 +54,10 @@ export const useGroupsData = () => {
   };
 
   const createGroupHandler = async (groupData: CreateGroupData): Promise<boolean> => {
-    if (!profile) return false;
+    if (!profile) {
+      console.error('[useGroupsData] Perfil não disponível para criar grupo');
+      return false;
+    }
 
     try {
       await createNewGroup(groupData, profile.id);
@@ -51,11 +67,11 @@ export const useGroupsData = () => {
       });
       await fetchGroupsData();
       return true;
-    } catch (error) {
-      console.error('Erro ao criar grupo:', error);
+    } catch (error: any) {
+      console.error('[useGroupsData] Erro ao criar grupo:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível criar o grupo.",
+        description: error.message || "Não foi possível criar o grupo.",
         variant: "destructive",
       });
       return false;
@@ -63,7 +79,10 @@ export const useGroupsData = () => {
   };
 
   const joinGroupHandler = async (groupId: string): Promise<boolean> => {
-    if (!profile) return false;
+    if (!profile) {
+      console.error('[useGroupsData] Perfil não disponível para entrar no grupo');
+      return false;
+    }
 
     try {
       await joinExistingGroup(groupId, profile.id);
@@ -73,11 +92,11 @@ export const useGroupsData = () => {
       });
       await fetchGroupsData();
       return true;
-    } catch (error) {
-      console.error('Erro ao entrar no grupo:', error);
+    } catch (error: any) {
+      console.error('[useGroupsData] Erro ao entrar no grupo:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível entrar no grupo.",
+        description: error.message || "Não foi possível entrar no grupo.",
         variant: "destructive",
       });
       return false;
@@ -85,7 +104,10 @@ export const useGroupsData = () => {
   };
 
   const leaveGroupHandler = async (groupId: string): Promise<boolean> => {
-    if (!profile) return false;
+    if (!profile) {
+      console.error('[useGroupsData] Perfil não disponível para sair do grupo');
+      return false;
+    }
 
     try {
       await leaveExistingGroup(groupId, profile.id);
@@ -95,11 +117,11 @@ export const useGroupsData = () => {
       });
       await fetchGroupsData();
       return true;
-    } catch (error) {
-      console.error('Erro ao sair do grupo:', error);
+    } catch (error: any) {
+      console.error('[useGroupsData] Erro ao sair do grupo:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível sair do grupo.",
+        description: error.message || "Não foi possível sair do grupo.",
         variant: "destructive",
       });
       return false;
@@ -107,6 +129,7 @@ export const useGroupsData = () => {
   };
 
   useEffect(() => {
+    console.log('[useGroupsData] Profile changed, fetching groups data');
     fetchGroupsData();
   }, [profile]);
 
@@ -114,6 +137,7 @@ export const useGroupsData = () => {
     groups,
     myGroups,
     loading,
+    error,
     createGroup: createGroupHandler,
     joinGroup: joinGroupHandler,
     leaveGroup: leaveGroupHandler,

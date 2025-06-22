@@ -6,7 +6,7 @@ export const fetchAllGroups = async (profileId: string) => {
   console.log('[groupService] Iniciando busca de grupos para profileId:', profileId);
   
   try {
-    // Buscar todos os grupos com informações do criador
+    // Buscar todos os grupos primeiro - query mais simples
     const { data: groupsData, error: groupsError } = await supabase
       .from('community_groups')
       .select(`
@@ -22,32 +22,46 @@ export const fetchAllGroups = async (profileId: string) => {
 
     console.log('[groupService] Grupos encontrados:', groupsData?.length || 0);
 
-    // Buscar memberships do usuário atual
+    // Se não há grupos, retornar arrays vazios
+    if (!groupsData || groupsData.length === 0) {
+      console.log('[groupService] Nenhum grupo encontrado');
+      return {
+        groups: [],
+        myGroups: []
+      };
+    }
+
+    // Buscar memberships do usuário de forma separada
     const { data: memberships, error: membershipError } = await supabase
       .from('group_members')
       .select('group_id, role')
       .eq('profile_id', profileId);
 
     if (membershipError) {
-      console.error('[groupService] Erro ao buscar memberships:', membershipError);
+      console.error('[groupService] Aviso - erro ao buscar memberships:', membershipError);
       // Continuar sem memberships se houver erro
     }
 
     console.log('[groupService] Memberships encontrados:', memberships?.length || 0);
 
+    // Criar mapa de memberships para eficiência
     const membershipMap = new Map(
       memberships?.map(m => [m.group_id, m.role]) || []
     );
 
-    const enrichedGroups = groupsData?.map(group => ({
+    // Enriquecer grupos com informações de membership
+    const enrichedGroups = groupsData.map(group => ({
       ...group,
       is_member: membershipMap.has(group.id),
       member_role: membershipMap.get(group.id)
-    })) || [];
+    }));
 
     const myGroups = enrichedGroups.filter(g => g.is_member);
 
-    console.log('[groupService] Grupos processados - Total:', enrichedGroups.length, 'Meus grupos:', myGroups.length);
+    console.log('[groupService] Processamento concluído:', {
+      totalGroups: enrichedGroups.length,
+      myGroups: myGroups.length
+    });
 
     return {
       groups: enrichedGroups,
@@ -55,7 +69,11 @@ export const fetchAllGroups = async (profileId: string) => {
     };
   } catch (error) {
     console.error('[groupService] Erro geral na busca de grupos:', error);
-    throw error;
+    // Retornar dados vazios em caso de erro para não quebrar a UI
+    return {
+      groups: [],
+      myGroups: []
+    };
   }
 };
 
@@ -81,19 +99,22 @@ export const createNewGroup = async (groupData: CreateGroupData, profileId: stri
     console.log('[groupService] Grupo criado:', newGroup);
 
     // Adicionar o criador como membro administrador
-    const { error: memberError } = await supabase
-      .from('group_members')
-      .insert({
-        group_id: newGroup.id,
-        profile_id: profileId,
-        role: 'admin'
-      });
+    try {
+      const { error: memberError } = await supabase
+        .from('group_members')
+        .insert({
+          group_id: newGroup.id,
+          profile_id: profileId,
+          role: 'admin'
+        });
 
-    if (memberError) {
-      console.error('[groupService] Erro ao adicionar criador como membro:', memberError);
-      // Não falhar se não conseguir adicionar como membro
-    } else {
-      console.log('[groupService] Criador adicionado como admin do grupo');
+      if (memberError) {
+        console.error('[groupService] Aviso - erro ao adicionar criador como membro:', memberError);
+      } else {
+        console.log('[groupService] Criador adicionado como admin do grupo');
+      }
+    } catch (memberError) {
+      console.error('[groupService] Erro ao processar membership do criador:', memberError);
     }
 
     return newGroup;

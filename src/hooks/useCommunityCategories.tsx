@@ -27,10 +27,34 @@ export const useCommunityCategories = () => {
       try {
         secureLog('info', 'Fetching forum categories with stats');
         
-        // Usar a nova view com estatísticas
-        const { data, error } = await supabase
-          .from('forum_categories_with_stats')
-          .select('*');
+        // Tentar usar a view primeiro, se falhar usar tabela direta
+        let data, error;
+        
+        try {
+          const result = await supabase
+            .from('forum_categories_with_stats')
+            .select('*')
+            .order('sort_order', { ascending: true });
+          
+          data = result.data;
+          error = result.error;
+        } catch (viewError) {
+          secureLog('warn', 'View not available, falling back to direct table query', viewError);
+          
+          // Fallback para tabela direta
+          const result = await supabase
+            .from('forum_categories')
+            .select('*')
+            .eq('is_active', true)
+            .order('sort_order', { ascending: true });
+          
+          data = result.data?.map(cat => ({
+            ...cat,
+            posts_count: 0,
+            last_activity: cat.created_at
+          }));
+          error = result.error;
+        }
 
         if (error) {
           throw error;
@@ -39,10 +63,10 @@ export const useCommunityCategories = () => {
         if (isMounted) {
           setCategories(data || []);
           setError(null);
-          secureLog('info', `Successfully loaded ${data?.length || 0} categories with stats`);
+          secureLog('info', `Successfully loaded ${data?.length || 0} categories`);
         }
       } catch (err: any) {
-        secureLog('error', 'Error fetching categories with stats:', err);
+        secureLog('error', 'Error fetching categories:', err);
         if (isMounted) {
           setError(err.message || 'Erro ao carregar categorias');
           setCategories([]);
@@ -66,14 +90,35 @@ export const useCommunityCategories = () => {
     setError(null);
     
     try {
-      const { data, error } = await supabase
-        .from('forum_categories_with_stats')
-        .select('*');
+      let data, error;
+      
+      try {
+        const result = await supabase
+          .from('forum_categories_with_stats')
+          .select('*')
+          .order('sort_order', { ascending: true });
+        
+        data = result.data;
+        error = result.error;
+      } catch (viewError) {
+        const result = await supabase
+          .from('forum_categories')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true });
+        
+        data = result.data?.map(cat => ({
+          ...cat,
+          posts_count: 0,
+          last_activity: cat.created_at
+        }));
+        error = result.error;
+      }
 
       if (error) throw error;
 
       setCategories(data || []);
-      secureLog('info', `Refetched ${data?.length || 0} categories with stats`);
+      secureLog('info', `Refetched ${data?.length || 0} categories`);
     } catch (err: any) {
       secureLog('error', 'Error refetching categories:', err);
       setError(err.message || 'Erro ao recarregar categorias');
