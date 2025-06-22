@@ -22,28 +22,18 @@ export const fetchAllGroups = async (profileId: string) => {
 
     console.log('[groupService] Grupos encontrados:', groupsData?.length || 0);
 
-    // Buscar memberships de forma separada para evitar recursão
+    // Buscar memberships do usuário atual
     const { data: memberships, error: membershipError } = await supabase
       .from('group_members')
       .select('group_id, role')
       .eq('profile_id', profileId);
 
-    console.log('[groupService] Memberships encontrados:', memberships?.length || 0);
-
     if (membershipError) {
       console.error('[groupService] Erro ao buscar memberships:', membershipError);
-      // Não quebrar se não conseguir buscar memberships
-      const enrichedGroups = groupsData?.map(group => ({
-        ...group,
-        is_member: false,
-        member_role: undefined
-      })) || [];
-
-      return {
-        groups: enrichedGroups,
-        myGroups: []
-      };
+      // Continuar sem memberships se houver erro
     }
+
+    console.log('[groupService] Memberships encontrados:', memberships?.length || 0);
 
     const membershipMap = new Map(
       memberships?.map(m => [m.group_id, m.role]) || []
@@ -101,10 +91,10 @@ export const createNewGroup = async (groupData: CreateGroupData, profileId: stri
 
     if (memberError) {
       console.error('[groupService] Erro ao adicionar criador como membro:', memberError);
-      throw memberError;
+      // Não falhar se não conseguir adicionar como membro
+    } else {
+      console.log('[groupService] Criador adicionado como admin do grupo');
     }
-
-    console.log('[groupService] Criador adicionado como admin do grupo');
 
     return newGroup;
   } catch (error) {

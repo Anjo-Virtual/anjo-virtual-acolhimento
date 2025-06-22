@@ -11,6 +11,8 @@ type ForumCategory = {
   color: string;
   icon: string;
   sort_order: number;
+  posts_count: number;
+  last_activity: string;
 };
 
 export const useCommunityCategories = () => {
@@ -23,13 +25,12 @@ export const useCommunityCategories = () => {
 
     const fetchCategories = async () => {
       try {
-        secureLog('info', 'Fetching forum categories');
+        secureLog('info', 'Fetching forum categories with stats');
         
+        // Usar a nova view com estatísticas
         const { data, error } = await supabase
-          .from('forum_categories')
-          .select('*')
-          .eq('is_active', true)
-          .order('sort_order', { ascending: true });
+          .from('forum_categories_with_stats')
+          .select('*');
 
         if (error) {
           throw error;
@@ -38,10 +39,10 @@ export const useCommunityCategories = () => {
         if (isMounted) {
           setCategories(data || []);
           setError(null);
-          secureLog('info', `Successfully loaded ${data?.length || 0} categories`);
+          secureLog('info', `Successfully loaded ${data?.length || 0} categories with stats`);
         }
       } catch (err: any) {
-        secureLog('error', 'Error fetching categories:', err);
+        secureLog('error', 'Error fetching categories with stats:', err);
         if (isMounted) {
           setError(err.message || 'Erro ao carregar categorias');
           setCategories([]);
@@ -58,7 +59,7 @@ export const useCommunityCategories = () => {
     return () => {
       isMounted = false;
     };
-  }, []); // Dependency array vazio para executar apenas uma vez
+  }, []);
 
   const refetch = async () => {
     setLoading(true);
@@ -66,15 +67,13 @@ export const useCommunityCategories = () => {
     
     try {
       const { data, error } = await supabase
-        .from('forum_categories')
-        .select('*')
-        .eq('is_active', true)
-        .order('sort_order', { ascending: true });
+        .from('forum_categories_with_stats')
+        .select('*');
 
       if (error) throw error;
 
       setCategories(data || []);
-      secureLog('info', `Refetched ${data?.length || 0} categories`);
+      secureLog('info', `Refetched ${data?.length || 0} categories with stats`);
     } catch (err: any) {
       secureLog('error', 'Error refetching categories:', err);
       setError(err.message || 'Erro ao recarregar categorias');

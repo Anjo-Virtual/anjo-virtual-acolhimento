@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { MessageSquare, Plus } from "lucide-react";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,34 +16,6 @@ type ForumCategory = {
   description: string;
   color: string;
   slug: string;
-};
-
-// Mapeamento de slugs para categorias predefinidas
-const categoryMap = {
-  'apoio-emocional': {
-    name: 'Apoio Emocional',
-    description: 'Compartilhe seus sentimentos e encontre apoio da comunidade',
-    color: '#3B82F6',
-    slug: 'apoio-emocional'
-  },
-  'historias-superacao': {
-    name: 'Histórias de Superação',
-    description: 'Inspire-se e inspire outros com histórias de força e esperança',
-    color: '#10B981',
-    slug: 'historias-superacao'
-  },
-  'duvidas-orientacoes': {
-    name: 'Dúvidas e Orientações',
-    description: 'Tire suas dúvidas e compartilhe orientações úteis',
-    color: '#F59E0B',
-    slug: 'duvidas-orientacoes'
-  },
-  'grupos-apoio': {
-    name: 'Grupos de Apoio',
-    description: 'Conecte-se com grupos específicos de apoio',
-    color: '#8B5CF6',
-    slug: 'grupos-apoio'
-  }
 };
 
 const ForumCategory = () => {
@@ -63,7 +34,9 @@ const ForumCategory = () => {
 
   const fetchCategory = async () => {
     try {
-      // Primeiro tentar buscar no banco
+      console.log('[ForumCategory] Buscando categoria:', slug);
+      
+      // Buscar categoria no banco de dados
       const { data: categoryData, error: categoryError } = await supabase
         .from('forum_categories')
         .select('*')
@@ -72,15 +45,10 @@ const ForumCategory = () => {
         .single();
 
       if (categoryData) {
+        console.log('[ForumCategory] Categoria encontrada:', categoryData);
         setCategory(categoryData);
-      } else if (slug && categoryMap[slug as keyof typeof categoryMap]) {
-        // Se não encontrar no banco, usar o mapeamento predefinido
-        const predefinedCategory = categoryMap[slug as keyof typeof categoryMap];
-        setCategory({
-          id: slug,
-          ...predefinedCategory
-        });
       } else {
+        console.error('[ForumCategory] Categoria não encontrada:', slug);
         throw new Error('Categoria não encontrada');
       }
     } catch (error) {

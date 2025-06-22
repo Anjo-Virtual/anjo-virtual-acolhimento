@@ -637,6 +637,13 @@ export type Database = {
             referencedRelation: "forum_categories"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "forum_posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "forum_categories_with_stats"
+            referencedColumns: ["id"]
+          },
         ]
       }
       group_members: {
@@ -974,6 +981,23 @@ export type Database = {
       }
     }
     Views: {
+      forum_categories_with_stats: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string | null
+          is_active: boolean | null
+          last_activity: string | null
+          moderator_only: boolean | null
+          name: string | null
+          posts_count: number | null
+          slug: string | null
+          sort_order: number | null
+        }
+        Relationships: []
+      }
       forum_posts_with_stats: {
         Row: {
           author_display_name: string | null
@@ -1007,6 +1031,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "forum_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "forum_categories_with_stats"
             referencedColumns: ["id"]
           },
         ]
