@@ -56,22 +56,43 @@ export const useGroupsData = () => {
   const createGroupHandler = async (groupData: CreateGroupData): Promise<boolean> => {
     if (!profile) {
       console.error('[useGroupsData] Perfil não disponível para criar grupo');
+      toast({
+        title: "Erro",
+        description: "Perfil não encontrado. Faça login novamente.",
+        variant: "destructive",
+      });
       return false;
     }
 
     try {
-      await createNewGroup(groupData, profile.id);
+      console.log('[useGroupsData] Tentando criar grupo:', groupData);
+      
+      const newGroup = await createNewGroup(groupData, profile.id);
+      
+      console.log('[useGroupsData] Grupo criado:', newGroup);
+      
       toast({
         title: "Sucesso",
         description: "Grupo criado com sucesso!",
       });
+      
+      // Recarregar dados após criação
       await fetchGroupsData();
       return true;
     } catch (error: any) {
       console.error('[useGroupsData] Erro ao criar grupo:', error);
+      
+      // Mostrar erro mais específico se possível
+      let errorMessage = "Não foi possível criar o grupo.";
+      if (error.message?.includes('recursion')) {
+        errorMessage = "Erro interno no sistema. Tente novamente em alguns instantes.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Erro",
-        description: error.message || "Não foi possível criar o grupo.",
+        description: errorMessage,
         variant: "destructive",
       });
       return false;

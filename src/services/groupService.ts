@@ -79,13 +79,16 @@ export const createNewGroup = async (groupData: CreateGroupData, profileId: stri
   console.log('[groupService] Iniciando criação de grupo:', { groupData, profileId });
   
   try {
-    // Criar o grupo
+    // Criar o grupo SEM tentar adicionar o membro imediatamente
     const { data: newGroup, error: groupError } = await supabase
       .from('community_groups')
       .insert({
-        ...groupData,
+        name: groupData.name,
+        description: groupData.description,
+        is_private: groupData.is_private,
+        max_members: groupData.max_members,
         created_by: profileId,
-        current_members: 1
+        current_members: 1 // Definir como 1 já que o criador é membro
       })
       .select()
       .single();
@@ -95,23 +98,27 @@ export const createNewGroup = async (groupData: CreateGroupData, profileId: stri
       throw groupError;
     }
 
-    console.log('[groupService] Grupo criado:', newGroup);
+    console.log('[groupService] Grupo criado com sucesso:', newGroup);
 
-    // Adicionar o criador como membro administrador SEPARADAMENTE
-    const { error: memberError } = await supabase
-      .from('group_members')
-      .insert({
-        group_id: newGroup.id,
-        profile_id: profileId,
-        role: 'admin'
-      });
+    // Tentar adicionar o criador como membro em uma operação separada
+    // Se falhar, não quebrar a criação do grupo
+    try {
+      const { error: memberError } = await supabase
+        .from('group_members')
+        .insert({
+          group_id: newGroup.id,
+          profile_id: profileId,
+          role: 'admin'
+        });
 
-    if (memberError) {
-      console.error('[groupService] Erro ao adicionar criador como membro:', memberError);
-      // Não falhar completamente se não conseguir adicionar o membro
-      console.log('[groupService] Grupo criado mas criador não foi adicionado como membro');
-    } else {
-      console.log('[groupService] Criador adicionado como admin do grupo');
+      if (memberError) {
+        console.warn('[groupService] Aviso: Grupo criado mas erro ao adicionar membro:', memberError);
+        // Não falhar aqui - o grupo foi criado com sucesso
+      } else {
+        console.log('[groupService] Criador adicionado como admin com sucesso');
+      }
+    } catch (memberAddError) {
+      console.warn('[groupService] Erro não crítico ao adicionar membro:', memberAddError);
     }
 
     return newGroup;

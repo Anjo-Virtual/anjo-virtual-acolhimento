@@ -29,22 +29,43 @@ export const useCommunityCategories = () => {
         setLoading(true);
         setError(null);
         
-        // Buscar diretamente da tabela de categorias
-        const { data, error } = await supabase
-          .from('forum_categories')
-          .select('*')
-          .eq('is_active', true)
-          .order('sort_order', { ascending: true });
+        // Tentar buscar da view primeiro, se falhar buscar da tabela direta
+        let data, error;
+        
+        try {
+          const viewResult = await supabase
+            .from('forum_categories_with_stats')
+            .select('*')
+            .eq('is_active', true)
+            .order('sort_order', { ascending: true });
+          
+          data = viewResult.data;
+          error = viewResult.error;
+          
+          secureLog('info', 'Tentativa com view:', { data: data?.length, error });
+        } catch (viewError) {
+          secureLog('warn', 'View falhou, tentando tabela direta:', viewError);
+          
+          // Fallback para tabela direta
+          const tableResult = await supabase
+            .from('forum_categories')
+            .select('*')
+            .eq('is_active', true)
+            .order('sort_order', { ascending: true });
+          
+          data = tableResult.data;
+          error = tableResult.error;
+        }
 
         if (error) {
           throw error;
         }
 
-        // Mapear para incluir contadores zerados como fallback
+        // Mapear para incluir contadores como fallback se não vieram da view
         const categoriesWithStats = data?.map(cat => ({
           ...cat,
-          posts_count: 0,
-          last_activity: cat.created_at || new Date().toISOString()
+          posts_count: cat.posts_count || 0,
+          last_activity: cat.last_activity || cat.created_at || new Date().toISOString()
         })) || [];
 
         if (isMounted) {
@@ -77,18 +98,34 @@ export const useCommunityCategories = () => {
     setError(null);
     
     try {
-      const { data, error } = await supabase
-        .from('forum_categories')
-        .select('*')
-        .eq('is_active', true)
-        .order('sort_order', { ascending: true });
+      let data, error;
+      
+      try {
+        const viewResult = await supabase
+          .from('forum_categories_with_stats')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true });
+        
+        data = viewResult.data;
+        error = viewResult.error;
+      } catch (viewError) {
+        const tableResult = await supabase
+          .from('forum_categories')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true });
+        
+        data = tableResult.data;
+        error = tableResult.error;
+      }
 
       if (error) throw error;
 
       const categoriesWithStats = data?.map(cat => ({
         ...cat,
-        posts_count: 0,
-        last_activity: cat.created_at || new Date().toISOString()
+        posts_count: cat.posts_count || 0,
+        last_activity: cat.last_activity || cat.created_at || new Date().toISOString()
       })) || [];
 
       setCategories(categoriesWithStats);
