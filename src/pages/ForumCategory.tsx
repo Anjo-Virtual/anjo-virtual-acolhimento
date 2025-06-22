@@ -24,6 +24,7 @@ const ForumCategory = () => {
   const [category, setCategory] = useState<ForumCategory | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -35,6 +36,8 @@ const ForumCategory = () => {
   const fetchCategory = async () => {
     try {
       console.log('[ForumCategory] Buscando categoria:', slug);
+      setLoading(true);
+      setError(null);
       
       // Buscar categoria no banco de dados
       const { data: categoryData, error: categoryError } = await supabase
@@ -44,15 +47,21 @@ const ForumCategory = () => {
         .eq('is_active', true)
         .single();
 
+      if (categoryError) {
+        console.error('[ForumCategory] Erro ao buscar categoria:', categoryError);
+        throw categoryError;
+      }
+
       if (categoryData) {
         console.log('[ForumCategory] Categoria encontrada:', categoryData);
         setCategory(categoryData);
       } else {
-        console.error('[ForumCategory] Categoria não encontrada:', slug);
-        throw new Error('Categoria não encontrada');
+        console.log('[ForumCategory] Categoria não encontrada:', slug);
+        setError('Categoria não encontrada');
       }
-    } catch (error) {
-      console.error('Erro ao carregar categoria:', error);
+    } catch (error: any) {
+      console.error('[ForumCategory] Erro ao carregar categoria:', error);
+      setError(error.message || 'Erro ao carregar categoria');
       toast({
         title: "Erro",
         description: "Não foi possível carregar a categoria.",
@@ -92,12 +101,12 @@ const ForumCategory = () => {
     );
   }
 
-  if (!category) {
+  if (error || !category) {
     return (
       <CommunityPageLayout>
         <div className="max-w-4xl mx-auto text-center py-20">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-            Categoria não encontrada
+            {error || 'Categoria não encontrada'}
           </h1>
           <Link to="/comunidade">
             <Button variant="outline">Voltar à Comunidade</Button>

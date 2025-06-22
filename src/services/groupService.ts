@@ -6,7 +6,7 @@ export const fetchAllGroups = async (profileId: string) => {
   console.log('[groupService] Iniciando busca de grupos para profileId:', profileId);
   
   try {
-    // Buscar todos os grupos primeiro - query mais simples
+    // Buscar todos os grupos primeiro
     const { data: groupsData, error: groupsError } = await supabase
       .from('community_groups')
       .select(`
@@ -22,7 +22,6 @@ export const fetchAllGroups = async (profileId: string) => {
 
     console.log('[groupService] Grupos encontrados:', groupsData?.length || 0);
 
-    // Se não há grupos, retornar arrays vazios
     if (!groupsData || groupsData.length === 0) {
       console.log('[groupService] Nenhum grupo encontrado');
       return {
@@ -31,20 +30,20 @@ export const fetchAllGroups = async (profileId: string) => {
       };
     }
 
-    // Buscar memberships do usuário de forma separada
+    // Buscar memberships do usuário
     const { data: memberships, error: membershipError } = await supabase
       .from('group_members')
       .select('group_id, role')
       .eq('profile_id', profileId);
 
     if (membershipError) {
-      console.error('[groupService] Aviso - erro ao buscar memberships:', membershipError);
+      console.error('[groupService] Erro ao buscar memberships:', membershipError);
       // Continuar sem memberships se houver erro
     }
 
     console.log('[groupService] Memberships encontrados:', memberships?.length || 0);
 
-    // Criar mapa de memberships para eficiência
+    // Criar mapa de memberships
     const membershipMap = new Map(
       memberships?.map(m => [m.group_id, m.role]) || []
     );
@@ -69,7 +68,6 @@ export const fetchAllGroups = async (profileId: string) => {
     };
   } catch (error) {
     console.error('[groupService] Erro geral na busca de grupos:', error);
-    // Retornar dados vazios em caso de erro para não quebrar a UI
     return {
       groups: [],
       myGroups: []
@@ -81,7 +79,8 @@ export const createNewGroup = async (groupData: CreateGroupData, profileId: stri
   console.log('[groupService] Iniciando criação de grupo:', { groupData, profileId });
   
   try {
-    const { data: newGroup, error } = await supabase
+    // Criar o grupo
+    const { data: newGroup, error: groupError } = await supabase
       .from('community_groups')
       .insert({
         ...groupData,
@@ -91,30 +90,28 @@ export const createNewGroup = async (groupData: CreateGroupData, profileId: stri
       .select()
       .single();
 
-    if (error) {
-      console.error('[groupService] Erro ao criar grupo:', error);
-      throw error;
+    if (groupError) {
+      console.error('[groupService] Erro ao criar grupo:', groupError);
+      throw groupError;
     }
 
     console.log('[groupService] Grupo criado:', newGroup);
 
-    // Adicionar o criador como membro administrador
-    try {
-      const { error: memberError } = await supabase
-        .from('group_members')
-        .insert({
-          group_id: newGroup.id,
-          profile_id: profileId,
-          role: 'admin'
-        });
+    // Adicionar o criador como membro administrador SEPARADAMENTE
+    const { error: memberError } = await supabase
+      .from('group_members')
+      .insert({
+        group_id: newGroup.id,
+        profile_id: profileId,
+        role: 'admin'
+      });
 
-      if (memberError) {
-        console.error('[groupService] Aviso - erro ao adicionar criador como membro:', memberError);
-      } else {
-        console.log('[groupService] Criador adicionado como admin do grupo');
-      }
-    } catch (memberError) {
-      console.error('[groupService] Erro ao processar membership do criador:', memberError);
+    if (memberError) {
+      console.error('[groupService] Erro ao adicionar criador como membro:', memberError);
+      // Não falhar completamente se não conseguir adicionar o membro
+      console.log('[groupService] Grupo criado mas criador não foi adicionado como membro');
+    } else {
+      console.log('[groupService] Criador adicionado como admin do grupo');
     }
 
     return newGroup;
