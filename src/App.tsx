@@ -21,6 +21,7 @@ import AdminLogin from "./pages/admin/Login";
 import Groups from "./pages/Groups";
 import ActiveForums from "./pages/ActiveForums";
 import ForumCategory from "./pages/ForumCategory";
+import ForumPost from "./pages/ForumPost";
 import CreatePost from "./pages/CreatePost";
 import Messages from "./pages/Messages";
 import Events from "./pages/Events";
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/comunidade/salvos" element={<SavedPosts />} />
             <Route path="/comunidade/notificacoes" element={<Notifications />} />
             <Route path="/comunidade/criar-post" element={<CreatePost />} />
+            <Route path="/comunidade/post/:postId" element={<ForumPost />} />
             <Route path="/comunidade/apoio-emocional" element={<ForumCategory />} />
             <Route path="/comunidade/historias-superacao" element={<ForumCategory />} />
             <Route path="/comunidade/duvidas-orientacoes" element={<ForumCategory />} />

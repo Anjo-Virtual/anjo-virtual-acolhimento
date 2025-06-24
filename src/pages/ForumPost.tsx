@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -49,7 +48,7 @@ type Comment = {
 };
 
 const ForumPost = () => {
-  const { slug, postId } = useParams<{ slug: string; postId: string }>();
+  const { postId } = useParams<{ postId: string }>();
   const { user } = useCommunityAuth();
   const { profile } = useCommunityProfile();
   const [post, setPost] = useState<ForumPost | null>(null);
@@ -426,8 +425,8 @@ const ForumPost = () => {
         <div className="max-w-4xl mx-auto">
           {/* Navegação */}
           <div className="mb-8">
-            <Link to={`/comunidade/${post.category.slug}`}>
-              <Button variant="outline" size="sm">← Voltar ao Fórum</Button>
+            <Link to="/comunidade">
+              <Button variant="outline" size="sm">← Voltar à Comunidade</Button>
             </Link>
           </div>
 

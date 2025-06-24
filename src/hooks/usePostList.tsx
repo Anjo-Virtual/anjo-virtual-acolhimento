@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -33,13 +33,11 @@ export const usePostList = ({ categorySlug, limit }: UsePostListProps) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchPosts();
-  }, [categorySlug]);
-
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     try {
-      // Usar a view otimizada em vez de múltiplas consultas
+      setLoading(true);
+      
+      // Usar a view otimizada
       let query = supabase
         .from('forum_posts_with_stats')
         .select('*')
@@ -62,7 +60,7 @@ export const usePostList = ({ categorySlug, limit }: UsePostListProps) => {
       // Obter o usuário atual uma vez só
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Se há usuário logado, verificar quais posts foram curtidos
+      // Se há usuário logado, verificar quais posts foram curtidos em batch
       let userLikes: string[] = [];
       if (user && postsData?.length) {
         const postIds = postsData.map(post => post.id);
@@ -107,7 +105,11 @@ export const usePostList = ({ categorySlug, limit }: UsePostListProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [categorySlug, limit, toast]);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
 
   const toggleLike = async (postId: string) => {
     try {

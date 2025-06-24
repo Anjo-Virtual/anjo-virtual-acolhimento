@@ -15,6 +15,11 @@ type ForumCategory = {
   last_activity: string;
 };
 
+// Cache simples para categorias
+let categoriesCache: ForumCategory[] | null = null;
+let cacheTimestamp: number = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+
 export const useCommunityCategories = () => {
   const [categories, setCategories] = useState<ForumCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,11 +30,21 @@ export const useCommunityCategories = () => {
 
     const fetchCategories = async () => {
       try {
-        secureLog('info', 'Fetching forum categories with simplified RLS');
+        // Verificar cache primeiro
+        const now = Date.now();
+        if (categoriesCache && (now - cacheTimestamp) < CACHE_DURATION) {
+          secureLog('info', 'Using cached categories');
+          if (isMounted) {
+            setCategories(categoriesCache);
+            setLoading(false);
+          }
+          return;
+        }
+
+        secureLog('info', 'Fetching forum categories from database');
         setLoading(true);
         setError(null);
         
-        // Com as novas políticas simplificadas, esta consulta deve funcionar
         const { data, error } = await supabase
           .from('forum_categories')
           .select('*')
@@ -43,12 +58,15 @@ export const useCommunityCategories = () => {
 
         console.log('Categories fetched successfully:', data?.length || 0);
 
-        // Mapear dados com contadores padrão (será otimizado posteriormente)
         const categoriesWithStats = data?.map(cat => ({
           ...cat,
-          posts_count: 0, // Será calculado posteriormente quando necessário
+          posts_count: 0, // Será calculado quando necessário
           last_activity: cat.created_at || new Date().toISOString()
         })) || [];
+
+        // Atualizar cache
+        categoriesCache = categoriesWithStats;
+        cacheTimestamp = now;
 
         if (isMounted) {
           setCategories(categoriesWithStats);
@@ -79,6 +97,10 @@ export const useCommunityCategories = () => {
 
   const refetch = async () => {
     console.log('Refetching categories...');
+    // Limpar cache ao refetch manual
+    categoriesCache = null;
+    cacheTimestamp = 0;
+    
     setLoading(true);
     setError(null);
     
@@ -99,6 +121,10 @@ export const useCommunityCategories = () => {
         posts_count: 0,
         last_activity: cat.created_at || new Date().toISOString()
       })) || [];
+
+      // Atualizar cache
+      categoriesCache = categoriesWithStats;
+      cacheTimestamp = Date.now();
 
       setCategories(categoriesWithStats);
       console.log('Categories refetched successfully:', categoriesWithStats.length);

@@ -12,6 +12,7 @@ import {
   Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCommunityCategories } from "@/hooks/useCommunityCategories";
 
 const sidebarItems = [
   {
@@ -53,6 +54,8 @@ const sidebarItems = [
 ];
 
 const CommunitySidebar = () => {
+  const { categories, loading } = useCommunityCategories();
+
   return (
     <aside className="w-64 bg-white border-r border-gray-200 min-h-screen">
       <div className="p-6">
@@ -86,69 +89,43 @@ const CommunitySidebar = () => {
           ))}
         </nav>
 
-        {/* Seção de categorias */}
+        {/* Seção de categorias dinâmica */}
         <div className="mt-8">
           <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
             Categorias
           </h3>
-          <div className="space-y-1">
-            <NavLink
-              to="/comunidade/apoio-emocional"
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center px-3 py-2 text-sm rounded-lg transition-colors",
-                  isActive
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                )
-              }
-            >
-              <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-              Apoio Emocional
-            </NavLink>
-            <NavLink
-              to="/comunidade/historias-superacao"
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center px-3 py-2 text-sm rounded-lg transition-colors",
-                  isActive
-                    ? "bg-green-50 text-green-700"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                )
-              }
-            >
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-              Histórias de Superação
-            </NavLink>
-            <NavLink
-              to="/comunidade/duvidas-orientacoes"
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center px-3 py-2 text-sm rounded-lg transition-colors",
-                  isActive
-                    ? "bg-yellow-50 text-yellow-700"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                )
-              }
-            >
-              <div className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
-              Dúvidas e Orientações
-            </NavLink>
-            <NavLink
-              to="/comunidade/grupos-apoio"
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center px-3 py-2 text-sm rounded-lg transition-colors",
-                  isActive
-                    ? "bg-purple-50 text-purple-700"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                )
-              }
-            >
-              <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
-              Grupos de Apoio
-            </NavLink>
-          </div>
+          {loading ? (
+            <div className="space-y-1">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="px-3 py-2 animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded"></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {categories.map((category) => (
+                <NavLink
+                  key={category.id}
+                  to={`/comunidade/${category.slug}`}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center px-3 py-2 text-sm rounded-lg transition-colors",
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    )
+                  }
+                >
+                  <div 
+                    className="w-3 h-3 rounded-full mr-3" 
+                    style={{ backgroundColor: category.color }}
+                  ></div>
+                  {category.name}
+                </NavLink>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </aside>
