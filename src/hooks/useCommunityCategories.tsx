@@ -25,11 +25,11 @@ export const useCommunityCategories = () => {
 
     const fetchCategories = async () => {
       try {
-        secureLog('info', 'Fetching forum categories');
+        secureLog('info', 'Fetching forum categories with simplified RLS');
         setLoading(true);
         setError(null);
         
-        // Buscar diretamente da tabela principal com dados básicos
+        // Com as novas políticas simplificadas, esta consulta deve funcionar
         const { data, error } = await supabase
           .from('forum_categories')
           .select('*')
@@ -37,13 +37,16 @@ export const useCommunityCategories = () => {
           .order('sort_order', { ascending: true });
 
         if (error) {
+          console.error('Error fetching categories:', error);
           throw error;
         }
 
-        // Mapear dados com contadores padrão
+        console.log('Categories fetched successfully:', data?.length || 0);
+
+        // Mapear dados com contadores padrão (será otimizado posteriormente)
         const categoriesWithStats = data?.map(cat => ({
           ...cat,
-          posts_count: 0, // Será atualizado posteriormente se necessário
+          posts_count: 0, // Será calculado posteriormente quando necessário
           last_activity: cat.created_at || new Date().toISOString()
         })) || [];
 
@@ -54,6 +57,8 @@ export const useCommunityCategories = () => {
         }
       } catch (err: any) {
         secureLog('error', 'Error fetching categories:', err);
+        console.error('Full error details:', err);
+        
         if (isMounted) {
           setError(err.message || 'Erro ao carregar categorias');
           setCategories([]);
@@ -73,6 +78,7 @@ export const useCommunityCategories = () => {
   }, []);
 
   const refetch = async () => {
+    console.log('Refetching categories...');
     setLoading(true);
     setError(null);
     
@@ -83,7 +89,10 @@ export const useCommunityCategories = () => {
         .eq('is_active', true)
         .order('sort_order', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error refetching categories:', error);
+        throw error;
+      }
 
       const categoriesWithStats = data?.map(cat => ({
         ...cat,
@@ -92,8 +101,10 @@ export const useCommunityCategories = () => {
       })) || [];
 
       setCategories(categoriesWithStats);
+      console.log('Categories refetched successfully:', categoriesWithStats.length);
       secureLog('info', `Refetched ${categoriesWithStats.length} categories`);
     } catch (err: any) {
+      console.error('Error refetching categories:', err);
       secureLog('error', 'Error refetching categories:', err);
       setError(err.message || 'Erro ao recarregar categorias');
     } finally {
