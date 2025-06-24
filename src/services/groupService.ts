@@ -79,42 +79,41 @@ export const createNewGroup = async (groupData: CreateGroupData, profileId: stri
   console.log('[groupService] Iniciando criação de grupo:', { groupData, profileId });
   
   try {
-    // Usar RPC para criar grupo e adicionar membro em uma única transação
-    const { data: newGroup, error: groupError } = await supabase.rpc('create_group_with_admin', {
-      group_name: groupData.name,
-      group_description: groupData.description,
-      is_private: groupData.is_private,
-      max_members: groupData.max_members,
-      creator_id: profileId
-    });
+    // Criar grupo diretamente sem RPC
+    const { data: newGroup, error: groupError } = await supabase
+      .from('community_groups')
+      .insert({
+        name: groupData.name,
+        description: groupData.description,
+        is_private: groupData.is_private,
+        max_members: groupData.max_members,
+        created_by: profileId,
+        current_members: 1 // Começa com 1 (o criador)
+      })
+      .select()
+      .single();
 
     if (groupError) {
-      console.error('[groupService] Erro ao criar grupo via RPC:', groupError);
-      
-      // Fallback: criar grupo sem membro inicialmente
-      const { data: fallbackGroup, error: fallbackError } = await supabase
-        .from('community_groups')
-        .insert({
-          name: groupData.name,
-          description: groupData.description,
-          is_private: groupData.is_private,
-          max_members: groupData.max_members,
-          created_by: profileId,
-          current_members: 0
-        })
-        .select()
-        .single();
-
-      if (fallbackError) {
-        console.error('[groupService] Erro no fallback:', fallbackError);
-        throw fallbackError;
-      }
-
-      console.log('[groupService] Grupo criado via fallback:', fallbackGroup);
-      return fallbackGroup;
+      console.error('[groupService] Erro ao criar grupo:', groupError);
+      throw groupError;
     }
 
-    console.log('[groupService] Grupo criado via RPC:', newGroup);
+    console.log('[groupService] Grupo criado:', newGroup);
+
+    // Adicionar criador como admin do grupo
+    const { error: memberError } = await supabase
+      .from('group_members')
+      .insert({
+        group_id: newGroup.id,
+        profile_id: profileId,
+        role: 'admin'
+      });
+
+    if (memberError) {
+      console.error('[groupService] Erro ao adicionar criador como membro:', memberError);
+      // Não falhar se não conseguir adicionar o membro - o grupo já foi criado
+    }
+
     return newGroup;
   } catch (error) {
     console.error('[groupService] Erro geral na criação do grupo:', error);
