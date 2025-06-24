@@ -79,48 +79,42 @@ export const createNewGroup = async (groupData: CreateGroupData, profileId: stri
   console.log('[groupService] Iniciando criação de grupo:', { groupData, profileId });
   
   try {
-    // Criar o grupo SEM tentar adicionar o membro imediatamente
-    const { data: newGroup, error: groupError } = await supabase
-      .from('community_groups')
-      .insert({
-        name: groupData.name,
-        description: groupData.description,
-        is_private: groupData.is_private,
-        max_members: groupData.max_members,
-        created_by: profileId,
-        current_members: 1 // Definir como 1 já que o criador é membro
-      })
-      .select()
-      .single();
+    // Usar RPC para criar grupo e adicionar membro em uma única transação
+    const { data: newGroup, error: groupError } = await supabase.rpc('create_group_with_admin', {
+      group_name: groupData.name,
+      group_description: groupData.description,
+      is_private: groupData.is_private,
+      max_members: groupData.max_members,
+      creator_id: profileId
+    });
 
     if (groupError) {
-      console.error('[groupService] Erro ao criar grupo:', groupError);
-      throw groupError;
-    }
-
-    console.log('[groupService] Grupo criado com sucesso:', newGroup);
-
-    // Tentar adicionar o criador como membro em uma operação separada
-    // Se falhar, não quebrar a criação do grupo
-    try {
-      const { error: memberError } = await supabase
-        .from('group_members')
+      console.error('[groupService] Erro ao criar grupo via RPC:', groupError);
+      
+      // Fallback: criar grupo sem membro inicialmente
+      const { data: fallbackGroup, error: fallbackError } = await supabase
+        .from('community_groups')
         .insert({
-          group_id: newGroup.id,
-          profile_id: profileId,
-          role: 'admin'
-        });
+          name: groupData.name,
+          description: groupData.description,
+          is_private: groupData.is_private,
+          max_members: groupData.max_members,
+          created_by: profileId,
+          current_members: 0
+        })
+        .select()
+        .single();
 
-      if (memberError) {
-        console.warn('[groupService] Aviso: Grupo criado mas erro ao adicionar membro:', memberError);
-        // Não falhar aqui - o grupo foi criado com sucesso
-      } else {
-        console.log('[groupService] Criador adicionado como admin com sucesso');
+      if (fallbackError) {
+        console.error('[groupService] Erro no fallback:', fallbackError);
+        throw fallbackError;
       }
-    } catch (memberAddError) {
-      console.warn('[groupService] Erro não crítico ao adicionar membro:', memberAddError);
+
+      console.log('[groupService] Grupo criado via fallback:', fallbackGroup);
+      return fallbackGroup;
     }
 
+    console.log('[groupService] Grupo criado via RPC:', newGroup);
     return newGroup;
   } catch (error) {
     console.error('[groupService] Erro geral na criação do grupo:', error);
