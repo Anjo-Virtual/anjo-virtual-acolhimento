@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,11 +30,12 @@ const AdminCategories = () => {
     setEditingId(id);
   };
 
-  const handleUpdate = async (id: string, data: any) => {
+  const handleUpdate = async (id: string, data: any): Promise<boolean> => {
     const success = await updateCategory(id, data);
     if (success) {
       setEditingId(null);
     }
+    return success;
   };
 
   const handleDelete = async (id: string) => {
