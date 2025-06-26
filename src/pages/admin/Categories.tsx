@@ -32,10 +32,15 @@ const AdminCategories = () => {
   };
 
   const handleDelete = async (id: string) => {
-    await deleteCategory(id);
+    const confirmed = window.confirm('Tem certeza que deseja excluir esta categoria?');
+    if (confirmed) {
+      await deleteCategory(id);
+    }
   };
 
-  const editingCategory = categories.find(cat => cat.id === editingId);
+  const handleCancelEdit = () => {
+    setEditingId(null);
+  };
 
   if (loading) {
     return (
@@ -66,22 +71,23 @@ const AdminCategories = () => {
         />
       )}
 
-      {editingCategory && (
-        <CategoryEditForm
-          category={editingCategory}
-          onSubmit={handleUpdate}
-          onCancel={() => setEditingId(null)}
-        />
-      )}
-
       <div className="grid gap-4">
         {categories.map((category) => (
-          <CategoryCard
-            key={category.id}
-            category={category}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
+          <div key={category.id}>
+            {editingId === category.id ? (
+              <CategoryEditForm
+                category={category}
+                onSubmit={handleUpdate}
+                onCancel={handleCancelEdit}
+              />
+            ) : (
+              <CategoryCard
+                category={category}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            )}
+          </div>
         ))}
       </div>
 

@@ -33,12 +33,18 @@ export const useCategories = () => {
   const fetchCategories = async () => {
     try {
       setLoading(true);
+      console.log('Fetching categories...');
       const { data, error } = await supabase
         .from('forum_categories')
         .select('*')
         .order('sort_order', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching categories:', error);
+        throw error;
+      }
+
+      console.log('Categories fetched successfully:', data?.length || 0);
       setCategories(data || []);
     } catch (error: any) {
       console.error('Erro ao carregar categorias:', error);
@@ -54,6 +60,7 @@ export const useCategories = () => {
 
   const createCategory = async (formData: Omit<ForumCategory, 'id'>) => {
     try {
+      console.log('Creating category:', formData);
       const slug = generateSlug(formData.name);
       const { error } = await supabase
         .from('forum_categories')
@@ -62,7 +69,10 @@ export const useCategories = () => {
           slug
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating category:', error);
+        throw error;
+      }
 
       toast({
         title: "Sucesso",
@@ -84,6 +94,7 @@ export const useCategories = () => {
 
   const updateCategory = async (id: string, data: Partial<ForumCategory>) => {
     try {
+      console.log('Updating category:', id, data);
       // Se o nome foi alterado, gerar novo slug
       const updateData = { ...data };
       if (data.name) {
@@ -95,7 +106,10 @@ export const useCategories = () => {
         .update(updateData)
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating category:', error);
+        throw error;
+      }
 
       toast({
         title: "Sucesso",
@@ -116,15 +130,17 @@ export const useCategories = () => {
   };
 
   const deleteCategory = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta categoria?')) return false;
-
     try {
+      console.log('Deleting category:', id);
       const { error } = await supabase
         .from('forum_categories')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting category:', error);
+        throw error;
+      }
 
       toast({
         title: "Sucesso",
