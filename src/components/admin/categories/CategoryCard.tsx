@@ -3,17 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
-
-interface ForumCategory {
-  id: string;
-  name: string;
-  description: string;
-  slug: string;
-  color: string;
-  icon: string;
-  sort_order: number;
-  is_active: boolean;
-}
+import { ForumCategory } from "@/types/category";
 
 interface CategoryCardProps {
   category: ForumCategory;

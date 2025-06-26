@@ -6,16 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Save, X } from "lucide-react";
-
-interface CategoryFormData {
-  name: string;
-  description: string;
-  slug: string;
-  color: string;
-  icon: string;
-  sort_order: number;
-  is_active: boolean;
-}
+import { CategoryFormData } from "@/types/category";
 
 interface CategoryFormProps {
   onSubmit: (data: CategoryFormData) => void;

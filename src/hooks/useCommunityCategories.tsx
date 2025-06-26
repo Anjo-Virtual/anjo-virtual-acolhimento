@@ -2,27 +2,19 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { secureLog } from "@/utils/security";
+import { ForumCategory } from "@/types/category";
 
-type ForumCategory = {
-  id: string;
-  name: string;
-  description: string;
-  slug: string;
-  color: string;
-  icon: string;
-  sort_order: number;
-  is_active: boolean; // Added missing property
+type CommunityCategory = ForumCategory & {
   posts_count: number;
   last_activity: string;
 };
 
-// Cache simples para categorias - removido para debug
-let categoriesCache: ForumCategory[] | null = null;
+let categoriesCache: CommunityCategory[] | null = null;
 let cacheTimestamp: number = 0;
-const CACHE_DURATION = 30 * 1000; // Reduzido para 30 segundos para debug
+const CACHE_DURATION = 30 * 1000;
 
 export const useCommunityCategories = () => {
-  const [categories, setCategories] = useState<ForumCategory[]>([]);
+  const [categories, setCategories] = useState<CommunityCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,7 +45,7 @@ export const useCommunityCategories = () => {
           console.log('🏷️ Processing category:', cat.name, 'slug:', cat.slug, 'active:', cat.is_active);
           return {
             ...cat,
-            posts_count: 0, // Será calculado quando necessário
+            posts_count: 0,
             last_activity: cat.created_at || new Date().toISOString()
           };
         }) || [];
@@ -80,7 +72,6 @@ export const useCommunityCategories = () => {
       }
     };
 
-    // Sempre buscar dados frescos para debug
     fetchCategories();
 
     return () => {
@@ -90,7 +81,6 @@ export const useCommunityCategories = () => {
 
   const refetch = async () => {
     console.log('🔄 Manual refetch requested...');
-    // Limpar cache completamente
     categoriesCache = null;
     cacheTimestamp = 0;
     
