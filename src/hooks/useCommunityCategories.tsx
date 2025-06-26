@@ -11,6 +11,7 @@ type ForumCategory = {
   color: string;
   icon: string;
   sort_order: number;
+  is_active: boolean; // Added missing property
   posts_count: number;
   last_activity: string;
 };
