@@ -59,6 +59,8 @@ export const CategoryEditForm = ({ category, onSubmit, onCancel, isSubmitting = 
       
       if (success) {
         console.log('✅ Category update successful');
+        // Only cancel/close form if submission was successful
+        onCancel();
       }
     } catch (error) {
       console.error('❌ Error submitting form:', error);
