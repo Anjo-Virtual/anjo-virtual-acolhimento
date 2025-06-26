@@ -32,6 +32,13 @@ export const useCategoryOperations = () => {
         description: "Categoria criada com sucesso!",
       });
 
+      // Broadcast change for real-time updates
+      await supabase.channel('category-updates').send({
+        type: 'broadcast',
+        event: 'category_created',
+        payload: data
+      });
+
       return true;
     } catch (error: any) {
       console.error('💥 Admin: Erro ao criar categoria:', error);
@@ -63,31 +70,47 @@ export const useCategoryOperations = () => {
       
       const updateData: any = { ...data };
       
+      // Gerar novo slug se o nome mudou
       if (data.name && data.name !== existingCategory.name) {
         updateData.slug = generateSlug(data.name);
       }
 
+      // Garantir que description nunca seja null
       if (updateData.description === undefined || updateData.description === null) {
-        updateData.description = existingCategory.description || '';
+        updateData.description = existingCategory.description || 'Categoria para discussões e apoio mútuo';
+      }
+
+      // Validar sort_order
+      if (updateData.sort_order !== undefined) {
+        updateData.sort_order = Math.max(0, parseInt(updateData.sort_order) || 0);
       }
 
       console.log('📝 Admin: Final update data:', updateData);
 
-      const { error: updateError } = await supabase
+      const { data: updatedData, error: updateError } = await supabase
         .from('forum_categories')
         .update(updateData)
-        .eq('id', id);
+        .eq('id', id)
+        .select()
+        .single();
 
       if (updateError) {
         console.error('❌ Admin: Error updating category:', updateError);
         throw updateError;
       }
 
-      console.log('✅ Admin: Category updated successfully');
+      console.log('✅ Admin: Category updated successfully:', updatedData);
 
       toast({
         title: "Sucesso",
         description: "Categoria atualizada com sucesso!",
+      });
+
+      // Broadcast change for real-time updates
+      await supabase.channel('category-updates').send({
+        type: 'broadcast',
+        event: 'category_updated',
+        payload: updatedData
       });
 
       return true;
@@ -120,6 +143,13 @@ export const useCategoryOperations = () => {
       toast({
         title: "Sucesso",
         description: "Categoria excluída com sucesso!",
+      });
+
+      // Broadcast change for real-time updates
+      await supabase.channel('category-updates').send({
+        type: 'broadcast',
+        event: 'category_deleted',
+        payload: { id }
       });
 
       return true;
@@ -161,6 +191,13 @@ export const useCategoryOperations = () => {
       toast({
         title: "Sucesso",
         description: "Categorias específicas foram ativadas!",
+      });
+
+      // Broadcast change for real-time updates
+      await supabase.channel('category-updates').send({
+        type: 'broadcast',
+        event: 'categories_activated',
+        payload: { categories: categoriesToActivate }
       });
 
       return true;

@@ -62,19 +62,15 @@ const CommunitySidebar = () => {
     console.log('🎯 Sidebar categories state:', { 
       loading, 
       categoriesCount: categories.length, 
-      categories: categories.map(cat => ({ name: cat.name, slug: cat.slug, active: cat.is_active }))
+      categories: categories.map(cat => ({ 
+        name: cat.name, 
+        slug: cat.slug, 
+        active: cat.is_active,
+        description: cat.description,
+        sort_order: cat.sort_order 
+      }))
     });
   }, [categories, loading]);
-
-  // Refetch automático a cada 10 segundos para debug
-  useEffect(() => {
-    const interval = setInterval(() => {
-      console.log('🔄 Auto-refetching categories for debug...');
-      refetch();
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [refetch]);
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 min-h-screen">
@@ -116,7 +112,10 @@ const CommunitySidebar = () => {
               Categorias
             </h3>
             <button 
-              onClick={refetch}
+              onClick={() => {
+                console.log('🔄 Manual category refresh triggered');
+                refetch();
+              }}
               className="text-xs text-gray-400 hover:text-gray-600 px-1"
               title="Atualizar categorias"
             >
@@ -139,7 +138,7 @@ const CommunitySidebar = () => {
           ) : (
             <div className="space-y-1">
               {categories.map((category) => {
-                console.log('🔗 Rendering category link:', category.name, 'to:', `/comunidade/${category.slug}`);
+                console.log('🔗 Rendering category link:', category.name, 'to:', `/comunidade/${category.slug}`, 'desc:', category.description);
                 return (
                   <NavLink
                     key={category.id}
@@ -153,6 +152,7 @@ const CommunitySidebar = () => {
                           : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                       );
                     }}
+                    title={category.description || category.name}
                   >
                     <div 
                       className="w-3 h-3 rounded-full mr-3" 
