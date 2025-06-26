@@ -11,7 +11,7 @@ export const useCategories = () => {
     activateSpecificCategories 
   } = useCategoryOperations();
 
-  const handleCreateCategory = async (formData: any) => {
+  const handleCreateCategory = async (formData: any): Promise<boolean> => {
     const success = await createCategory(formData);
     if (success) {
       await refetch();
@@ -19,7 +19,7 @@ export const useCategories = () => {
     return success;
   };
 
-  const handleUpdateCategory = async (id: string, data: any) => {
+  const handleUpdateCategory = async (id: string, data: any): Promise<boolean> => {
     const success = await updateCategory(id, data);
     if (success) {
       await refetch();
@@ -27,7 +27,7 @@ export const useCategories = () => {
     return success;
   };
 
-  const handleDeleteCategory = async (id: string) => {
+  const handleDeleteCategory = async (id: string): Promise<boolean> => {
     const success = await deleteCategory(id);
     if (success) {
       await refetch();
@@ -35,7 +35,7 @@ export const useCategories = () => {
     return success;
   };
 
-  const handleActivateSpecificCategories = async () => {
+  const handleActivateSpecificCategories = async (): Promise<boolean> => {
     const success = await activateSpecificCategories();
     if (success) {
       await refetch();
