@@ -15,10 +15,10 @@ type ForumCategory = {
   last_activity: string;
 };
 
-// Cache simples para categorias
+// Cache simples para categorias - removido para debug
 let categoriesCache: ForumCategory[] | null = null;
 let cacheTimestamp: number = 0;
-const CACHE_DURATION = 2 * 60 * 1000; // Reduzido para 2 minutos
+const CACHE_DURATION = 30 * 1000; // Reduzido para 30 segundos para debug
 
 export const useCommunityCategories = () => {
   const [categories, setCategories] = useState<ForumCategory[]>([]);
@@ -30,18 +30,7 @@ export const useCommunityCategories = () => {
 
     const fetchCategories = async () => {
       try {
-        // Verificar cache primeiro
-        const now = Date.now();
-        if (categoriesCache && (now - cacheTimestamp) < CACHE_DURATION) {
-          secureLog('info', 'Using cached categories');
-          if (isMounted) {
-            setCategories(categoriesCache);
-            setLoading(false);
-          }
-          return;
-        }
-
-        secureLog('info', 'Fetching forum categories from database');
+        console.log('🔍 Fetching community categories...');
         setLoading(true);
         setError(null);
         
@@ -52,21 +41,23 @@ export const useCommunityCategories = () => {
           .order('sort_order', { ascending: true });
 
         if (error) {
-          console.error('Error fetching categories:', error);
+          console.error('❌ Error fetching categories:', error);
           throw error;
         }
 
-        console.log('Categories fetched successfully:', data?.length || 0);
+        console.log('✅ Raw categories data:', data);
+        console.log('📊 Categories count:', data?.length || 0);
 
-        const categoriesWithStats = data?.map(cat => ({
-          ...cat,
-          posts_count: 0, // Será calculado quando necessário
-          last_activity: cat.created_at || new Date().toISOString()
-        })) || [];
+        const categoriesWithStats = data?.map(cat => {
+          console.log('🏷️ Processing category:', cat.name, 'slug:', cat.slug, 'active:', cat.is_active);
+          return {
+            ...cat,
+            posts_count: 0, // Será calculado quando necessário
+            last_activity: cat.created_at || new Date().toISOString()
+          };
+        }) || [];
 
-        // Atualizar cache
-        categoriesCache = categoriesWithStats;
-        cacheTimestamp = now;
+        console.log('🎯 Final categories with stats:', categoriesWithStats);
 
         if (isMounted) {
           setCategories(categoriesWithStats);
@@ -74,8 +65,8 @@ export const useCommunityCategories = () => {
           secureLog('info', `Successfully loaded ${categoriesWithStats.length} categories`);
         }
       } catch (err: any) {
+        console.error('💥 Error in fetchCategories:', err);
         secureLog('error', 'Error fetching categories:', err);
-        console.error('Full error details:', err);
         
         if (isMounted) {
           setError(err.message || 'Erro ao carregar categorias');
@@ -88,6 +79,7 @@ export const useCommunityCategories = () => {
       }
     };
 
+    // Sempre buscar dados frescos para debug
     fetchCategories();
 
     return () => {
@@ -96,8 +88,8 @@ export const useCommunityCategories = () => {
   }, []);
 
   const refetch = async () => {
-    console.log('Refetching categories...');
-    // Limpar cache ao refetch manual
+    console.log('🔄 Manual refetch requested...');
+    // Limpar cache completamente
     categoriesCache = null;
     cacheTimestamp = 0;
     
@@ -112,9 +104,11 @@ export const useCommunityCategories = () => {
         .order('sort_order', { ascending: true });
 
       if (error) {
-        console.error('Error refetching categories:', error);
+        console.error('❌ Error refetching categories:', error);
         throw error;
       }
+
+      console.log('🔄 Refetched categories:', data?.length || 0);
 
       const categoriesWithStats = data?.map(cat => ({
         ...cat,
@@ -122,15 +116,11 @@ export const useCommunityCategories = () => {
         last_activity: cat.created_at || new Date().toISOString()
       })) || [];
 
-      // Atualizar cache
-      categoriesCache = categoriesWithStats;
-      cacheTimestamp = Date.now();
-
       setCategories(categoriesWithStats);
-      console.log('Categories refetched successfully:', categoriesWithStats.length);
+      console.log('✅ Categories updated successfully');
       secureLog('info', `Refetched ${categoriesWithStats.length} categories`);
     } catch (err: any) {
-      console.error('Error refetching categories:', err);
+      console.error('💥 Error refetching categories:', err);
       secureLog('error', 'Error refetching categories:', err);
       setError(err.message || 'Erro ao recarregar categorias');
     } finally {

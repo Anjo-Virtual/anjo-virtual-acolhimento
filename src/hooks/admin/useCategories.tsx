@@ -33,21 +33,27 @@ export const useCategories = () => {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      console.log('Fetching categories...');
+      console.log('📋 Admin: Fetching categories...');
       const { data, error } = await supabase
         .from('forum_categories')
         .select('*')
         .order('sort_order', { ascending: true });
 
       if (error) {
-        console.error('Error fetching categories:', error);
+        console.error('❌ Admin: Error fetching categories:', error);
         throw error;
       }
 
-      console.log('Categories fetched successfully:', data?.length || 0);
+      console.log('✅ Admin: Categories fetched successfully:', data?.length || 0);
+      console.log('📊 Admin: Categories details:', data?.map(cat => ({ 
+        name: cat.name, 
+        slug: cat.slug, 
+        active: cat.is_active 
+      })));
+      
       setCategories(data || []);
     } catch (error: any) {
-      console.error('Erro ao carregar categorias:', error);
+      console.error('💥 Admin: Erro ao carregar categorias:', error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar as categorias.",
@@ -60,29 +66,38 @@ export const useCategories = () => {
 
   const createCategory = async (formData: Omit<ForumCategory, 'id'>) => {
     try {
-      console.log('Creating category:', formData);
+      console.log('➕ Admin: Creating category:', formData);
       const slug = generateSlug(formData.name);
+      
+      // Garantir que a categoria seja criada como ativa
+      const categoryData = {
+        ...formData,
+        slug,
+        is_active: true // Forçar como ativo
+      };
+      
+      console.log('📝 Admin: Final category data:', categoryData);
+      
       const { error } = await supabase
         .from('forum_categories')
-        .insert({
-          ...formData,
-          slug
-        });
+        .insert(categoryData);
 
       if (error) {
-        console.error('Error creating category:', error);
+        console.error('❌ Admin: Error creating category:', error);
         throw error;
       }
+
+      console.log('✅ Admin: Category created successfully');
 
       toast({
         title: "Sucesso",
         description: "Categoria criada com sucesso!",
       });
 
-      fetchCategories();
+      await fetchCategories();
       return true;
     } catch (error: any) {
-      console.error('Erro ao criar categoria:', error);
+      console.error('💥 Admin: Erro ao criar categoria:', error);
       toast({
         title: "Erro",
         description: "Não foi possível criar a categoria.",
@@ -94,12 +109,14 @@ export const useCategories = () => {
 
   const updateCategory = async (id: string, data: Partial<ForumCategory>) => {
     try {
-      console.log('Updating category:', id, data);
+      console.log('✏️ Admin: Updating category:', id, data);
       // Se o nome foi alterado, gerar novo slug
       const updateData = { ...data };
       if (data.name) {
         updateData.slug = generateSlug(data.name);
       }
+
+      console.log('📝 Admin: Final update data:', updateData);
 
       const { error } = await supabase
         .from('forum_categories')
@@ -107,19 +124,21 @@ export const useCategories = () => {
         .eq('id', id);
 
       if (error) {
-        console.error('Error updating category:', error);
+        console.error('❌ Admin: Error updating category:', error);
         throw error;
       }
+
+      console.log('✅ Admin: Category updated successfully');
 
       toast({
         title: "Sucesso",
         description: "Categoria atualizada com sucesso!",
       });
 
-      fetchCategories();
+      await fetchCategories();
       return true;
     } catch (error: any) {
-      console.error('Erro ao atualizar categoria:', error);
+      console.error('💥 Admin: Erro ao atualizar categoria:', error);
       toast({
         title: "Erro",
         description: "Não foi possível atualizar a categoria.",
@@ -131,26 +150,28 @@ export const useCategories = () => {
 
   const deleteCategory = async (id: string) => {
     try {
-      console.log('Deleting category:', id);
+      console.log('🗑️ Admin: Deleting category:', id);
       const { error } = await supabase
         .from('forum_categories')
         .delete()
         .eq('id', id);
 
       if (error) {
-        console.error('Error deleting category:', error);
+        console.error('❌ Admin: Error deleting category:', error);
         throw error;
       }
+
+      console.log('✅ Admin: Category deleted successfully');
 
       toast({
         title: "Sucesso",
         description: "Categoria excluída com sucesso!",
       });
 
-      fetchCategories();
+      await fetchCategories();
       return true;
     } catch (error: any) {
-      console.error('Erro ao excluir categoria:', error);
+      console.error('💥 Admin: Erro ao excluir categoria:', error);
       toast({
         title: "Erro",
         description: "Não foi possível excluir a categoria.",

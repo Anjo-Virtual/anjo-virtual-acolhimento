@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCommunityCategories } from "@/hooks/useCommunityCategories";
+import { useEffect } from "react";
 
 const sidebarItems = [
   {
@@ -54,7 +55,26 @@ const sidebarItems = [
 ];
 
 const CommunitySidebar = () => {
-  const { categories, loading } = useCommunityCategories();
+  const { categories, loading, refetch } = useCommunityCategories();
+
+  // Log para debug das categorias carregadas
+  useEffect(() => {
+    console.log('🎯 Sidebar categories state:', { 
+      loading, 
+      categoriesCount: categories.length, 
+      categories: categories.map(cat => ({ name: cat.name, slug: cat.slug, active: cat.is_active }))
+    });
+  }, [categories, loading]);
+
+  // Refetch automático a cada 10 segundos para debug
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('🔄 Auto-refetching categories for debug...');
+      refetch();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [refetch]);
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 min-h-screen">
@@ -91,9 +111,19 @@ const CommunitySidebar = () => {
 
         {/* Seção de categorias dinâmica */}
         <div className="mt-8">
-          <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-            Categorias
-          </h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Categorias
+            </h3>
+            <button 
+              onClick={refetch}
+              className="text-xs text-gray-400 hover:text-gray-600 px-1"
+              title="Atualizar categorias"
+            >
+              ↻
+            </button>
+          </div>
+          
           {loading ? (
             <div className="space-y-1">
               {[1, 2, 3, 4].map((i) => (
@@ -102,28 +132,36 @@ const CommunitySidebar = () => {
                 </div>
               ))}
             </div>
+          ) : categories.length === 0 ? (
+            <div className="px-3 py-2 text-xs text-gray-500">
+              Nenhuma categoria encontrada
+            </div>
           ) : (
             <div className="space-y-1">
-              {categories.map((category) => (
-                <NavLink
-                  key={category.id}
-                  to={`/comunidade/${category.slug}`}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center px-3 py-2 text-sm rounded-lg transition-colors",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                    )
-                  }
-                >
-                  <div 
-                    className="w-3 h-3 rounded-full mr-3" 
-                    style={{ backgroundColor: category.color }}
-                  ></div>
-                  {category.name}
-                </NavLink>
-              ))}
+              {categories.map((category) => {
+                console.log('🔗 Rendering category link:', category.name, 'to:', `/comunidade/${category.slug}`);
+                return (
+                  <NavLink
+                    key={category.id}
+                    to={`/comunidade/${category.slug}`}
+                    className={({ isActive }) => {
+                      console.log('🎯 Category link active state:', category.name, isActive);
+                      return cn(
+                        "flex items-center px-3 py-2 text-sm rounded-lg transition-colors",
+                        isActive
+                          ? "bg-primary/10 text-primary"
+                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                      );
+                    }}
+                  >
+                    <div 
+                      className="w-3 h-3 rounded-full mr-3" 
+                      style={{ backgroundColor: category.color }}
+                    ></div>
+                    {category.name}
+                  </NavLink>
+                );
+              })}
             </div>
           )}
         </div>
