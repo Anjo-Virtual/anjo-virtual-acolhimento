@@ -76,7 +76,7 @@ export const useCategories = () => {
         color: formData.color || '#3B82F6',
         icon: formData.icon || 'MessageSquare',
         sort_order: formData.sort_order || 0,
-        is_active: true // Sempre criar como ativo
+        is_active: true
       };
       
       console.log('📝 Admin: Final category data for creation:', categoryData);
@@ -116,34 +116,47 @@ export const useCategories = () => {
     try {
       console.log('✏️ Admin: Updating category:', id, data);
       
+      // Primeiro, verificar se a categoria existe
+      const { data: existingCategory, error: fetchError } = await supabase
+        .from('forum_categories')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (fetchError || !existingCategory) {
+        console.error('❌ Admin: Category not found:', id, fetchError);
+        throw new Error('Categoria não encontrada');
+      }
+
+      console.log('📄 Admin: Found existing category:', existingCategory);
+      
       // Preparar dados para atualização
       const updateData: any = { ...data };
       
       // Se o nome foi alterado, gerar novo slug
-      if (data.name) {
+      if (data.name && data.name !== existingCategory.name) {
         updateData.slug = generateSlug(data.name);
       }
 
       // Garantir que os campos obrigatórios existam
       if (updateData.description === undefined || updateData.description === null) {
-        updateData.description = '';
+        updateData.description = existingCategory.description || '';
       }
 
       console.log('📝 Admin: Final update data:', updateData);
 
-      const { data: updatedData, error } = await supabase
+      // Realizar a atualização
+      const { error: updateError } = await supabase
         .from('forum_categories')
         .update(updateData)
-        .eq('id', id)
-        .select()
-        .single();
+        .eq('id', id);
 
-      if (error) {
-        console.error('❌ Admin: Error updating category:', error);
-        throw error;
+      if (updateError) {
+        console.error('❌ Admin: Error updating category:', updateError);
+        throw updateError;
       }
 
-      console.log('✅ Admin: Category updated successfully:', updatedData);
+      console.log('✅ Admin: Category updated successfully');
 
       toast({
         title: "Sucesso",
