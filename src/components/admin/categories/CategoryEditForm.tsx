@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,16 +28,17 @@ interface CategoryEditFormProps {
 
 export const CategoryEditForm = ({ category, onSubmit, onCancel, isSubmitting = false }: CategoryEditFormProps) => {
   const [formData, setFormData] = useState({
-    name: category.name,
+    name: category.name || '',
     description: category.description || '',
-    color: category.color,
+    color: category.color || '#3B82F6',
     icon: category.icon || 'MessageSquare',
-    sort_order: category.sort_order,
-    is_active: category.is_active
+    sort_order: category.sort_order || 0,
+    is_active: category.is_active ?? true
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('📝 Submitting category update:', formData);
     onSubmit(category.id, formData);
   };
 
@@ -77,6 +78,7 @@ export const CategoryEditForm = ({ category, onSubmit, onCancel, isSubmitting = 
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Descrição da categoria"
+              rows={3}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">

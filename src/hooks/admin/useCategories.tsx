@@ -69,25 +69,30 @@ export const useCategories = () => {
       console.log('➕ Admin: Creating category:', formData);
       const slug = generateSlug(formData.name);
       
-      // Garantir que a categoria seja criada como ativa
       const categoryData = {
-        ...formData,
+        name: formData.name,
+        description: formData.description || '',
         slug,
-        is_active: true // Forçar como ativo
+        color: formData.color || '#3B82F6',
+        icon: formData.icon || 'MessageSquare',
+        sort_order: formData.sort_order || 0,
+        is_active: true // Sempre criar como ativo
       };
       
-      console.log('📝 Admin: Final category data:', categoryData);
+      console.log('📝 Admin: Final category data for creation:', categoryData);
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('forum_categories')
-        .insert(categoryData);
+        .insert(categoryData)
+        .select()
+        .single();
 
       if (error) {
         console.error('❌ Admin: Error creating category:', error);
         throw error;
       }
 
-      console.log('✅ Admin: Category created successfully');
+      console.log('✅ Admin: Category created successfully:', data);
 
       toast({
         title: "Sucesso",
@@ -110,25 +115,35 @@ export const useCategories = () => {
   const updateCategory = async (id: string, data: Partial<ForumCategory>) => {
     try {
       console.log('✏️ Admin: Updating category:', id, data);
+      
+      // Preparar dados para atualização
+      const updateData: any = { ...data };
+      
       // Se o nome foi alterado, gerar novo slug
-      const updateData = { ...data };
       if (data.name) {
         updateData.slug = generateSlug(data.name);
       }
 
+      // Garantir que os campos obrigatórios existam
+      if (updateData.description === undefined || updateData.description === null) {
+        updateData.description = '';
+      }
+
       console.log('📝 Admin: Final update data:', updateData);
 
-      const { error } = await supabase
+      const { data: updatedData, error } = await supabase
         .from('forum_categories')
         .update(updateData)
-        .eq('id', id);
+        .eq('id', id)
+        .select()
+        .single();
 
       if (error) {
         console.error('❌ Admin: Error updating category:', error);
         throw error;
       }
 
-      console.log('✅ Admin: Category updated successfully');
+      console.log('✅ Admin: Category updated successfully:', updatedData);
 
       toast({
         title: "Sucesso",
@@ -141,7 +156,7 @@ export const useCategories = () => {
       console.error('💥 Admin: Erro ao atualizar categoria:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar a categoria.",
+        description: `Não foi possível atualizar a categoria: ${error.message}`,
         variant: "destructive",
       });
       return false;
@@ -181,6 +196,47 @@ export const useCategories = () => {
     }
   };
 
+  // Função para ativar categorias específicas que estão inativas
+  const activateSpecificCategories = async () => {
+    const categoriesToActivate = [
+      'Apoio Emocional',
+      'Histórias de Superação', 
+      'Dúvidas e Orientações',
+      'Grupos de Apoio'
+    ];
+
+    try {
+      console.log('🔄 Admin: Activating specific categories:', categoriesToActivate);
+      
+      for (const categoryName of categoriesToActivate) {
+        const { error } = await supabase
+          .from('forum_categories')
+          .update({ is_active: true })
+          .eq('name', categoryName);
+
+        if (error) {
+          console.error(`❌ Error activating category ${categoryName}:`, error);
+        } else {
+          console.log(`✅ Activated category: ${categoryName}`);
+        }
+      }
+
+      toast({
+        title: "Sucesso",
+        description: "Categorias específicas foram ativadas!",
+      });
+
+      await fetchCategories();
+    } catch (error: any) {
+      console.error('💥 Error activating categories:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao ativar categorias específicas.",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -191,6 +247,7 @@ export const useCategories = () => {
     createCategory,
     updateCategory,
     deleteCategory,
-    refetch: fetchCategories
+    refetch: fetchCategories,
+    activateSpecificCategories
   };
 };

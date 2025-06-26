@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import { CategoryForm } from "@/components/admin/categories/CategoryForm";
 import { CategoryEditForm } from "@/components/admin/categories/CategoryEditForm";
 import { CategoryCard } from "@/components/admin/categories/CategoryCard";
@@ -11,7 +11,14 @@ import { useCategories } from "@/hooks/admin/useCategories";
 const AdminCategories = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const { categories, loading, createCategory, updateCategory, deleteCategory } = useCategories();
+  const { 
+    categories, 
+    loading, 
+    createCategory, 
+    updateCategory, 
+    deleteCategory,
+    activateSpecificCategories 
+  } = useCategories();
 
   const handleCreate = async (formData: any) => {
     const success = await createCategory(formData);
@@ -58,10 +65,20 @@ const AdminCategories = () => {
           <h1 className="text-2xl font-bold text-gray-900">Gerenciar Categorias</h1>
           <p className="text-gray-600">Administre as categorias do fórum da comunidade</p>
         </div>
-        <Button onClick={() => setShowCreateForm(true)} className="flex items-center gap-2">
-          <Plus size={16} />
-          Nova Categoria
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={activateSpecificCategories}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <RefreshCw size={16} />
+            Ativar Categorias
+          </Button>
+          <Button onClick={() => setShowCreateForm(true)} className="flex items-center gap-2">
+            <Plus size={16} />
+            Nova Categoria
+          </Button>
+        </div>
       </div>
 
       {showCreateForm && (
