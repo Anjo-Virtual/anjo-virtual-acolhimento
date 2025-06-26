@@ -18,6 +18,7 @@ import {
   Share2,
   Settings,
   PenTool,
+  Tags,
 } from "lucide-react";
 
 export const AdminSidebar = () => {
@@ -49,6 +50,11 @@ export const AdminSidebar = () => {
       title: "Novo Post",
       path: "/admin/blog/create",
       icon: PenTool
+    },
+    {
+      title: "Categorias",
+      path: "/admin/categories",
+      icon: Tags
     },
     {
       title: "Integrações",
