@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare, Users, Calendar } from "lucide-react";
 import { usePostList } from "@/hooks/usePostList";
-import { PostList } from "@/components/community/PostList";
+import PostList from "@/components/community/PostList";
 import { useCommunityCategories } from "@/hooks/useCommunityCategories";
 
 const ForumCategory = () => {
