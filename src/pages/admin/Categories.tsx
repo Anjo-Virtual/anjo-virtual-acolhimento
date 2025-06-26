@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus } from "lucide-react";
 import { CategoryForm } from "@/components/admin/categories/CategoryForm";
+import { CategoryEditForm } from "@/components/admin/categories/CategoryEditForm";
 import { CategoryCard } from "@/components/admin/categories/CategoryCard";
 import { useCategories } from "@/hooks/admin/useCategories";
 
@@ -21,12 +22,20 @@ const AdminCategories = () => {
 
   const handleEdit = (id: string) => {
     setEditingId(id);
-    // TODO: Implementar edição inline ou modal
+  };
+
+  const handleUpdate = async (id: string, data: any) => {
+    const success = await updateCategory(id, data);
+    if (success) {
+      setEditingId(null);
+    }
   };
 
   const handleDelete = async (id: string) => {
     await deleteCategory(id);
   };
+
+  const editingCategory = categories.find(cat => cat.id === editingId);
 
   if (loading) {
     return (
@@ -54,6 +63,14 @@ const AdminCategories = () => {
         <CategoryForm
           onSubmit={handleCreate}
           onCancel={() => setShowCreateForm(false)}
+        />
+      )}
+
+      {editingCategory && (
+        <CategoryEditForm
+          category={editingCategory}
+          onSubmit={handleUpdate}
+          onCancel={() => setEditingId(null)}
         />
       )}
 

@@ -18,7 +18,7 @@ type ForumCategory = {
 // Cache simples para categorias
 let categoriesCache: ForumCategory[] | null = null;
 let cacheTimestamp: number = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+const CACHE_DURATION = 2 * 60 * 1000; // Reduzido para 2 minutos
 
 export const useCommunityCategories = () => {
   const [categories, setCategories] = useState<ForumCategory[]>([]);

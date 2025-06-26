@@ -84,9 +84,15 @@ export const useCategories = () => {
 
   const updateCategory = async (id: string, data: Partial<ForumCategory>) => {
     try {
+      // Se o nome foi alterado, gerar novo slug
+      const updateData = { ...data };
+      if (data.name) {
+        updateData.slug = generateSlug(data.name);
+      }
+
       const { error } = await supabase
         .from('forum_categories')
-        .update(data)
+        .update(updateData)
         .eq('id', id);
 
       if (error) throw error;

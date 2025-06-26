@@ -1,96 +1,24 @@
 
-import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { MessageSquare, Plus } from "lucide-react";
-import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import PostList from "@/components/community/PostList";
-import CreatePostForm from "@/components/community/CreatePostForm";
+import { useParams } from "react-router-dom";
 import CommunityPageLayout from "@/components/community/CommunityPageLayout";
-
-type ForumCategory = {
-  id: string;
-  name: string;
-  description: string;
-  color: string;
-  slug: string;
-};
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { MessageSquare, Users, Calendar } from "lucide-react";
+import { usePostList } from "@/hooks/usePostList";
+import { PostList } from "@/components/community/PostList";
+import { useCommunityCategories } from "@/hooks/useCommunityCategories";
 
 const ForumCategory = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { user } = useCommunityAuth();
-  const [category, setCategory] = useState<ForumCategory | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
+  const { categories, loading: categoriesLoading } = useCommunityCategories();
+  const category = categories.find(cat => cat.slug === slug);
+  const { posts, loading: postsLoading, toggleLike } = usePostList({ 
+    categorySlug: slug,
+    limit: 20 
+  });
 
-  useEffect(() => {
-    if (slug) {
-      fetchCategory();
-    }
-  }, [slug]);
-
-  const fetchCategory = async () => {
-    try {
-      console.log('[ForumCategory] Buscando categoria:', slug);
-      setLoading(true);
-      setError(null);
-      
-      // Buscar categoria no banco de dados
-      const { data: categoryData, error: categoryError } = await supabase
-        .from('forum_categories')
-        .select('*')
-        .eq('slug', slug)
-        .eq('is_active', true)
-        .single();
-
-      if (categoryError) {
-        console.error('[ForumCategory] Erro ao buscar categoria:', categoryError);
-        throw categoryError;
-      }
-
-      if (categoryData) {
-        console.log('[ForumCategory] Categoria encontrada:', categoryData);
-        setCategory(categoryData);
-      } else {
-        console.log('[ForumCategory] Categoria não encontrada:', slug);
-        setError('Categoria não encontrada');
-      }
-    } catch (error: any) {
-      console.error('[ForumCategory] Erro ao carregar categoria:', error);
-      setError(error.message || 'Erro ao carregar categoria');
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar a categoria.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!user) {
-    return (
-      <CommunityPageLayout>
-        <div className="max-w-4xl mx-auto text-center py-20">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-            Acesso Restrito
-          </h1>
-          <p className="text-lg text-gray-600 mb-8">
-            Você precisa estar logado para acessar os fóruns da comunidade.
-          </p>
-          <Link to="/comunidade/login">
-            <Button size="lg">Fazer Login</Button>
-          </Link>
-        </div>
-      </CommunityPageLayout>
-    );
-  }
-
-  if (loading) {
+  // Se ainda está carregando as categorias, mostrar loading
+  if (categoriesLoading) {
     return (
       <CommunityPageLayout>
         <div className="text-center py-12">
@@ -101,67 +29,64 @@ const ForumCategory = () => {
     );
   }
 
-  if (error || !category) {
+  // Se a categoria não foi encontrada
+  if (!category) {
     return (
       <CommunityPageLayout>
-        <div className="max-w-4xl mx-auto text-center py-20">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-            {error || 'Categoria não encontrada'}
-          </h1>
-          <Link to="/comunidade">
-            <Button variant="outline">Voltar à Comunidade</Button>
-          </Link>
-        </div>
+        <Card>
+          <CardContent className="text-center py-12">
+            <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Categoria não encontrada</h2>
+            <p className="text-gray-600">
+              A categoria "{slug}" não existe ou não está ativa.
+            </p>
+          </CardContent>
+        </Card>
       </CommunityPageLayout>
     );
   }
 
   return (
     <CommunityPageLayout>
-      <div className="max-w-6xl mx-auto">
-        {/* Header da categoria */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
-            <Link to="/comunidade">
-              <Button variant="outline" size="sm">← Voltar</Button>
-            </Link>
-            <div 
-              className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: `${category.color}20`, color: category.color }}
-            >
-              <MessageSquare size={24} />
+      <div className="space-y-6">
+        {/* Header da Categoria */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-4">
+              <div 
+                className="w-16 h-16 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: `${category.color}20`, color: category.color }}
+              >
+                <MessageSquare size={24} />
+              </div>
+              <div className="flex-1">
+                <CardTitle className="text-2xl mb-2">{category.name}</CardTitle>
+                <p className="text-gray-600 mb-3">{category.description}</p>
+                <div className="flex items-center gap-4 text-sm text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <MessageSquare size={16} />
+                    <span>{posts.length} discussões</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Users size={16} />
+                    <span>Ativa</span>
+                  </div>
+                  <Badge style={{ backgroundColor: category.color, color: 'white' }}>
+                    {category.name}
+                  </Badge>
+                </div>
+              </div>
             </div>
-            <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{category.name}</h1>
-              <p className="text-gray-600">{category.description}</p>
-            </div>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="text-sm text-gray-500">
-              Discussões da categoria
-            </div>
-            <Link to="/comunidade/criar-post">
-              <Button className="flex items-center gap-2 w-full sm:w-auto">
-                <Plus size={18} />
-                Novo Post
-              </Button>
-            </Link>
-          </div>
-        </div>
+          </CardHeader>
+        </Card>
 
-        {/* Create Post Form */}
-        {showCreateForm && (
-          <div className="mb-8">
-            <CreatePostForm 
-              preselectedCategory={category.id}
-              onSuccess={() => setShowCreateForm(false)} 
-            />
-          </div>
-        )}
-
-        {/* Lista de posts */}
-        <PostList categorySlug={slug} />
+        {/* Lista de Posts */}
+        <PostList 
+          posts={posts} 
+          loading={postsLoading} 
+          onToggleLike={toggleLike}
+          emptyMessage={`Nenhuma discussão encontrada em ${category.name}`}
+        />
       </div>
     </CommunityPageLayout>
   );
