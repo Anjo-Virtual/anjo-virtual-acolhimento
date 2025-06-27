@@ -10,7 +10,7 @@ import PreferencesTab from "@/components/community/profile/PreferencesTab";
 import NotificationsTab from "@/components/community/profile/NotificationsTab";
 import AdminTab from "@/components/community/profile/AdminTab";
 import DangerZone from "@/components/community/profile/DangerZone";
-import CommunitySidebar from "@/components/community/CommunitySidebar";
+import CommunityPageLayout from "@/components/community/CommunityPageLayout";
 import ProfileHeader from "@/components/community/profile/ProfileHeader";
 import { Shield } from "lucide-react";
 
@@ -42,66 +42,63 @@ const CommunityProfile = () => {
   const tabCount = 4 + (isAdmin ? 1 : 0); // profile, preferences, notifications, danger + optional admin
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <CommunitySidebar />
-      <div className="flex-1 p-8">
-        <div className="max-w-6xl mx-auto space-y-6">
-          <ProfileHeader />
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                Configurações da Conta
+    <CommunityPageLayout>
+      <div className="max-w-6xl mx-auto space-y-6">
+        <ProfileHeader />
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              Configurações da Conta
+              {!adminLoading && isAdmin && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Shield className="h-3 w-3" />
+                  Admin
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className={`grid w-full grid-cols-${tabCount}`}>
+                <TabsTrigger value="profile">Perfil</TabsTrigger>
+                <TabsTrigger value="preferences">Preferências</TabsTrigger>
+                <TabsTrigger value="notifications">Notificações</TabsTrigger>
                 {!adminLoading && isAdmin && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    <Shield className="h-3 w-3" />
+                  <TabsTrigger value="admin" className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
                     Admin
-                  </Badge>
+                  </TabsTrigger>
                 )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className={`grid w-full grid-cols-${tabCount}`}>
-                  <TabsTrigger value="profile">Perfil</TabsTrigger>
-                  <TabsTrigger value="preferences">Preferências</TabsTrigger>
-                  <TabsTrigger value="notifications">Notificações</TabsTrigger>
-                  {!adminLoading && isAdmin && (
-                    <TabsTrigger value="admin" className="flex items-center gap-2">
-                      <Shield className="h-4 w-4" />
-                      Admin
-                    </TabsTrigger>
-                  )}
-                  <TabsTrigger value="danger">Zona de Perigo</TabsTrigger>
-                </TabsList>
+                <TabsTrigger value="danger">Zona de Perigo</TabsTrigger>
+              </TabsList>
 
-                <TabsContent value="profile" className="space-y-6">
-                  <ProfileForm />
+              <TabsContent value="profile" className="space-y-6">
+                <ProfileForm />
+              </TabsContent>
+
+              <TabsContent value="preferences" className="space-y-6">
+                <PreferencesTab />
+              </TabsContent>
+
+              <TabsContent value="notifications" className="space-y-6">
+                <NotificationsTab />
+              </TabsContent>
+
+              {!adminLoading && isAdmin && (
+                <TabsContent value="admin" className="space-y-6">
+                  <AdminTab />
                 </TabsContent>
+              )}
 
-                <TabsContent value="preferences" className="space-y-6">
-                  <PreferencesTab />
-                </TabsContent>
-
-                <TabsContent value="notifications" className="space-y-6">
-                  <NotificationsTab />
-                </TabsContent>
-
-                {!adminLoading && isAdmin && (
-                  <TabsContent value="admin" className="space-y-6">
-                    <AdminTab />
-                  </TabsContent>
-                )}
-
-                <TabsContent value="danger" className="space-y-6">
-                  <DangerZone />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </div>
+              <TabsContent value="danger" className="space-y-6">
+                <DangerZone />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </CommunityPageLayout>
   );
 };
 

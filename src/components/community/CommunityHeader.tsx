@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bell, Menu, X, Search, Settings, LogOut, User, Shield, Home, Users2 } from "lucide-react";
+import { Bell, Menu, X, Search, Settings, LogOut, User, Shield, Home, Users2, MessageSquare, AlertTriangle } from "lucide-react";
 import { useCommunityProfile } from "@/hooks/useCommunityProfile";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -93,14 +93,6 @@ const CommunityHeader = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Quick Navigation Buttons */}
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/" className="flex items-center gap-2 text-sm">
-                <Home className="h-4 w-4" />
-                Site Principal
-              </Link>
-            </Button>
-
             <Button variant="ghost" size="sm" asChild>
               <Link to="/comunidade/criar-post">
                 <Search className="h-4 w-4" />
@@ -143,7 +135,7 @@ const CommunityHeader = () => {
                 </div>
                 <DropdownMenuSeparator />
                 
-                {/* Profile Management Section */}
+                {/* Profile Section */}
                 <div className="px-2 py-1">
                   <p className="text-xs font-medium text-muted-foreground mb-1">PERFIL</p>
                 </div>
@@ -163,6 +155,28 @@ const CommunityHeader = () => {
                   </Link>
                 </DropdownMenuItem>
 
+                {/* Site Management Section for Admins */}
+                {isAdmin && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <div className="px-2 py-1">
+                      <p className="text-xs font-medium text-muted-foreground mb-1">GESTÃO DO SITE</p>
+                    </div>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" className="flex items-center">
+                        <Shield className="mr-2 h-4 w-4" />
+                        Painel Administrativo
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/contacts" className="flex items-center">
+                        <AlertTriangle className="mr-2 h-4 w-4" />
+                        Alertas para Novos Contatos
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+
                 {/* Community Management Section for Admins */}
                 {isAdmin && (
                   <>
@@ -180,7 +194,7 @@ const CommunityHeader = () => {
                 )}
                 
                 <DropdownMenuSeparator />
-                {/* Quick Access */}
+                {/* Navigation Section */}
                 <DropdownMenuItem asChild>
                   <Link to="/">
                     <Home className="mr-2 h-4 w-4" />
@@ -188,15 +202,6 @@ const CommunityHeader = () => {
                   </Link>
                 </DropdownMenuItem>
                 
-                {isAdmin && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin">
-                      <Shield className="mr-2 h-4 w-4" />
-                      Painel Admin
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Sair
@@ -253,15 +258,8 @@ const CommunityHeader = () => {
               >
                 Eventos
               </Link>
+              
               <div className="border-t border-gray-200 pt-4">
-                <Link
-                  to="/"
-                  className="flex items-center text-gray-700 hover:text-primary transition-colors mb-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Home className="mr-2 h-4 w-4" />
-                  Site Principal
-                </Link>
                 <Link
                   to="/comunidade/perfil"
                   className="flex flex-col text-gray-700 hover:text-primary transition-colors mb-2"
@@ -278,6 +276,7 @@ const CommunityHeader = () => {
                   </div>
                   <span className="text-xs text-muted-foreground ml-6">/comunidade/perfil</span>
                 </Link>
+                
                 <Link
                   to="/comunidade/salvos"
                   className="flex items-center text-gray-700 hover:text-primary transition-colors mb-2"
@@ -286,8 +285,29 @@ const CommunityHeader = () => {
                   <Settings className="mr-2 h-4 w-4" />
                   Posts Salvos
                 </Link>
+
                 {isAdmin && (
                   <>
+                    <div className="my-2 border-t border-gray-200 pt-2">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">GESTÃO DO SITE</p>
+                      <Link
+                        to="/admin"
+                        className="flex items-center text-gray-700 hover:text-primary transition-colors mb-2"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <Shield className="mr-2 h-4 w-4" />
+                        Painel Administrativo
+                      </Link>
+                      <Link
+                        to="/admin/contacts"
+                        className="flex items-center text-gray-700 hover:text-primary transition-colors mb-2"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <AlertTriangle className="mr-2 h-4 w-4" />
+                        Alertas para Novos Contatos
+                      </Link>
+                    </div>
+                    
                     <div className="my-2 border-t border-gray-200 pt-2">
                       <p className="text-xs font-medium text-muted-foreground mb-2">GESTÃO DA COMUNIDADE</p>
                       <Link
@@ -299,16 +319,18 @@ const CommunityHeader = () => {
                         Centro de Controle
                       </Link>
                     </div>
-                    <Link
-                      to="/admin"
-                      className="flex items-center text-gray-700 hover:text-primary transition-colors mb-2"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Shield className="mr-2 h-4 w-4" />
-                      Painel Admin
-                    </Link>
                   </>
                 )}
+
+                <Link
+                  to="/"
+                  className="flex items-center text-gray-700 hover:text-primary transition-colors mb-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Home className="mr-2 h-4 w-4" />
+                  Site Principal
+                </Link>
+                
                 <button
                   onClick={() => {
                     handleSignOut();
