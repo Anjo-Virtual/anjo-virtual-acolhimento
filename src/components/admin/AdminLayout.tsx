@@ -1,6 +1,6 @@
 
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Outlet } from "react-router-dom";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { AdminSidebar } from "./AdminSidebar";
@@ -8,11 +8,10 @@ import AdminHeader from "./AdminHeader";
 import { LoadingSpinner } from "./auth/LoadingSpinner";
 
 interface AdminLayoutProps {
-  children: React.ReactNode;
   title?: string;
 }
 
-const AdminLayout = ({ children, title = "Painel Administrativo" }: AdminLayoutProps) => {
+const AdminLayout = ({ title = "Painel Administrativo" }: AdminLayoutProps) => {
   const navigate = useNavigate();
   const { user: adminUser, loading: adminLoading } = useAdminAuth();
   const { user: communityUser } = useCommunityAuth();
@@ -39,7 +38,7 @@ const AdminLayout = ({ children, title = "Painel Administrativo" }: AdminLayoutP
       <div className="flex-1 flex flex-col">
         <AdminHeader title={title} userEmail={userEmail} />
         <main className="flex-1 p-6 overflow-auto">
-          {children}
+          <Outlet />
         </main>
       </div>
     </div>
