@@ -32,7 +32,7 @@ export const useUpdateCategory = () => {
 
       console.log('📝 Admin: Final update data:', updateData);
 
-      // First, perform the update
+      // Perform the update
       const { error: updateError } = await supabase
         .from('forum_categories')
         .update(updateData)
@@ -43,36 +43,11 @@ export const useUpdateCategory = () => {
         throw updateError;
       }
 
-      // Then fetch the updated data to confirm the changes
-      const { data: updatedData, error: fetchError } = await supabase
-        .from('forum_categories')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
-
-      if (fetchError) {
-        console.error('❌ Admin: Error fetching updated category:', fetchError);
-        throw fetchError;
-      }
-
-      // Check if data was found after update
-      if (!updatedData) {
-        console.warn('⚠️ Admin: No data returned after update, but operation may have succeeded');
-        // Don't throw error, just log warning and proceed with success
-      }
-
-      console.log('✅ Admin: Category updated successfully:', updatedData);
+      console.log('✅ Admin: Category updated successfully');
 
       toast({
         title: "Sucesso",
         description: "Categoria atualizada com sucesso!",
-      });
-
-      // Broadcast change for real-time updates
-      await supabase.channel('category-updates').send({
-        type: 'broadcast',
-        event: 'category_updated',
-        payload: updatedData || { id, ...updateData }
       });
 
       return true;

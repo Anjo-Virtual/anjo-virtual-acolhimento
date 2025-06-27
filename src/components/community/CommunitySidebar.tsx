@@ -55,12 +55,13 @@ const sidebarItems = [
 ];
 
 const CommunitySidebar = () => {
-  const { categories, loading, refetch } = useCommunityCategories();
+  const { categories, loading, error, refetch } = useCommunityCategories();
 
   // Log para debug das categorias carregadas
   useEffect(() => {
     console.log('🎯 Sidebar categories state:', { 
       loading, 
+      error,
       categoriesCount: categories.length, 
       categories: categories.map(cat => ({ 
         name: cat.name, 
@@ -70,7 +71,7 @@ const CommunitySidebar = () => {
         sort_order: cat.sort_order 
       }))
     });
-  }, [categories, loading]);
+  }, [categories, loading, error]);
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 min-h-screen">
@@ -131,6 +132,16 @@ const CommunitySidebar = () => {
                 </div>
               ))}
             </div>
+          ) : error ? (
+            <div className="px-3 py-2 text-xs text-red-500">
+              Erro ao carregar categorias
+              <button 
+                onClick={refetch}
+                className="block text-blue-500 hover:text-blue-700 mt-1"
+              >
+                Tentar novamente
+              </button>
+            </div>
           ) : categories.length === 0 ? (
             <div className="px-3 py-2 text-xs text-gray-500">
               Nenhuma categoria encontrada
@@ -138,7 +149,7 @@ const CommunitySidebar = () => {
           ) : (
             <div className="space-y-1">
               {categories.map((category) => {
-                console.log('🔗 Rendering category link:', category.name, 'to:', `/comunidade/${category.slug}`, 'desc:', category.description);
+                console.log('🔗 Rendering category link:', category.name, 'to:', `/comunidade/${category.slug}`);
                 return (
                   <NavLink
                     key={category.id}

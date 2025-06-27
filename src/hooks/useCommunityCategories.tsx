@@ -9,10 +9,11 @@ type CommunityCategory = ForumCategory & {
   last_activity: string;
 };
 
-// Reduzir o tempo de cache para 5 segundos para melhor sincronização
-const CACHE_DURATION = 5 * 1000;
+// Cache mais robusto
+const CACHE_DURATION = 10 * 1000; // 10 segundos
 let categoriesCache: CommunityCategory[] | null = null;
 let cacheTimestamp: number = 0;
+let activeChannel: any = null;
 
 export const useCommunityCategories = () => {
   const [categories, setCategories] = useState<CommunityCategory[]>([]);
@@ -46,16 +47,10 @@ export const useCommunityCategories = () => {
         throw error;
       }
 
-      console.log('✅ Raw categories data:', data);
-      console.log('📊 Categories count:', data?.length || 0);
+      console.log('✅ Categories fetched successfully:', data?.length || 0);
 
       const categoriesWithStats = data?.map(cat => {
-        console.log('🏷️ Processing category:', cat.name, 'slug:', cat.slug, 'active:', cat.is_active, 'description:', cat.description);
-        
-        // Ensure slug is properly set
-        if (!cat.slug && cat.name) {
-          console.warn('⚠️ Category missing slug, using name:', cat.name);
-        }
+        console.log('🏷️ Processing category:', cat.name, 'slug:', cat.slug);
         
         return {
           ...cat,
@@ -63,8 +58,6 @@ export const useCommunityCategories = () => {
           last_activity: cat.created_at || new Date().toISOString()
         };
       }) || [];
-
-      console.log('🎯 Final categories with stats:', categoriesWithStats);
 
       // Atualizar cache
       categoriesCache = categoriesWithStats;
@@ -95,9 +88,16 @@ export const useCommunityCategories = () => {
 
     loadCategories();
 
-    // Configurar realtime updates para sincronização automática
-    const channel = supabase
-      .channel('category-changes')
+    // Cleanup any existing channel
+    if (activeChannel) {
+      console.log('🧹 Cleaning up existing channel');
+      supabase.removeChannel(activeChannel);
+      activeChannel = null;
+    }
+
+    // Configurar realtime updates - apenas uma subscription
+    activeChannel = supabase
+      .channel('community-categories-updates')
       .on(
         'postgres_changes',
         {
@@ -106,20 +106,26 @@ export const useCommunityCategories = () => {
           table: 'forum_categories'
         },
         (payload) => {
-          console.log('🔄 Category change detected:', payload);
-          // Invalidar cache e refetch
-          categoriesCache = null;
-          cacheTimestamp = 0;
+          console.log('🔄 Category change detected:', payload.eventType);
+          // Invalidar cache e refetch apenas se montado
           if (isMounted) {
+            categoriesCache = null;
+            cacheTimestamp = 0;
             fetchCategories(true);
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Channel subscription status:', status);
+      });
 
     return () => {
+      console.log('🧹 Cleanup: Component unmounting');
       isMounted = false;
-      supabase.removeChannel(channel);
+      if (activeChannel) {
+        supabase.removeChannel(activeChannel);
+        activeChannel = null;
+      }
     };
   }, []);
 
@@ -128,7 +134,7 @@ export const useCommunityCategories = () => {
     await fetchCategories(true);
   };
 
-  // Função para invalidar cache (útil para chamar após mudanças no admin)
+  // Função para invalidar cache
   const invalidateCache = () => {
     categoriesCache = null;
     cacheTimestamp = 0;

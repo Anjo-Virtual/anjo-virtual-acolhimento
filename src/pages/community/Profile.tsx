@@ -17,27 +17,45 @@ const CommunityProfile = () => {
   const { user } = useCommunityAuth();
   const { loading } = useCommunityProfile();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminCheckLoading, setAdminCheckLoading] = useState(true);
 
   // Check if user is admin
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (user) {
-        const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .in('role', ['admin', 'super_admin']);
+        console.log('🔍 Checking admin status for user:', user.id);
+        setAdminCheckLoading(true);
         
-        if (!error && data && data.length > 0) {
-          setIsAdmin(true);
+        try {
+          const { data, error } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id)
+            .in('role', ['admin', 'super_admin']);
+          
+          console.log('👤 Admin check result:', { data, error });
+          
+          if (!error && data && data.length > 0) {
+            console.log('✅ User is admin:', data);
+            setIsAdmin(true);
+          } else {
+            console.log('❌ User is not admin');
+            setIsAdmin(false);
+          }
+        } catch (error) {
+          console.error('💥 Error checking admin status:', error);
+          setIsAdmin(false);
         }
+      } else {
+        setIsAdmin(false);
       }
+      setAdminCheckLoading(false);
     };
     
     checkAdminStatus();
   }, [user]);
 
-  if (loading) {
+  if (loading || adminCheckLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <CommunityHeader />
@@ -48,6 +66,8 @@ const CommunityProfile = () => {
     );
   }
 
+  console.log('🎯 Profile render state:', { user: !!user, isAdmin, adminCheckLoading });
+
   return (
     <div className="min-h-screen bg-gray-50">
       <CommunityHeader />
@@ -56,7 +76,7 @@ const CommunityProfile = () => {
         <ProfileHeader />
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Perfil
