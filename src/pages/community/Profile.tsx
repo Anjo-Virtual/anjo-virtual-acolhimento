@@ -1,120 +1,89 @@
 
-import { useState, useEffect } from "react";
-import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
-import { useCommunityProfile } from "@/hooks/useCommunityProfile";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, User, Settings, Bell, Folder } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import CommunityHeader from "@/components/community/CommunityHeader";
-import ProfileHeader from "@/components/community/profile/ProfileHeader";
-import ProfileForm from "@/components/community/profile/ProfileForm";
-import PreferencesTab from "@/components/community/profile/PreferencesTab";
-import NotificationsTab from "@/components/community/profile/NotificationsTab";
-import AdminTab from "@/components/community/profile/AdminTab";
-import DangerZone from "@/components/community/profile/DangerZone";
+import { ProfileForm } from "@/components/community/profile/ProfileForm";
+import { PreferencesTab } from "@/components/community/profile/PreferencesTab";
+import { NotificationsTab } from "@/components/community/profile/NotificationsTab";
+import { AdminTab } from "@/components/community/profile/AdminTab";
+import { DangerZone } from "@/components/community/profile/DangerZone";
+import CommunitySidebar from "@/components/community/CommunitySidebar";
+import { ProfileHeader } from "@/components/community/profile/ProfileHeader";
 
 const CommunityProfile = () => {
-  const { user } = useCommunityAuth();
-  const { loading } = useCommunityProfile();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [adminCheckLoading, setAdminCheckLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("profile");
 
-  // Check if user is admin
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (user) {
-        console.log('🔍 Checking admin status for user:', user.id);
-        setAdminCheckLoading(true);
-        
-        try {
-          // Use the RPC function to check admin status
-          const { data: isAdminResult, error } = await supabase
-            .rpc('is_admin', { user_uuid: user.id });
-          
-          console.log('👤 Admin check result:', { data: isAdminResult, error });
-          
-          if (!error && isAdminResult === true) {
-            console.log('✅ User is admin');
-            setIsAdmin(true);
-          } else {
-            console.log('❌ User is not admin');
-            setIsAdmin(false);
-          }
-        } catch (error) {
-          console.error('💥 Error checking admin status:', error);
-          setIsAdmin(false);
-        }
-      } else {
-        setIsAdmin(false);
+  // Check if user is admin using the new RPC function
+  const { data: isAdmin, isLoading: adminLoading } = useQuery({
+    queryKey: ['current-user-admin-status'],
+    queryFn: async () => {
+      console.log('🔐 Checking admin status...');
+      const { data, error } = await supabase.rpc('current_user_is_admin');
+      
+      if (error) {
+        console.error('❌ Error checking admin status:', error);
+        return false;
       }
-      setAdminCheckLoading(false);
-    };
-    
-    checkAdminStatus();
-  }, [user]);
+      
+      console.log('✅ Admin status result:', data);
+      return data || false;
+    },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    retry: 1
+  });
 
-  if (loading || adminCheckLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <CommunityHeader />
-        <div className="flex items-center justify-center pt-20">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </div>
-    );
-  }
-
-  console.log('🎯 Profile render state:', { user: !!user, isAdmin, adminCheckLoading });
+  console.log('🎯 Profile render - isAdmin:', isAdmin, 'adminLoading:', adminLoading);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <CommunityHeader />
-      
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <ProfileHeader />
+    <div className="flex min-h-screen bg-gray-50">
+      <CommunitySidebar />
+      <div className="flex-1 p-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <ProfileHeader />
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Configurações da Conta</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid w-full grid-cols-5">
+                  <TabsTrigger value="profile">Perfil</TabsTrigger>
+                  <TabsTrigger value="preferences">Preferências</TabsTrigger>
+                  <TabsTrigger value="notifications">Notificações</TabsTrigger>
+                  {!adminLoading && isAdmin && (
+                    <TabsTrigger value="admin">Admin</TabsTrigger>
+                  )}
+                  <TabsTrigger value="danger">Zona de Perigo</TabsTrigger>
+                </TabsList>
 
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <User className="w-4 h-4" />
-              Perfil
-            </TabsTrigger>
-            <TabsTrigger value="preferences" className="flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              Preferências
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="w-4 h-4" />
-              Notificações
-            </TabsTrigger>
-            {isAdmin && (
-              <TabsTrigger value="admin" className="flex items-center gap-2">
-                <Folder className="w-4 h-4" />
-                Administração
-              </TabsTrigger>
-            )}
-          </TabsList>
+                <TabsContent value="profile" className="space-y-6">
+                  <ProfileForm />
+                </TabsContent>
 
-          <TabsContent value="profile">
-            <ProfileForm />
-          </TabsContent>
+                <TabsContent value="preferences" className="space-y-6">
+                  <PreferencesTab />
+                </TabsContent>
 
-          <TabsContent value="preferences">
-            <PreferencesTab />
-          </TabsContent>
+                <TabsContent value="notifications" className="space-y-6">
+                  <NotificationsTab />
+                </TabsContent>
 
-          <TabsContent value="notifications">
-            <NotificationsTab />
-          </TabsContent>
+                {!adminLoading && isAdmin && (
+                  <TabsContent value="admin" className="space-y-6">
+                    <AdminTab />
+                  </TabsContent>
+                )}
 
-          {isAdmin && (
-            <TabsContent value="admin">
-              <AdminTab />
-            </TabsContent>
-          )}
-        </Tabs>
-
-        <DangerZone />
+                <TabsContent value="danger" className="space-y-6">
+                  <DangerZone />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

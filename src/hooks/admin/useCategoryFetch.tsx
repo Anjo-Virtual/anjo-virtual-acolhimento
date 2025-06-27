@@ -12,7 +12,18 @@ export const useCategoryFetch = () => {
       console.log('🔍 Admin: Fetching categories for admin...');
       setLoading(true);
       
-      // Fetch all categories (including inactive ones) for admin
+      // First check if user is admin using the new function
+      const { data: isAdminData, error: adminError } = await supabase
+        .rpc('current_user_is_admin');
+
+      if (adminError) {
+        console.error('❌ Admin: Error checking admin status:', adminError);
+        throw adminError;
+      }
+
+      console.log('🔐 Admin status:', isAdminData);
+
+      // Fetch categories with proper RLS policies
       const { data, error } = await supabase
         .from('forum_categories')
         .select('*')

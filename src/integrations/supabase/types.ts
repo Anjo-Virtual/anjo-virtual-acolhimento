@@ -1044,6 +1044,10 @@ export type Database = {
       }
     }
     Functions: {
+      current_user_is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       debug_user_profile: {
         Args: { user_uuid?: string }
         Returns: {
