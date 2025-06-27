@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bell, Menu, X, Search, Settings, LogOut, User, Shield } from "lucide-react";
+import { Bell, Menu, X, Search, Settings, LogOut, User, Shield, Home } from "lucide-react";
 import { useCommunityProfile } from "@/hooks/useCommunityProfile";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -92,6 +92,14 @@ const CommunityHeader = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
+            {/* Quick Navigation Buttons */}
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/" className="flex items-center gap-2 text-sm">
+                <Home className="h-4 w-4" />
+                Site Principal
+              </Link>
+            </Button>
+
             <Button variant="ghost" size="sm" asChild>
               <Link to="/comunidade/criar-post">
                 <Search className="h-4 w-4" />
@@ -115,10 +123,10 @@ const CommunityHeader = () => {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="flex items-center justify-start gap-2 p-2">
+              <DropdownMenuContent align="end" className="w-64">
+                <div className="flex items-center justify-start gap-2 p-3">
                   <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium">{profile?.display_name}</p>
+                    <p className="font-medium text-sm">{profile?.display_name}</p>
                     <p className="text-xs text-muted-foreground">
                       Minha Conta
                     </p>
@@ -137,16 +145,23 @@ const CommunityHeader = () => {
                     Posts Salvos
                   </Link>
                 </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                {/* Quick Access */}
+                <DropdownMenuItem asChild>
+                  <Link to="/">
+                    <Home className="mr-2 h-4 w-4" />
+                    Site Principal
+                  </Link>
+                </DropdownMenuItem>
+                
                 {isAdmin && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin">
-                        <Shield className="mr-2 h-4 w-4" />
-                        Painel Admin
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin">
+                      <Shield className="mr-2 h-4 w-4" />
+                      Painel Admin
+                    </Link>
+                  </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
@@ -206,6 +221,14 @@ const CommunityHeader = () => {
                 Eventos
               </Link>
               <div className="border-t border-gray-200 pt-4">
+                <Link
+                  to="/"
+                  className="flex items-center text-gray-700 hover:text-primary transition-colors mb-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Home className="mr-2 h-4 w-4" />
+                  Site Principal
+                </Link>
                 <Link
                   to="/comunidade/perfil"
                   className="flex items-center text-gray-700 hover:text-primary transition-colors mb-2"

@@ -1,68 +1,49 @@
 
-import { Button } from "@/components/ui/button";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { AdminSidebar } from "./AdminSidebar";
-import { Outlet } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
-import { LogOut, Users, Home } from "lucide-react";
+import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
+import AdminSidebar from "./AdminSidebar";
+import AdminHeader from "./AdminHeader";
+import LoadingSpinner from "./auth/LoadingSpinner";
 
-export const AdminLayout = () => {
-  const { signOut, user } = useAdminAuth();
+interface AdminLayoutProps {
+  children: React.ReactNode;
+  title?: string;
+}
 
-  const handleSignOut = async () => {
-    await signOut();
-  };
+const AdminLayout = ({ children, title = "Painel Administrativo" }: AdminLayoutProps) => {
+  const navigate = useNavigate();
+  const { user: adminUser, isLoading: adminLoading } = useAdminAuth();
+  const { user: communityUser } = useCommunityAuth();
+
+  useEffect(() => {
+    if (!adminLoading && !adminUser && !communityUser) {
+      navigate("/admin/login");
+    }
+  }, [adminUser, communityUser, adminLoading, navigate]);
+
+  if (adminLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!adminUser && !communityUser) {
+    return null;
+  }
+
+  const userEmail = adminUser?.email || communityUser?.email;
 
   return (
-    <TooltipProvider>
-      <div className="min-h-screen bg-gray-50">
-        <SidebarProvider>
-          <div className="flex min-h-screen w-full">
-            <AdminSidebar />
-            <div className="flex w-full flex-col">
-              <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:px-6">
-                <SidebarTrigger />
-                <div className="flex-1">
-                  <h1 className="text-lg font-semibold">Painel Administrativo</h1>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">
-                    {user?.email}
-                  </span>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => window.location.href = "/"}
-                  >
-                    <Home className="mr-2 h-4 w-4" />
-                    Site Principal
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => window.location.href = "/comunidade"}
-                  >
-                    <Users className="mr-2 h-4 w-4" />
-                    Comunidade
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleSignOut}
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sair
-                  </Button>
-                </div>
-              </header>
-              <main className="flex-1 p-4 lg:p-6">
-                <Outlet />
-              </main>
-            </div>
-          </div>
-        </SidebarProvider>
+    <div className="min-h-screen bg-gray-50 flex">
+      <AdminSidebar />
+      <div className="flex-1 flex flex-col">
+        <AdminHeader title={title} userEmail={userEmail} />
+        <main className="flex-1 p-6 overflow-auto">
+          {children}
+        </main>
       </div>
-    </TooltipProvider>
+    </div>
   );
 };
+
+export default AdminLayout;
