@@ -2,7 +2,16 @@
 import { RagChatBox } from "./RagChatBox";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 
-const ChatBox = () => {
+interface ChatBoxProps {
+  onClose?: () => void;
+  leadData?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+  } | null;
+}
+
+const ChatBox = ({ onClose, leadData }: ChatBoxProps) => {
   const { user } = useCommunityAuth();
 
   return (
