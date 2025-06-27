@@ -7,7 +7,7 @@ import { AdminAuthProvider } from "@/contexts/AdminAuthContext";
 import { CommunityAuthProvider } from "@/contexts/CommunityAuthContext";
 import { TrackingScripts } from "@/components/TrackingScripts";
 import { ProtectedAdminRoute } from "@/components/admin/ProtectedAdminRoute";
-import { AdminLayout } from "@/components/admin/AdminLayout";
+import AdminLayout from "@/components/admin/AdminLayout";
 import Index from "./pages/Index";
 import TermosDeUso from "./pages/TermosDeUso";
 import PoliticaDePrivacidade from "./pages/PoliticaDePrivacidade";

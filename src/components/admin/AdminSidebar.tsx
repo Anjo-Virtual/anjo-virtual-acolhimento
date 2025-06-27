@@ -101,3 +101,5 @@ export const AdminSidebar = () => {
     </Sidebar>
   );
 };
+
+export default AdminSidebar;

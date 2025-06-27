@@ -3,9 +3,9 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
-import AdminSidebar from "./AdminSidebar";
+import { AdminSidebar } from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
-import LoadingSpinner from "./auth/LoadingSpinner";
+import { LoadingSpinner } from "./auth/LoadingSpinner";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -14,7 +14,7 @@ interface AdminLayoutProps {
 
 const AdminLayout = ({ children, title = "Painel Administrativo" }: AdminLayoutProps) => {
   const navigate = useNavigate();
-  const { user: adminUser, isLoading: adminLoading } = useAdminAuth();
+  const { user: adminUser, loading: adminLoading } = useAdminAuth();
   const { user: communityUser } = useCommunityAuth();
 
   useEffect(() => {

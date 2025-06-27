@@ -13,3 +13,5 @@ export const LoadingSpinner = ({ message = "Carregando..." }: LoadingSpinnerProp
     </div>
   );
 };
+
+export default LoadingSpinner;
