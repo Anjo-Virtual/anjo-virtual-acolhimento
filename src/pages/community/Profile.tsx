@@ -4,13 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProfileForm } from "@/components/community/profile/ProfileForm";
-import { PreferencesTab } from "@/components/community/profile/PreferencesTab";
-import { NotificationsTab } from "@/components/community/profile/NotificationsTab";
-import { AdminTab } from "@/components/community/profile/AdminTab";
-import { DangerZone } from "@/components/community/profile/DangerZone";
+import ProfileForm from "@/components/community/profile/ProfileForm";
+import PreferencesTab from "@/components/community/profile/PreferencesTab";
+import NotificationsTab from "@/components/community/profile/NotificationsTab";
+import AdminTab from "@/components/community/profile/AdminTab";
+import DangerZone from "@/components/community/profile/DangerZone";
 import CommunitySidebar from "@/components/community/CommunitySidebar";
-import { ProfileHeader } from "@/components/community/profile/ProfileHeader";
+import ProfileHeader from "@/components/community/profile/ProfileHeader";
 
 const CommunityProfile = () => {
   const [activeTab, setActiveTab] = useState("profile");
