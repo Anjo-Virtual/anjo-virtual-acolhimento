@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 import * as z from "zod";
 import { chatFormSchema } from "@/lib/validations/form-schemas";
-import { ChatBox } from "../chat/ChatBox";
+import ChatBox from "../chat/ChatBox";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatForm } from "../chat/ChatForm";
 import { 

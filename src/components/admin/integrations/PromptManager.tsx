@@ -55,7 +55,7 @@ export const PromptManager = () => {
           id: data.id,
           name: data.name,
           systemPrompt: data.system_prompt,
-          temperature: parseFloat(data.temperature),
+          temperature: parseFloat(data.temperature.toString()),
           maxTokens: data.max_tokens,
           model: data.model,
           active: data.active

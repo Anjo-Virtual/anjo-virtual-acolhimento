@@ -63,7 +63,20 @@ export const RagChatBox = ({
         return;
       }
 
-      setMessages(data || []);
+      // Type-safe conversion from database format to component format
+      const typedMessages: Message[] = (data || []).map(msg => ({
+        id: msg.id,
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+        sources: Array.isArray(msg.sources) ? msg.sources as Array<{
+          documentName: string;
+          documentId: string;
+          chunkText: string;
+        }> : undefined,
+        created_at: msg.created_at
+      }));
+
+      setMessages(typedMessages);
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error);
     }
