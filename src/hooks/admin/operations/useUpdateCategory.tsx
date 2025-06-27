@@ -32,18 +32,25 @@ export const useUpdateCategory = () => {
 
       console.log('📝 Admin: Final update data:', updateData);
 
-      // Perform the update
-      const { error: updateError } = await supabase
+      // Perform the update with select to verify changes
+      const { data: updatedRows, error: updateError, count } = await supabase
         .from('forum_categories')
         .update(updateData)
-        .eq('id', id);
+        .eq('id', id)
+        .select('*');
 
       if (updateError) {
         console.error('❌ Admin: Error updating category:', updateError);
         throw updateError;
       }
 
-      console.log('✅ Admin: Category updated successfully');
+      // Verify that the update actually affected a row
+      if (!updatedRows || updatedRows.length === 0) {
+        console.error('❌ Admin: No rows were updated - category not found or no permission');
+        throw new Error('Nenhuma categoria foi atualizada. Verifique se você tem permissão para editar esta categoria.');
+      }
+
+      console.log('✅ Admin: Category updated successfully:', updatedRows[0]);
 
       toast({
         title: "Sucesso",
@@ -53,11 +60,24 @@ export const useUpdateCategory = () => {
       return true;
     } catch (error: any) {
       console.error('💥 Admin: Erro ao atualizar categoria:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = 'Não foi possível atualizar a categoria';
+      
+      if (error.message.includes('permission') || error.message.includes('policy')) {
+        errorMessage = 'Você não tem permissão para editar categorias. Verifique se possui role de admin.';
+      } else if (error.message.includes('not found')) {
+        errorMessage = 'Categoria não encontrada.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Erro",
-        description: `Não foi possível atualizar a categoria: ${error.message}`,
+        description: errorMessage,
         variant: "destructive",
       });
+      
       return false;
     }
   };

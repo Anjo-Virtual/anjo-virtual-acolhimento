@@ -1,18 +1,18 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { ForumCategory } from "@/types/category";
 
 export const useCategoryFetch = () => {
   const [categories, setCategories] = useState<ForumCategory[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   const fetchCategories = async () => {
     try {
+      console.log('🔍 Admin: Fetching categories for admin...');
       setLoading(true);
-      console.log('📋 Admin: Fetching categories...');
+      
+      // Fetch all categories (including inactive ones) for admin
       const { data, error } = await supabase
         .from('forum_categories')
         .select('*')
@@ -20,24 +20,20 @@ export const useCategoryFetch = () => {
 
       if (error) {
         console.error('❌ Admin: Error fetching categories:', error);
+        
+        // Check if it's a permission error
+        if (error.message.includes('policy') || error.message.includes('permission')) {
+          console.error('🚫 Admin: Permission denied - user may not have admin role');
+        }
+        
         throw error;
       }
 
       console.log('✅ Admin: Categories fetched successfully:', data?.length || 0);
-      console.log('📊 Admin: Categories details:', data?.map(cat => ({ 
-        name: cat.name, 
-        slug: cat.slug, 
-        active: cat.is_active 
-      })));
-      
       setCategories(data || []);
-    } catch (error: any) {
-      console.error('💥 Admin: Erro ao carregar categorias:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as categorias.",
-        variant: "destructive",
-      });
+    } catch (err: any) {
+      console.error('💥 Admin: Error in fetchCategories:', err);
+      setCategories([]);
     } finally {
       setLoading(false);
     }
@@ -47,9 +43,10 @@ export const useCategoryFetch = () => {
     fetchCategories();
   }, []);
 
-  return {
-    categories,
-    loading,
-    refetch: fetchCategories
+  const refetch = async () => {
+    console.log('🔄 Admin: Manual refetch requested...');
+    await fetchCategories();
   };
+
+  return { categories, loading, refetch };
 };

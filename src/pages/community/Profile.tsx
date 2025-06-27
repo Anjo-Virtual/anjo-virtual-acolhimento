@@ -27,16 +27,14 @@ const CommunityProfile = () => {
         setAdminCheckLoading(true);
         
         try {
-          const { data, error } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', user.id)
-            .in('role', ['admin', 'super_admin']);
+          // Use the RPC function to check admin status
+          const { data: isAdminResult, error } = await supabase
+            .rpc('is_admin', { user_uuid: user.id });
           
-          console.log('👤 Admin check result:', { data, error });
+          console.log('👤 Admin check result:', { data: isAdminResult, error });
           
-          if (!error && data && data.length > 0) {
-            console.log('✅ User is admin:', data);
+          if (!error && isAdminResult === true) {
+            console.log('✅ User is admin');
             setIsAdmin(true);
           } else {
             console.log('❌ User is not admin');
