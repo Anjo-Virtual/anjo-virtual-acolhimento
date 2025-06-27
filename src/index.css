@@ -54,6 +54,7 @@
 
   .modal {
     @apply hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[100];
+    @apply flex items-center justify-center p-4;
   }
 
   .modal.active {
@@ -136,6 +137,14 @@
   .link-hover {
     @apply relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full;
   }
+
+  /* Utility for line clamping text */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }
 
 :where([class^="ri-"])::before { 
@@ -183,4 +192,15 @@
 /* Glassmorphism */
 .glass {
   @apply bg-white/80 backdrop-blur-sm border border-white/20 shadow-sm;
+}
+
+/* Responsive improvements for mobile */
+@media (max-width: 640px) {
+  .modal {
+    @apply p-2;
+  }
+  
+  .floating-buttons {
+    @apply right-4 bottom-4;
+  }
 }
