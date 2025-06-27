@@ -6,6 +6,7 @@ import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { AdminSidebar } from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
 import { LoadingSpinner } from "./auth/LoadingSpinner";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 interface AdminLayoutProps {
   title?: string;
@@ -33,15 +34,17 @@ const AdminLayout = ({ title = "Painel Administrativo" }: AdminLayoutProps) => {
   const userEmail = adminUser?.email || communityUser?.email;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <AdminSidebar />
-      <div className="flex-1 flex flex-col">
-        <AdminHeader title={title} userEmail={userEmail} />
-        <main className="flex-1 p-6 overflow-auto">
-          <Outlet />
-        </main>
+    <SidebarProvider>
+      <div className="min-h-screen bg-gray-50 flex w-full">
+        <AdminSidebar />
+        <div className="flex-1 flex flex-col">
+          <AdminHeader title={title} userEmail={userEmail} />
+          <main className="flex-1 p-6 overflow-auto">
+            <Outlet />
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
