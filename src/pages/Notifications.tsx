@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -112,6 +111,7 @@ const Notifications = () => {
             <p className="text-gray-500">Carregando notificações...</p>
           </div>
         ) : notifications.length === 0 ? (
+          
           <Card className="text-center py-12">
             <CardContent>
               <Bell className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -143,6 +143,7 @@ const Notifications = () => {
             </CardContent>
           </Card>
         ) : (
+          
           <div className="space-y-3">
             {notifications.map((notification) => (
               <Card 
