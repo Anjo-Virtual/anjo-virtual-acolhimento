@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import { useCheckoutHandler, FREE_PLAN_PRICE_ID } from "@/utils/checkoutUtils";
+import { isFeatureEnabled } from "@/utils/featureFlags";
 
 const Plans = () => {
   const { user } = useSafeAdminAuth();
@@ -17,6 +18,8 @@ const Plans = () => {
     family: "price_1RZM6jPEI2ekVLFOhb5nyQoa"      // Plano Família
   };
 
+  const isCheckoutDisabled = !isFeatureEnabled('STRIPE_CHECKOUT_ENABLED');
+
   // Botão com loading state
   const CheckoutButton = ({ 
     children, 
@@ -28,26 +31,32 @@ const Plans = () => {
     onClick: () => void, 
     variant?: "primary" | "outline", 
     planType: string 
-  }) => (
-    <button
-      onClick={onClick}
-      disabled={!!isLoading}
-      className={`block w-full ${
-        variant === "primary" 
-          ? "bg-primary text-white hover:bg-opacity-90" 
-          : "bg-white border border-primary text-primary hover:bg-primary hover:text-white"
-      } text-center py-3 rounded-button transition-colors whitespace-nowrap flex items-center justify-center`}
-    >
-      {isLoading === planType ? (
-        <span className="flex items-center justify-center">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Processando...
-        </span>
-      ) : (
-        children
-      )}
-    </button>
-  );
+  }) => {
+    const isDisabled = isCheckoutDisabled || !!isLoading;
+    
+    return (
+      <button
+        onClick={isCheckoutDisabled ? undefined : onClick}
+        disabled={isDisabled}
+        className={`block w-full text-center py-3 rounded-button transition-colors whitespace-nowrap flex items-center justify-center ${
+          isCheckoutDisabled 
+            ? 'bg-gray-300 text-gray-500 cursor-not-allowed border border-gray-300'
+            : variant === "primary" 
+              ? "bg-primary text-white hover:bg-opacity-90" 
+              : "bg-white border border-primary text-primary hover:bg-primary hover:text-white"
+        }`}
+      >
+        {isLoading === planType ? (
+          <span className="flex items-center justify-center">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Processando...
+          </span>
+        ) : (
+          isCheckoutDisabled ? "Em Breve" : children
+        )}
+      </button>
+    );
+  };
 
   return (
     <section id="planos" className="py-20 bg-gray-50">
@@ -55,6 +64,11 @@ const Plans = () => {
         <div className="text-center mb-16">
           <h2 className="text-3xl font-semibold text-gray-800 mb-4">Planos Disponíveis</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">Escolha o plano que melhor atende às suas necessidades de acolhimento</p>
+          {isCheckoutDisabled && (
+            <p className="text-sm text-gray-500 mt-2 bg-gray-100 p-3 rounded-lg max-w-md mx-auto">
+              💡 Estamos finalizando os últimos detalhes. Os planos estarão disponíveis em breve!
+            </p>
+          )}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Plano Gratuito */}
