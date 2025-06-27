@@ -7,49 +7,108 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Settings, Save } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PromptConfig {
+  id?: string;
+  name: string;
   systemPrompt: string;
   temperature: number;
   maxTokens: number;
   model: string;
+  active: boolean;
 }
 
 export const PromptManager = () => {
   const [config, setConfig] = useState<PromptConfig>({
-    systemPrompt: `Você é um assistente especializado em acolhimento e suporte emocional para pessoas em luto. 
-
-Suas características:
-- Empático e compassivo
-- Oferece suporte baseado em evidências
-- Cita fontes dos documentos quando relevante
-- Mantém um tom acolhedor e respeitoso
-- Evita conselhos médicos diretos
-
-Quando responder:
-1. Seja gentil e compreensivo
-2. Use informações da base de conhecimento quando relevante
-3. Cite as fontes dos documentos utilizados
-4. Ofereça suporte emocional adequado
-5. Sugira recursos adicionais quando apropriado`,
+    name: 'Agente de Acolhimento',
+    systemPrompt: '',
     temperature: 0.7,
     maxTokens: 1000,
-    model: "gpt-4o-mini"
+    model: "gpt-4o-mini",
+    active: true
   });
   
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Carregar configuração existente
+  useEffect(() => {
+    loadConfig();
+  }, []);
+
+  const loadConfig = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('agent_configs')
+        .select('*')
+        .eq('active', true)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Erro ao carregar configuração:', error);
+        return;
+      }
+
+      if (data) {
+        setConfig({
+          id: data.id,
+          name: data.name,
+          systemPrompt: data.system_prompt,
+          temperature: parseFloat(data.temperature),
+          maxTokens: data.max_tokens,
+          model: data.model,
+          active: data.active
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao carregar configuração:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Simulação de salvamento - aqui você implementaria a lógica real
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const configData = {
+        name: config.name,
+        system_prompt: config.systemPrompt,
+        temperature: config.temperature,
+        max_tokens: config.maxTokens,
+        model: config.model,
+        active: config.active
+      };
+
+      let result;
+      
+      if (config.id) {
+        // Atualizar configuração existente
+        result = await supabase
+          .from('agent_configs')
+          .update(configData)
+          .eq('id', config.id);
+      } else {
+        // Criar nova configuração
+        result = await supabase
+          .from('agent_configs')
+          .insert(configData);
+      }
+
+      if (result.error) {
+        throw result.error;
+      }
       
       toast({
         title: "Configurações salvas",
         description: "As configurações do agente foram atualizadas com sucesso",
       });
+
+      // Recarregar configuração
+      await loadConfig();
+      
     } catch (error) {
+      console.error('Erro ao salvar:', error);
       toast({
         title: "Erro",
         description: "Erro ao salvar as configurações",
@@ -59,6 +118,16 @@ Quando responder:
       setIsSaving(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Carregando configurações...</CardTitle>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -70,6 +139,17 @@ Quando responder:
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
+          {/* Nome do Agente */}
+          <div className="space-y-2">
+            <Label htmlFor="agent-name">Nome do Agente</Label>
+            <Input
+              id="agent-name"
+              value={config.name}
+              onChange={(e) => setConfig(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="Nome do agente..."
+            />
+          </div>
+
           {/* System Prompt */}
           <div className="space-y-2">
             <Label htmlFor="system-prompt">Prompt do Sistema</Label>
@@ -97,6 +177,7 @@ Quando responder:
               >
                 <option value="gpt-4o-mini">GPT-4o Mini (Rápido)</option>
                 <option value="gpt-4o">GPT-4o (Avançado)</option>
+                <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Econômico)</option>
               </select>
             </div>
 

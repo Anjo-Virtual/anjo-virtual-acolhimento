@@ -48,6 +48,45 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_configs: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          max_tokens: number | null
+          model: string | null
+          name: string
+          system_prompt: string
+          temperature: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          max_tokens?: number | null
+          model?: string | null
+          name: string
+          system_prompt: string
+          temperature?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          max_tokens?: number | null
+          model?: string | null
+          name?: string
+          system_prompt?: string
+          temperature?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author_id: string
@@ -383,6 +422,81 @@ export type Database = {
         }
         Relationships: []
       }
+      conversations: {
+        Row: {
+          id: string
+          last_message_at: string | null
+          message_count: number | null
+          metadata: Json | null
+          started_at: string | null
+          status: string | null
+          title: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          last_message_at?: string | null
+          message_count?: number | null
+          metadata?: Json | null
+          started_at?: string | null
+          status?: string | null
+          title?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          last_message_at?: string | null
+          message_count?: number | null
+          metadata?: Json | null
+          started_at?: string | null
+          status?: string | null
+          title?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          chunk_count: number | null
+          created_at: string | null
+          file_path: string
+          file_size: number
+          id: string
+          mime_type: string
+          name: string
+          processed: boolean | null
+          updated_at: string | null
+          upload_date: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          chunk_count?: number | null
+          created_at?: string | null
+          file_path: string
+          file_size: number
+          id?: string
+          mime_type: string
+          name: string
+          processed?: boolean | null
+          updated_at?: string | null
+          upload_date?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          chunk_count?: number | null
+          created_at?: string | null
+          file_path?: string
+          file_size?: number
+          id?: string
+          mime_type?: string
+          name?: string
+          processed?: boolean | null
+          updated_at?: string | null
+          upload_date?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       event_participants: {
         Row: {
           event_id: string
@@ -715,6 +829,44 @@ export type Database = {
         }
         Relationships: []
       }
+      knowledge_base: {
+        Row: {
+          chunk_index: number
+          chunk_text: string
+          created_at: string | null
+          document_id: string | null
+          embedding_data: string | null
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          chunk_index: number
+          chunk_text: string
+          created_at?: string | null
+          document_id?: string | null
+          embedding_data?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          chunk_index?: number
+          chunk_text?: string
+          created_at?: string | null
+          document_id?: string | null
+          embedding_data?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_base_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketing_config: {
         Row: {
           config: Json
@@ -738,6 +890,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          role: string
+          sources: Json | null
+        }
+        Insert: {
+          content: string
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          role: string
+          sources?: Json | null
+        }
+        Update: {
+          content?: string
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          role?: string
+          sources?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       newsletter_subscriptions: {
         Row: {
