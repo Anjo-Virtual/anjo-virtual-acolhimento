@@ -43,7 +43,7 @@ export const CategoryEditForm = ({ category, onSubmit, onCancel, isSubmitting = 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validação básica
+    // Basic validation
     if (!formData.name.trim()) {
       return;
     }
@@ -52,10 +52,16 @@ export const CategoryEditForm = ({ category, onSubmit, onCancel, isSubmitting = 
     setLocalIsSubmitting(true);
     
     try {
-      const success = await onSubmit(category.id, {
+      // Prepare data for submission, ensuring description is properly handled
+      const dataToSubmit = {
         ...formData,
+        description: formData.description.trim() || '', // Ensure empty string instead of null
         sort_order: Math.max(0, parseInt(formData.sort_order.toString()) || 0)
-      });
+      };
+
+      console.log('📤 Data being sent to backend:', dataToSubmit);
+      
+      const success = await onSubmit(category.id, dataToSubmit);
       
       if (success) {
         console.log('✅ Category update successful');
@@ -106,7 +112,7 @@ export const CategoryEditForm = ({ category, onSubmit, onCancel, isSubmitting = 
               id="description"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Descrição da categoria (será preenchida automaticamente se deixada em branco)"
+              placeholder="Descrição da categoria"
               rows={3}
               disabled={isFormSubmitting}
             />

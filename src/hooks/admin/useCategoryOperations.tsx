@@ -55,14 +55,20 @@ export const useCategoryOperations = () => {
     try {
       console.log('✏️ Admin: Updating category:', id, data);
       
+      // First, fetch the existing category to get current values
       const { data: existingCategory, error: fetchError } = await supabase
         .from('forum_categories')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle(); // Changed from .single() to .maybeSingle()
 
-      if (fetchError || !existingCategory) {
-        console.error('❌ Admin: Category not found:', id, fetchError);
+      if (fetchError) {
+        console.error('❌ Admin: Error fetching category:', fetchError);
+        throw fetchError;
+      }
+
+      if (!existingCategory) {
+        console.error('❌ Admin: Category not found:', id);
         throw new Error('Categoria não encontrada');
       }
 
@@ -70,17 +76,19 @@ export const useCategoryOperations = () => {
       
       const updateData: any = { ...data };
       
-      // Gerar novo slug se o nome mudou
+      // Generate new slug if name changed
       if (data.name && data.name !== existingCategory.name) {
         updateData.slug = generateSlug(data.name);
       }
 
-      // Garantir que description nunca seja null
-      if (updateData.description === undefined || updateData.description === null) {
-        updateData.description = existingCategory.description || 'Categoria para discussões e apoio mútuo';
+      // Handle description properly - allow empty string but not null
+      if (updateData.description === undefined) {
+        updateData.description = existingCategory.description || '';
+      } else if (updateData.description === null) {
+        updateData.description = '';
       }
 
-      // Validar sort_order
+      // Validate sort_order
       if (updateData.sort_order !== undefined) {
         updateData.sort_order = Math.max(0, parseInt(updateData.sort_order) || 0);
       }
@@ -92,11 +100,16 @@ export const useCategoryOperations = () => {
         .update(updateData)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle(); // Changed from .single() to .maybeSingle()
 
       if (updateError) {
         console.error('❌ Admin: Error updating category:', updateError);
         throw updateError;
+      }
+
+      if (!updatedData) {
+        console.error('❌ Admin: No data returned after update');
+        throw new Error('Nenhum dado retornado após atualização');
       }
 
       console.log('✅ Admin: Category updated successfully:', updatedData);
