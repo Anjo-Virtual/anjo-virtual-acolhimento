@@ -18,7 +18,6 @@ import {
   Share2,
   Settings,
   PenTool,
-  Tags,
 } from "lucide-react";
 
 export const AdminSidebar = () => {
@@ -52,11 +51,6 @@ export const AdminSidebar = () => {
       icon: PenTool
     },
     {
-      title: "Categorias",
-      path: "/admin/categories",
-      icon: Tags
-    },
-    {
       title: "Integrações",
       path: "/admin/integrations",
       icon: Share2
@@ -77,7 +71,7 @@ export const AdminSidebar = () => {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Administração</SidebarGroupLabel>
+          <SidebarGroupLabel>Gestão do Site</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (

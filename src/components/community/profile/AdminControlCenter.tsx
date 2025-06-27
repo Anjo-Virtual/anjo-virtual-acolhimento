@@ -6,15 +6,7 @@ import { Link } from "react-router-dom";
 import { 
   Folder, 
   Users, 
-  Settings, 
-  BarChart3, 
-  FileText, 
-  Mail, 
   MessageSquare,
-  Share2,
-  UserCheck,
-  Eye,
-  TrendingUp,
   Activity
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -92,52 +84,6 @@ const AdminControlCenter = () => {
     }
   ];
 
-  const siteManagement = [
-    {
-      title: "Dashboard Geral",
-      description: "Visão geral completa do sistema",
-      icon: BarChart3,
-      href: "/admin",
-      color: "text-indigo-600",
-      bgColor: "bg-indigo-50"
-    },
-    {
-      title: "Blog",
-      description: "Gerenciar posts do blog",
-      icon: FileText,
-      href: "/admin/blog",
-      color: "text-orange-600",
-      bgColor: "bg-orange-50"
-    },
-    {
-      title: "Newsletter",
-      description: "Gerenciar assinantes e campanhas",
-      icon: Mail,
-      href: "/admin/newsletter",
-      color: "text-teal-600",
-      bgColor: "bg-teal-50"
-    },
-    {
-      title: "Configurações do Site",
-      description: "Configurações gerais do sistema",
-      icon: Settings,
-      href: "/admin/settings",
-      color: "text-gray-600",
-      bgColor: "bg-gray-50"
-    }
-  ];
-
-  const integrations = [
-    {
-      title: "Integrações",
-      description: "WhatsApp, N8N e outras integrações",
-      icon: Share2,
-      href: "/admin/integrations",
-      color: "text-pink-600",
-      bgColor: "bg-pink-50"
-    }
-  ];
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -150,8 +96,8 @@ const AdminControlCenter = () => {
     <div className="space-y-8">
       {/* Header with Quick Stats */}
       <div>
-        <h2 className="text-2xl font-bold mb-2">Centro de Controle Administrativo</h2>
-        <p className="text-gray-600 mb-6">Gerencie todos os aspectos do site e da comunidade em um só lugar.</p>
+        <h2 className="text-2xl font-bold mb-2">Centro de Controle da Comunidade</h2>
+        <p className="text-gray-600 mb-6">Gerencie todos os aspectos da comunidade em um só lugar.</p>
         
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -226,59 +172,29 @@ const AdminControlCenter = () => {
         </div>
       </div>
 
-      {/* Site Management Section */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Settings className="h-5 w-5" />
-          Gestão do Site
-        </h3>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {siteManagement.map((item) => (
-            <Link key={item.href} to={item.href}>
-              <Card className="hover:shadow-md transition-all duration-200 hover:scale-[1.02] h-full">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-lg ${item.bgColor}`}>
-                      <item.icon className={`h-6 w-6 ${item.color}`} />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold mb-1">{item.title}</h4>
-                      <p className="text-sm text-gray-600">{item.description}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* Integrations Section */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Share2 className="h-5 w-5" />
-          Integrações & APIs
-        </h3>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {integrations.map((item) => (
-            <Link key={item.href} to={item.href}>
-              <Card className="hover:shadow-md transition-all duration-200 hover:scale-[1.02] h-full">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-lg ${item.bgColor}`}>
-                      <item.icon className={`h-6 w-6 ${item.color}`} />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold mb-1">{item.title}</h4>
-                      <p className="text-sm text-gray-600">{item.description}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </div>
+      {/* Info Card about Site Management */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="p-6">
+          <div className="flex items-start gap-4">
+            <div className="p-3 rounded-lg bg-blue-100">
+              <Activity className="h-6 w-6 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-semibold mb-2 text-blue-900">Gestão do Site</h4>
+              <p className="text-sm text-blue-700 mb-3">
+                Para gerenciar o blog, newsletter, contatos e outras configurações do site, 
+                acesse o painel administrativo principal.
+              </p>
+              <Link 
+                to="/admin" 
+                className="text-blue-600 hover:text-blue-800 font-medium text-sm underline"
+              >
+                Ir para o Painel Administrativo →
+              </Link>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
