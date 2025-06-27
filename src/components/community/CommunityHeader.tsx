@@ -1,56 +1,13 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bell, Menu, X, Search, Settings, LogOut, User, Shield, Home, Users2, MessageSquare, AlertTriangle } from "lucide-react";
-import { useCommunityProfile } from "@/hooks/useCommunityProfile";
-import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
-import { useToast } from "@/hooks/use-toast";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useSafeAdminAuth } from "@/hooks/useSafeAdminAuth";
-import { Badge } from "@/components/ui/badge";
+import { Bell, Menu, X, Search } from "lucide-react";
+import UserDropdownMenu from "./UserDropdownMenu";
+import MobileNavigationMenu from "./MobileNavigationMenu";
 
 const CommunityHeader = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { profile } = useCommunityProfile();
-  const { signOut } = useCommunityAuth();
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const { user, isAdmin } = useSafeAdminAuth();
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast({
-        title: "Logout realizado",
-        description: "Você foi desconectado com sucesso.",
-      });
-      navigate("/");
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível fazer logout.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getInitials = (name: string) => {
-    if (!name) return "U";
-    return name
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
@@ -105,109 +62,7 @@ const CommunityHeader = () => {
               </Link>
             </Button>
 
-            {/* User Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-primary text-white text-xs">
-                      {getInitials(profile?.display_name || "Usuário")}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-72">
-                <div className="flex items-center justify-start gap-2 p-3">
-                  <div className="flex flex-col space-y-1 leading-none">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-sm">{profile?.display_name}</p>
-                      {isAdmin && (
-                        <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                          <Shield className="h-3 w-3" />
-                          Admin
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Gerenciador da Comunidade
-                    </p>
-                  </div>
-                </div>
-                <DropdownMenuSeparator />
-                
-                {/* Profile Section */}
-                <div className="px-2 py-1">
-                  <p className="text-xs font-medium text-muted-foreground mb-1">PERFIL</p>
-                </div>
-                <DropdownMenuItem asChild>
-                  <Link to="/comunidade/perfil" className="flex items-center">
-                    <User className="mr-2 h-4 w-4" />
-                    <div className="flex flex-col">
-                      <span>Meu Perfil</span>
-                      <span className="text-xs text-muted-foreground">/comunidade/perfil</span>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/comunidade/salvos">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Posts Salvos
-                  </Link>
-                </DropdownMenuItem>
-
-                {/* Site Management Section for Admins */}
-                {isAdmin && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <div className="px-2 py-1">
-                      <p className="text-xs font-medium text-muted-foreground mb-1">GESTÃO DO SITE</p>
-                    </div>
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin" className="flex items-center">
-                        <Shield className="mr-2 h-4 w-4" />
-                        Painel Administrativo
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin/contacts" className="flex items-center">
-                        <AlertTriangle className="mr-2 h-4 w-4" />
-                        Alertas para Novos Contatos
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-
-                {/* Community Management Section for Admins */}
-                {isAdmin && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <div className="px-2 py-1">
-                      <p className="text-xs font-medium text-muted-foreground mb-1">GESTÃO DA COMUNIDADE</p>
-                    </div>
-                    <DropdownMenuItem asChild>
-                      <Link to="/comunidade/perfil" className="flex items-center">
-                        <Users2 className="mr-2 h-4 w-4" />
-                        Centro de Controle
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-                
-                <DropdownMenuSeparator />
-                {/* Navigation Section */}
-                <DropdownMenuItem asChild>
-                  <Link to="/">
-                    <Home className="mr-2 h-4 w-4" />
-                    Site Principal
-                  </Link>
-                </DropdownMenuItem>
-                
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sair
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <UserDropdownMenu />
           </div>
 
           {/* Mobile Menu Button */}
@@ -226,125 +81,10 @@ const CommunityHeader = () => {
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200">
-            <nav className="flex flex-col space-y-4">
-              <Link
-                to="/comunidade"
-                className="text-gray-700 hover:text-primary transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Feed
-              </Link>
-              <Link
-                to="/comunidade/grupos"
-                className="text-gray-700 hover:text-primary transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Grupos
-              </Link>
-              <Link
-                to="/comunidade/ativos"
-                className="text-gray-700 hover:text-primary transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Discussões Ativas
-              </Link>
-              <Link
-                to="/comunidade/eventos"
-                className="text-gray-700 hover:text-primary transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Eventos
-              </Link>
-              
-              <div className="border-t border-gray-200 pt-4">
-                <Link
-                  to="/comunidade/perfil"
-                  className="flex flex-col text-gray-700 hover:text-primary transition-colors mb-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <div className="flex items-center">
-                    <User className="mr-2 h-4 w-4" />
-                    Meu Perfil
-                    {isAdmin && (
-                      <Badge variant="secondary" className="ml-2 text-xs">
-                        Admin
-                      </Badge>
-                    )}
-                  </div>
-                  <span className="text-xs text-muted-foreground ml-6">/comunidade/perfil</span>
-                </Link>
-                
-                <Link
-                  to="/comunidade/salvos"
-                  className="flex items-center text-gray-700 hover:text-primary transition-colors mb-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Posts Salvos
-                </Link>
-
-                {isAdmin && (
-                  <>
-                    <div className="my-2 border-t border-gray-200 pt-2">
-                      <p className="text-xs font-medium text-muted-foreground mb-2">GESTÃO DO SITE</p>
-                      <Link
-                        to="/admin"
-                        className="flex items-center text-gray-700 hover:text-primary transition-colors mb-2"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <Shield className="mr-2 h-4 w-4" />
-                        Painel Administrativo
-                      </Link>
-                      <Link
-                        to="/admin/contacts"
-                        className="flex items-center text-gray-700 hover:text-primary transition-colors mb-2"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <AlertTriangle className="mr-2 h-4 w-4" />
-                        Alertas para Novos Contatos
-                      </Link>
-                    </div>
-                    
-                    <div className="my-2 border-t border-gray-200 pt-2">
-                      <p className="text-xs font-medium text-muted-foreground mb-2">GESTÃO DA COMUNIDADE</p>
-                      <Link
-                        to="/comunidade/perfil"
-                        className="flex items-center text-gray-700 hover:text-primary transition-colors mb-2"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <Users2 className="mr-2 h-4 w-4" />
-                        Centro de Controle
-                      </Link>
-                    </div>
-                  </>
-                )}
-
-                <Link
-                  to="/"
-                  className="flex items-center text-gray-700 hover:text-primary transition-colors mb-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Home className="mr-2 h-4 w-4" />
-                  Site Principal
-                </Link>
-                
-                <button
-                  onClick={() => {
-                    handleSignOut();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="flex items-center text-gray-700 hover:text-primary transition-colors"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sair
-                </button>
-              </div>
-            </nav>
-          </div>
-        )}
+        <MobileNavigationMenu 
+          isMobileMenuOpen={isMobileMenuOpen}
+          setIsMobileMenuOpen={setIsMobileMenuOpen}
+        />
       </div>
     </header>
   );
