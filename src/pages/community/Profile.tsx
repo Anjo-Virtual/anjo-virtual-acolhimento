@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import ProfileForm from "@/components/community/profile/ProfileForm";
 import PreferencesTab from "@/components/community/profile/PreferencesTab";
 import NotificationsTab from "@/components/community/profile/NotificationsTab";
@@ -11,6 +12,7 @@ import AdminTab from "@/components/community/profile/AdminTab";
 import DangerZone from "@/components/community/profile/DangerZone";
 import CommunitySidebar from "@/components/community/CommunitySidebar";
 import ProfileHeader from "@/components/community/profile/ProfileHeader";
+import { Shield } from "lucide-react";
 
 const CommunityProfile = () => {
   const [activeTab, setActiveTab] = useState("profile");
@@ -36,25 +38,39 @@ const CommunityProfile = () => {
 
   console.log('🎯 Profile render - isAdmin:', isAdmin, 'adminLoading:', adminLoading);
 
+  // Calculate the number of tabs for grid layout
+  const tabCount = 4 + (isAdmin ? 1 : 0); // profile, preferences, notifications, danger + optional admin
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <CommunitySidebar />
       <div className="flex-1 p-8">
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="max-w-6xl mx-auto space-y-6">
           <ProfileHeader />
           
           <Card>
             <CardHeader>
-              <CardTitle>Configurações da Conta</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                Configurações da Conta
+                {!adminLoading && isAdmin && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <Shield className="h-3 w-3" />
+                    Admin
+                  </Badge>
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className={`grid w-full grid-cols-${tabCount}`}>
                   <TabsTrigger value="profile">Perfil</TabsTrigger>
                   <TabsTrigger value="preferences">Preferências</TabsTrigger>
                   <TabsTrigger value="notifications">Notificações</TabsTrigger>
                   {!adminLoading && isAdmin && (
-                    <TabsTrigger value="admin">Admin</TabsTrigger>
+                    <TabsTrigger value="admin" className="flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Admin
+                    </TabsTrigger>
                   )}
                   <TabsTrigger value="danger">Zona de Perigo</TabsTrigger>
                 </TabsList>
