@@ -55,35 +55,16 @@ export const useCategoryOperations = () => {
     try {
       console.log('✏️ Admin: Updating category:', id, data);
       
-      // First, fetch the existing category to get current values
-      const { data: existingCategory, error: fetchError } = await supabase
-        .from('forum_categories')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle(); // Changed from .single() to .maybeSingle()
-
-      if (fetchError) {
-        console.error('❌ Admin: Error fetching category:', fetchError);
-        throw fetchError;
-      }
-
-      if (!existingCategory) {
-        console.error('❌ Admin: Category not found:', id);
-        throw new Error('Categoria não encontrada');
-      }
-
-      console.log('📄 Admin: Found existing category:', existingCategory);
-      
       const updateData: any = { ...data };
       
       // Generate new slug if name changed
-      if (data.name && data.name !== existingCategory.name) {
+      if (data.name) {
         updateData.slug = generateSlug(data.name);
       }
 
       // Handle description properly - allow empty string but not null
       if (updateData.description === undefined) {
-        updateData.description = existingCategory.description || '';
+        updateData.description = '';
       } else if (updateData.description === null) {
         updateData.description = '';
       }
@@ -95,21 +76,27 @@ export const useCategoryOperations = () => {
 
       console.log('📝 Admin: Final update data:', updateData);
 
-      const { data: updatedData, error: updateError } = await supabase
+      // Use a more robust update approach
+      const { error: updateError } = await supabase
         .from('forum_categories')
         .update(updateData)
-        .eq('id', id)
-        .select()
-        .maybeSingle(); // Changed from .single() to .maybeSingle()
+        .eq('id', id);
 
       if (updateError) {
         console.error('❌ Admin: Error updating category:', updateError);
         throw updateError;
       }
 
-      if (!updatedData) {
-        console.error('❌ Admin: No data returned after update');
-        throw new Error('Nenhum dado retornado após atualização');
+      // Fetch the updated data separately to confirm the update
+      const { data: updatedData, error: fetchError } = await supabase
+        .from('forum_categories')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) {
+        console.error('❌ Admin: Error fetching updated category:', fetchError);
+        throw fetchError;
       }
 
       console.log('✅ Admin: Category updated successfully:', updatedData);

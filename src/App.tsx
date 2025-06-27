@@ -62,10 +62,7 @@ const App = () => (
             <Route path="/comunidade/notificacoes" element={<Notifications />} />
             <Route path="/comunidade/criar-post" element={<CreatePost />} />
             <Route path="/comunidade/post/:postId" element={<ForumPost />} />
-            <Route path="/comunidade/apoio-emocional" element={<ForumCategory />} />
-            <Route path="/comunidade/historias-superacao" element={<ForumCategory />} />
-            <Route path="/comunidade/duvidas-orientacoes" element={<ForumCategory />} />
-            <Route path="/comunidade/grupos-apoio" element={<ForumCategory />} />
+            {/* Generic category route - handles all category slugs */}
             <Route path="/comunidade/:slug" element={<ForumCategory />} />
             <Route path="/termos-de-uso" element={<TermosDeUso />} />
             <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />

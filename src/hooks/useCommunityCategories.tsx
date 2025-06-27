@@ -9,8 +9,8 @@ type CommunityCategory = ForumCategory & {
   last_activity: string;
 };
 
-// Reduzir o tempo de cache para 10 segundos para melhor sincronização
-const CACHE_DURATION = 10 * 1000;
+// Reduzir o tempo de cache para 5 segundos para melhor sincronização
+const CACHE_DURATION = 5 * 1000;
 let categoriesCache: CommunityCategory[] | null = null;
 let cacheTimestamp: number = 0;
 
@@ -51,6 +51,12 @@ export const useCommunityCategories = () => {
 
       const categoriesWithStats = data?.map(cat => {
         console.log('🏷️ Processing category:', cat.name, 'slug:', cat.slug, 'active:', cat.is_active, 'description:', cat.description);
+        
+        // Ensure slug is properly set
+        if (!cat.slug && cat.name) {
+          console.warn('⚠️ Category missing slug, using name:', cat.name);
+        }
+        
         return {
           ...cat,
           posts_count: 0,

@@ -10,8 +10,9 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, User, Settings, Bell, Shield } from "lucide-react";
+import { Loader2, User, Settings, Bell, Shield, Folder } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "react-router-dom";
 import CommunityHeader from "@/components/community/CommunityHeader";
 
 const CommunityProfile = () => {
@@ -21,6 +22,26 @@ const CommunityProfile = () => {
   const [bio, setBio] = useState<string>("");
   const [isAnonymous, setIsAnonymous] = useState<boolean>(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user) {
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .in('role', ['admin', 'super_admin']);
+        
+        if (!error && data && data.length > 0) {
+          setIsAdmin(true);
+        }
+      }
+    };
+    
+    checkAdminStatus();
+  }, [user]);
 
   // Update state when profile loads
   useEffect(() => {
@@ -103,7 +124,7 @@ const CommunityProfile = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Perfil
@@ -116,6 +137,12 @@ const CommunityProfile = () => {
               <Bell className="w-4 h-4" />
               Notificações
             </TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger value="admin" className="flex items-center gap-2">
+                <Folder className="w-4 h-4" />
+                Administração
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="profile">
@@ -273,6 +300,38 @@ const CommunityProfile = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {isAdmin && (
+            <TabsContent value="admin">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Administração da Comunidade</CardTitle>
+                  <CardDescription>
+                    Ferramentas administrativas para gerenciar a comunidade
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid gap-4">
+                    <Link to="/admin/categories">
+                      <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <Folder className="h-8 w-8 text-primary" />
+                            <div>
+                              <h3 className="font-semibold">Gerenciar Categorias</h3>
+                              <p className="text-sm text-gray-600">
+                                Crie, edite e organize as categorias do fórum
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
 
         <Card className="mt-8">

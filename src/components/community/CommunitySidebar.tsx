@@ -155,10 +155,10 @@ const CommunitySidebar = () => {
                     title={category.description || category.name}
                   >
                     <div 
-                      className="w-3 h-3 rounded-full mr-3" 
+                      className="w-3 h-3 rounded-full mr-3 flex-shrink-0" 
                       style={{ backgroundColor: category.color }}
                     ></div>
-                    {category.name}
+                    <span className="truncate">{category.name}</span>
                   </NavLink>
                 );
               })}
