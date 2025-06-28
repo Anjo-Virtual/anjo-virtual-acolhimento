@@ -11,10 +11,12 @@ import {
   Clock, 
   TrendingUp,
   Eye,
-  Calendar
+  Calendar,
+  RefreshCw
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
 
 interface ConversationStats {
   id: string;
@@ -57,24 +59,32 @@ const ChatDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [conversationMessages, setConversationMessages] = useState<any[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     loadDashboardData();
-    
-    // Atualizar dados a cada 30 segundos
-    const interval = setInterval(loadDashboardData, 30000);
-    return () => clearInterval(interval);
   }, []);
 
   const loadDashboardData = async () => {
+    setLoading(true);
     try {
+      console.log('Carregando dados do dashboard...');
+      
       // Buscar conversas
       const { data: conversationsData, error: convError } = await supabase
         .from('conversations')
         .select('*')
         .order('last_message_at', { ascending: false });
 
-      if (convError) throw convError;
+      if (convError) {
+        console.error('Erro ao buscar conversas:', convError);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar conversas.",
+          variant: "destructive",
+        });
+      }
 
       // Buscar leads
       const { data: leadsData, error: leadsError } = await supabase
@@ -82,12 +92,23 @@ const ChatDashboard = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (leadsError) throw leadsError;
+      if (leadsError) {
+        console.error('Erro ao buscar leads:', leadsError);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar leads.",
+          variant: "destructive",
+        });
+      }
 
       // Buscar total de mensagens
-      const { count: totalMessages } = await supabase
+      const { count: totalMessages, error: messagesError } = await supabase
         .from('messages')
         .select('*', { count: 'exact', head: true });
+
+      if (messagesError) {
+        console.error('Erro ao contar mensagens:', messagesError);
+      }
 
       // Calcular métricas
       const totalConversations = conversationsData?.length || 0;
@@ -105,14 +126,22 @@ const ChatDashboard = () => {
         avgMessagesPerConversation: avgMessages
       });
 
+      console.log('Dashboard carregado com sucesso');
+
     } catch (error) {
       console.error('Erro ao carregar dados do dashboard:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao carregar dashboard.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const loadConversationMessages = async (conversationId: string) => {
+    setMessagesLoading(true);
     try {
       const { data, error } = await supabase
         .from('messages')
@@ -120,12 +149,27 @@ const ChatDashboard = () => {
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao carregar mensagens:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar mensagens da conversa.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       setConversationMessages(data || []);
       setSelectedConversation(conversationId);
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao carregar mensagens.",
+        variant: "destructive",
+      });
+    } finally {
+      setMessagesLoading(false);
     }
   };
 
@@ -135,6 +179,15 @@ const ChatDashboard = () => {
       case 'paused': return 'bg-yellow-500';
       case 'completed': return 'bg-blue-500';
       default: return 'bg-gray-500';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'active': return 'Ativo';
+      case 'paused': return 'Pausado';
+      case 'completed': return 'Concluído';
+      default: return 'Desconhecido';
     }
   };
 
@@ -150,7 +203,8 @@ const ChatDashboard = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Dashboard do Chat</h1>
-        <Button onClick={loadDashboardData} variant="outline">
+        <Button onClick={loadDashboardData} variant="outline" disabled={loading}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
           Atualizar Dados
         </Button>
       </div>
@@ -222,42 +276,47 @@ const ChatDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {conversations.slice(0, 10).map((conversation) => (
-                  <div key={conversation.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-medium">{conversation.title || 'Conversa sem título'}</h3>
-                        <Badge className={`${getStatusColor(conversation.status)} text-white`}>
-                          {conversation.status}
-                        </Badge>
-                        {conversation.lead_id && (
-                          <Badge variant="outline">Lead</Badge>
-                        )}
+                {conversations.length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">Nenhuma conversa encontrada</p>
+                ) : (
+                  conversations.slice(0, 20).map((conversation) => (
+                    <div key={conversation.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-medium">{conversation.title || 'Conversa sem título'}</h3>
+                          <Badge className={`${getStatusColor(conversation.status)} text-white`}>
+                            {getStatusText(conversation.status)}
+                          </Badge>
+                          {conversation.lead_id && (
+                            <Badge variant="outline">Lead</Badge>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-500 flex items-center gap-4">
+                          <span className="flex items-center gap-1">
+                            <MessageSquare className="h-3 w-3" />
+                            {conversation.message_count} mensagens
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {formatDistanceToNow(new Date(conversation.last_message_at), {
+                              addSuffix: true,
+                              locale: ptBR
+                            })}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-sm text-gray-500 flex items-center gap-4">
-                        <span className="flex items-center gap-1">
-                          <MessageSquare className="h-3 w-3" />
-                          {conversation.message_count} mensagens
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {formatDistanceToNow(new Date(conversation.last_message_at), {
-                            addSuffix: true,
-                            locale: ptBR
-                          })}
-                        </span>
-                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => loadConversationMessages(conversation.id)}
+                        disabled={messagesLoading}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        Ver
+                      </Button>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => loadConversationMessages(conversation.id)}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      Ver
-                    </Button>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -270,32 +329,37 @@ const ChatDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {leads.slice(0, 10).map((lead) => (
-                  <div key={lead.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <h3 className="font-medium">{lead.name}</h3>
-                      <div className="text-sm text-gray-500">
-                        <p>{lead.email}</p>
-                        {lead.phone && <p>{lead.phone}</p>}
-                        <p className="flex items-center gap-1 mt-1">
-                          <Calendar className="h-3 w-3" />
-                          {formatDistanceToNow(new Date(lead.created_at), {
-                            addSuffix: true,
-                            locale: ptBR
-                          })}
-                        </p>
+                {leads.length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">Nenhum lead encontrado</p>
+                ) : (
+                  leads.slice(0, 20).map((lead) => (
+                    <div key={lead.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <h3 className="font-medium">{lead.name}</h3>
+                        <div className="text-sm text-gray-500">
+                          <p>{lead.email}</p>
+                          {lead.phone && <p>{lead.phone}</p>}
+                          <p className="flex items-center gap-1 mt-1">
+                            <Calendar className="h-3 w-3" />
+                            {formatDistanceToNow(new Date(lead.created_at), {
+                              addSuffix: true,
+                              locale: ptBR
+                            })}
+                          </p>
+                        </div>
                       </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => loadConversationMessages(lead.conversation_id)}
+                        disabled={messagesLoading}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        Ver Conversa
+                      </Button>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => loadConversationMessages(lead.conversation_id)}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      Ver Conversa
-                    </Button>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -316,23 +380,33 @@ const ChatDashboard = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {conversationMessages.map((message) => (
-                    <div key={message.id} className={`p-3 rounded-lg ${
-                      message.role === 'user' ? 'bg-blue-50 ml-4' : 'bg-gray-50 mr-4'
-                    }`}>
-                      <div className="text-xs text-gray-500 mb-1">
-                        {message.role === 'user' ? 'Usuário' : 'Assistente'} - {
-                          formatDistanceToNow(new Date(message.created_at), {
-                            addSuffix: true,
-                            locale: ptBR
-                          })
-                        }
-                      </div>
-                      <div className="text-sm">{message.content}</div>
-                    </div>
-                  ))}
-                </div>
+                {messagesLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {conversationMessages.length === 0 ? (
+                      <p className="text-center text-gray-500 py-8">Nenhuma mensagem encontrada</p>
+                    ) : (
+                      conversationMessages.map((message) => (
+                        <div key={message.id} className={`p-3 rounded-lg ${
+                          message.role === 'user' ? 'bg-blue-50 ml-4' : 'bg-gray-50 mr-4'
+                        }`}>
+                          <div className="text-xs text-gray-500 mb-1">
+                            {message.role === 'user' ? 'Usuário' : 'Assistente'} - {
+                              formatDistanceToNow(new Date(message.created_at), {
+                                addSuffix: true,
+                                locale: ptBR
+                              })
+                            }
+                          </div>
+                          <div className="text-sm">{message.content}</div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ) : (

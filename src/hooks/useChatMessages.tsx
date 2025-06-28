@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
@@ -22,6 +22,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState(conversationId);
   const [isInputReady, setIsInputReady] = useState(false);
+  const loadedConversationId = useRef<string | null>(null);
   const [sessionId] = useState(() => {
     if (!userId) {
       return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -31,6 +32,12 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
 
   const loadMessages = useCallback(async () => {
     if (!currentConversationId) {
+      setIsInputReady(true);
+      return;
+    }
+
+    // Evitar carregamento duplicado
+    if (loadedConversationId.current === currentConversationId) {
       setIsInputReady(true);
       return;
     }
@@ -69,6 +76,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
       }));
 
       setMessages(typedMessages);
+      loadedConversationId.current = currentConversationId;
       console.log(`Carregadas ${typedMessages.length} mensagens`);
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error);
@@ -133,6 +141,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
       if (data.conversationId && data.conversationId !== currentConversationId) {
         console.log('Nova conversa criada:', data.conversationId);
         setCurrentConversationId(data.conversationId);
+        loadedConversationId.current = null; // Reset para recarregar
         onConversationCreated?.(data.conversationId);
       }
 
@@ -146,9 +155,10 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
 
       setMessages(prev => prev.filter(m => m.id !== tempUserMessage.id));
       
+      // Aguardar um pouco antes de recarregar as mensagens
       setTimeout(() => {
         loadMessages();
-      }, 500);
+      }, 300);
 
     } catch (error) {
       console.error('Erro no chat:', error);
@@ -173,6 +183,14 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
       setIsInputReady(true);
     }
   }, [currentConversationId, userId, sessionId, isLoading, loadMessages]);
+
+  // Resetar quando conversationId muda
+  useEffect(() => {
+    if (currentConversationId !== loadedConversationId.current) {
+      setMessages([]);
+      loadedConversationId.current = null;
+    }
+  }, [currentConversationId]);
 
   useEffect(() => {
     if (currentConversationId) {
