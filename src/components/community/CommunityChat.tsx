@@ -56,13 +56,7 @@ const CommunityChat = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0 h-[calc(100%-80px)]">
-          <ChatBox 
-            leadData={user ? {
-              name: user.email?.split('@')[0] || 'Usuário',
-              email: user.email || '',
-              phone: ''
-            } : null}
-          />
+          <ChatBox />
         </CardContent>
       </Card>
     </div>
