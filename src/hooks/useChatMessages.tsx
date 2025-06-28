@@ -1,6 +1,6 @@
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useChatPermissions } from "./useChatPermissions";
 import { toast } from "@/components/ui/use-toast";
 
 interface Message {
@@ -18,13 +18,15 @@ interface Message {
 }
 
 export const useChatMessages = (userId?: string, conversationId?: string) => {
+  const { currentUser, isAdminUser } = useChatPermissions();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState(conversationId);
   const [isInputReady, setIsInputReady] = useState(false);
   const loadedConversationId = useRef<string | null>(null);
   const [sessionId] = useState(() => {
-    if (!userId) {
+    const effectiveUserId = userId || currentUser?.id;
+    if (!effectiveUserId) {
       return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
     return null;
@@ -45,6 +47,26 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
     console.log('Carregando mensagens para conversa:', currentConversationId);
 
     try {
+      // Verificar se o usuário tem permissão para ver esta conversa
+      const effectiveUserId = userId || currentUser?.id;
+      if (!isAdminUser && effectiveUserId) {
+        const { data: conversationCheck, error: checkError } = await supabase
+          .from('conversations')
+          .select('user_id')
+          .eq('id', currentConversationId)
+          .single();
+
+        if (checkError || conversationCheck?.user_id !== effectiveUserId) {
+          console.error('Usuário não tem permissão para ver esta conversa');
+          toast({
+            title: "Acesso Negado",
+            description: "Você não tem permissão para ver esta conversa.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -88,7 +110,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
     } finally {
       setIsInputReady(true);
     }
-  }, [currentConversationId]);
+  }, [currentConversationId, currentUser?.id, userId, isAdminUser]);
 
   const sendMessage = useCallback(async (
     userMessage: string, 
@@ -114,10 +136,12 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
     setMessages(prev => [...prev, tempUserMessage]);
 
     try {
+      const effectiveUserId = userId || currentUser?.id;
+      
       console.log('Enviando mensagem para chat-rag:', {
         message: userMessage,
         conversationId: currentConversationId,
-        userId: userId,
+        userId: effectiveUserId,
         sessionId: sessionId,
         hasLeadData: !!leadData
       });
@@ -126,7 +150,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
         body: {
           message: userMessage,
           conversationId: currentConversationId,
-          userId: userId,
+          userId: effectiveUserId,
           sessionId: sessionId,
           leadData: leadData
         }
@@ -182,7 +206,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
       setIsLoading(false);
       setIsInputReady(true);
     }
-  }, [currentConversationId, userId, sessionId, isLoading, loadMessages]);
+  }, [currentConversationId, currentUser?.id, userId, sessionId, isLoading, loadMessages]);
 
   // Resetar quando conversationId muda
   useEffect(() => {

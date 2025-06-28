@@ -2,11 +2,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
+import { useChatPermissions } from "@/hooks/useChatPermissions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Calendar, ArrowRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { AdminChatHistory } from "./AdminChatHistory";
 
 interface Conversation {
   id: string;
@@ -23,8 +25,14 @@ interface ChatHistoryProps {
 
 export const ChatHistory = ({ onSelectConversation }: ChatHistoryProps) => {
   const { user } = useCommunityAuth();
+  const { isAdminUser } = useChatPermissions();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Se é admin, usar o componente de histórico avançado
+  if (isAdminUser) {
+    return <AdminChatHistory onSelectConversation={onSelectConversation} />;
+  }
 
   useEffect(() => {
     if (user) {
@@ -40,7 +48,8 @@ export const ChatHistory = ({ onSelectConversation }: ChatHistoryProps) => {
         .from('conversations')
         .select('*')
         .eq('user_id', user.id)
-        .order('last_message_at', { ascending: false });
+        .order('last_message_at', { ascending: false })
+        .limit(10); // Limitar para usuários comuns
 
       if (error) {
         console.error('Erro ao carregar conversas:', error);

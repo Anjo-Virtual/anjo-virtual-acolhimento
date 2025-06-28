@@ -3,8 +3,10 @@ import { useState } from "react";
 import { RagChatBox } from "./RagChatBox";
 import { ChatHistory } from "./ChatHistory";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
+import { useChatPermissions } from "@/hooks/useChatPermissions";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, History } from "lucide-react";
+import { MessageCircle, History, Settings } from "lucide-react";
+import { AdminChatManager } from "../admin/chat/AdminChatManager";
 
 interface ChatBoxProps {
   onClose?: () => void;
@@ -12,7 +14,8 @@ interface ChatBoxProps {
 
 const ChatBox = ({ onClose }: ChatBoxProps) => {
   const { user } = useCommunityAuth();
-  const [activeView, setActiveView] = useState<'chat' | 'history'>('chat');
+  const { isAdminUser } = useChatPermissions();
+  const [activeView, setActiveView] = useState<'chat' | 'history' | 'admin'>('chat');
   const [selectedConversationId, setSelectedConversationId] = useState<string | undefined>();
 
   const handleSelectConversation = (conversationId: string) => {
@@ -57,6 +60,17 @@ const ChatBox = ({ onClose }: ChatBoxProps) => {
           <History className="h-4 w-4" />
           Histórico
         </Button>
+        {isAdminUser && (
+          <Button
+            variant={activeView === 'admin' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveView('admin')}
+            className="flex items-center gap-2 flex-1"
+          >
+            <Settings className="h-4 w-4" />
+            Admin
+          </Button>
+        )}
       </div>
 
       {/* Conteúdo */}
@@ -84,11 +98,15 @@ const ChatBox = ({ onClose }: ChatBoxProps) => {
               }}
             />
           </div>
-        ) : (
+        ) : activeView === 'history' ? (
           <div className="h-full overflow-y-auto p-4">
             <ChatHistory onSelectConversation={handleSelectConversation} />
           </div>
-        )}
+        ) : activeView === 'admin' && isAdminUser ? (
+          <div className="h-full overflow-y-auto p-4">
+            <AdminChatManager />
+          </div>
+        ) : null}
       </div>
     </div>
   );
