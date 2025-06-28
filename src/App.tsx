@@ -8,6 +8,7 @@ import { CommunityAuthProvider } from "@/contexts/CommunityAuthContext";
 import { TrackingScripts } from "@/components/TrackingScripts";
 import { ProtectedAdminRoute } from "@/components/admin/ProtectedAdminRoute";
 import AdminLayout from "@/components/admin/AdminLayout";
+import GlobalLayout from "@/components/GlobalLayout";
 import Index from "./pages/Index";
 import TermosDeUso from "./pages/TermosDeUso";
 import PoliticaDePrivacidade from "./pages/PoliticaDePrivacidade";
@@ -35,6 +36,7 @@ import BlogEdit from "./pages/admin/BlogEdit";
 import Categories from "./pages/admin/Categories";
 import Integrations from "./pages/admin/Integrations";
 import Settings from "./pages/admin/Settings";
+import ChatDashboard from "./pages/admin/ChatDashboard";
 
 const queryClient = new QueryClient();
 
@@ -86,8 +88,12 @@ const App = () => (
               <Route path="categories" element={<Categories />} />
               <Route path="integrations" element={<Integrations />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="chat-dashboard" element={<ChatDashboard />} />
             </Route>
           </Routes>
+          
+          {/* Layout Global - Chat e FloatingButtons */}
+          <GlobalLayout />
         </CommunityAuthProvider>
       </AdminAuthProvider>
     </BrowserRouter>

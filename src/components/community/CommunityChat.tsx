@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ChatBox from "../chat/ChatBox";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { useOriginRedirect } from "@/hooks/useOriginRedirect";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useChatInstance } from "@/hooks/useChatInstance";
 
 const CHAT_INSTANCE_ID = "community-chat";
@@ -15,9 +15,13 @@ const CommunityChat = () => {
   const { user } = useCommunityAuth();
   const { setOrigin } = useOriginRedirect();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const { openChat, closeChat, isActiveInstance } = useChatInstance();
 
+  // Não mostrar o chat em páginas de admin
+  const isAdminPage = location.pathname.startsWith('/admin');
+  
   useEffect(() => {
     // Verificar se esta instância deve estar ativa
     if (isActiveInstance(CHAT_INSTANCE_ID) && !isOpen) {
@@ -25,7 +29,7 @@ const CommunityChat = () => {
     } else if (!isActiveInstance(CHAT_INSTANCE_ID) && isOpen) {
       setIsOpen(false);
     }
-  }, [isActiveInstance(CHAT_INSTANCE_ID)]);
+  }, [isActiveInstance(CHAT_INSTANCE_ID), isOpen]);
 
   const handleToggleChat = () => {
     if (!user) {
@@ -43,8 +47,8 @@ const CommunityChat = () => {
     }
   };
 
-  // Se outra instância de chat estiver ativa, não mostrar este
-  if (isActiveInstance('modal-chat')) {
+  // Não renderizar em páginas de admin ou se outra instância estiver ativa
+  if (isAdminPage || isActiveInstance('modal-chat')) {
     return null;
   }
 
@@ -54,6 +58,7 @@ const CommunityChat = () => {
         <Button
           onClick={handleToggleChat}
           className="bg-primary hover:bg-primary/90 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110"
+          title={user ? "Abrir Chat" : "Fazer Login para Chat"}
         >
           <MessageCircle size={24} />
         </Button>
