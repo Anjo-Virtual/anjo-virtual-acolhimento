@@ -12,6 +12,7 @@ import {
   sendLeadToN8n 
 } from "@/utils/webhookUtils";
 import { fetchPerplexityKey } from "@/utils/perplexityUtils";
+import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 
 interface ChatModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ interface ChatModalProps {
 type FormData = z.infer<typeof chatFormSchema>;
 
 const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
+  const { user } = useCommunityAuth();
   const [chatStarted, setChatStarted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [n8nConfig, setN8nConfig] = useState<N8nWebhookConfig | null>(null);
@@ -29,10 +31,21 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
   useEffect(() => {
     if (isOpen) {
       fetchN8nWebhookConfig();
-      // Also fetch the perplexity key from site settings
       fetchPerplexityKey();
+      
+      // Se usuário estiver logado, inicia chat diretamente
+      if (user) {
+        // Criar lead data a partir dos dados do usuário
+        const userLeadData: FormData = {
+          name: user.email?.split('@')[0] || 'Usuário',
+          email: user.email || '',
+          phone: ''
+        };
+        setLeadData(userLeadData);
+        setChatStarted(true);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   const fetchN8nWebhookConfig = async () => {
     try {
@@ -48,7 +61,6 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
       }
       
       if (data && data.value) {
-        // Type assertion to handle the conversion properly
         const configData = data.value as unknown as N8nWebhookConfig;
         setN8nConfig(configData);
       }
@@ -58,7 +70,6 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
   };
 
   const onSubmit = async (data: FormData) => {
-    // Check if we have the Perplexity key in localStorage or fetch it again
     const perplexityKey = localStorage.getItem('perplexityKey');
     if (!perplexityKey) {
       const apiKey = await fetchPerplexityKey();
@@ -75,7 +86,6 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
     setIsSubmitting(true);
     
     try {
-      // Ensure data has all required fields for LeadData type
       const leadData: LeadData = {
         name: data.name || "",
         email: data.email || "",
@@ -86,7 +96,6 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
       const webhookSuccess = await sendLeadToN8n(leadData, n8nConfig);
       
       if (webhookSuccess) {
-        // Armazenar dados do lead para usar no chat (incluindo para captura interna)
         setLeadData(data);
         setChatStarted(true);
         
@@ -128,6 +137,10 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
 
         {!chatStarted ? (
           <div className="p-8">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold mb-2">Iniciar Conversa</h2>
+              <p className="text-gray-600">Preencha seus dados para começar a conversar com nosso assistente</p>
+            </div>
             <ChatForm onSubmit={onSubmit} isSubmitting={isSubmitting} />
           </div>
         ) : (

@@ -7,6 +7,7 @@ import QuickActions from "./QuickActions";
 import RecentPostsSection from "./RecentPostsSection";
 import CategoriesSection from "./CategoriesSection";
 import RightSidebar from "./RightSidebar";
+import CommunityChat from "./CommunityChat";
 
 const CommunityDashboard = () => {
   const { user } = useCommunityAuth();
@@ -45,6 +46,9 @@ const CommunityDashboard = () => {
         {/* Right Sidebar */}
         <RightSidebar />
       </div>
+
+      {/* Community Chat */}
+      <CommunityChat />
     </div>
   );
 };

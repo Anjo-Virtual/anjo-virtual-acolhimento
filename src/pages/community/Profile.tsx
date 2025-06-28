@@ -32,14 +32,11 @@ const CommunityProfile = () => {
       console.log('✅ Admin status result:', data);
       return data || false;
     },
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000,
     retry: 1
   });
 
   console.log('🎯 Profile render - isAdmin:', isAdmin, 'adminLoading:', adminLoading);
-
-  // Calculate the number of tabs for grid layout
-  const tabCount = 4 + (isAdmin ? 1 : 0); // profile, preferences, notifications, danger + optional admin
 
   return (
     <CommunityPageLayout>
@@ -60,7 +57,7 @@ const CommunityProfile = () => {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className={`grid w-full grid-cols-${tabCount}`}>
+              <TabsList className="grid w-full grid-cols-4 lg:grid-cols-5">
                 <TabsTrigger value="profile">Perfil</TabsTrigger>
                 <TabsTrigger value="preferences">Preferências</TabsTrigger>
                 <TabsTrigger value="notifications">Notificações</TabsTrigger>
