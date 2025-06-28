@@ -68,6 +68,19 @@ const ProfileForm = () => {
     setIsAnonymous(checked);
   };
 
+  if (!profile) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center">
+            <Loader2 className="w-6 h-6 animate-spin" />
+            <span className="ml-2">Carregando perfil...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>

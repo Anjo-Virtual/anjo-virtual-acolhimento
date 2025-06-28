@@ -18,13 +18,18 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { message, conversationId, userId, leadData } = await req.json()
+    const { message, conversationId, userId, sessionId, leadData } = await req.json()
     
-    if (!message || !userId) {
-      throw new Error('Mensagem e userId são obrigatórios')
+    if (!message) {
+      throw new Error('Mensagem é obrigatória')
     }
 
-    console.log(`[CHAT-RAG] Iniciando chat para usuário ${userId}`)
+    // Para usuários anônimos, usar sessionId
+    if (!userId && !sessionId) {
+      throw new Error('userId ou sessionId são obrigatórios')
+    }
+
+    console.log(`[CHAT-RAG] Iniciando chat para ${userId ? `usuário ${userId}` : `sessão ${sessionId}`}`)
 
     let conversation = null
 
@@ -32,13 +37,15 @@ serve(async (req) => {
     if (!conversationId) {
       console.log('[CHAT-RAG] Criando nova conversa')
       
+      const conversationData = {
+        title: message.substring(0, 50) + '...',
+        message_count: 0,
+        ...(userId ? { user_id: userId } : { session_id: sessionId })
+      }
+      
       const { data: newConversation, error: convError } = await supabaseClient
         .from('conversations')
-        .insert({
-          user_id: userId,
-          title: message.substring(0, 50) + '...',
-          message_count: 0
-        })
+        .insert(conversationData)
         .select()
         .single()
 
@@ -95,6 +102,19 @@ serve(async (req) => {
       conversation = existingConv
     }
 
+    // NOVO: Buscar histórico de mensagens para contexto
+    console.log('[CHAT-RAG] Buscando histórico de mensagens')
+    const { data: messageHistory, error: historyError } = await supabaseClient
+      .from('messages')
+      .select('role, content')
+      .eq('conversation_id', conversation.id)
+      .order('created_at', { ascending: true })
+      .limit(10) // Últimas 10 mensagens para contexto
+
+    if (historyError) {
+      console.error('[CHAT-RAG] Erro ao buscar histórico:', historyError)
+    }
+
     // Salvar mensagem do usuário
     const { error: userMsgError } = await supabaseClient
       .from('messages')
@@ -134,10 +154,21 @@ serve(async (req) => {
       console.error('[CHAT-RAG] Erro ao buscar configuração do agente:', configError)
     }
 
-    // Construir contexto melhorado para o GPT
+    // Construir contexto melhorado para o GPT COM HISTÓRICO
     let context = agentConfig?.system_prompt || `Você é um assistente especializado em acolhimento emocional. 
     Sua função é oferecer suporte, orientação e informações úteis de forma empática e acolhedora.
     Sempre mantenha um tom respeitoso, compreensivo e humanizado em suas respostas.`
+    
+    // NOVO: Adicionar histórico de mensagens ao contexto
+    if (messageHistory && messageHistory.length > 0) {
+      context += '\n\n=== HISTÓRICO DA CONVERSA ===\n'
+      messageHistory.forEach((msg, index) => {
+        const role = msg.role === 'user' ? 'Usuário' : 'Assistente'
+        context += `${role}: ${msg.content}\n`
+      })
+      context += '=== FIM DO HISTÓRICO ===\n'
+      context += '\nUse o histórico acima para manter a continuidade da conversa e lembrar-se do contexto anterior.\n'
+    }
     
     if (relevantChunks && relevantChunks.length > 0) {
       context += '\n\n=== INFORMAÇÕES DA BASE DE CONHECIMENTO ===\n'
@@ -157,9 +188,27 @@ serve(async (req) => {
     let sources = []
 
     if (openaiApiKey) {
-      console.log('[CHAT-RAG] Gerando resposta com OpenAI')
+      console.log('[CHAT-RAG] Gerando resposta com OpenAI (com histórico)')
       
       try {
+        // NOVO: Construir array de mensagens incluindo histórico
+        const messages = [
+          { role: 'system', content: context }
+        ]
+        
+        // Adicionar histórico de mensagens
+        if (messageHistory && messageHistory.length > 0) {
+          messageHistory.forEach(msg => {
+            messages.push({
+              role: msg.role as 'user' | 'assistant',
+              content: msg.content
+            })
+          })
+        }
+        
+        // Adicionar mensagem atual
+        messages.push({ role: 'user', content: message })
+
         const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -168,10 +217,7 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             model: agentConfig?.model || 'gpt-4o-mini',
-            messages: [
-              { role: 'system', content: context },
-              { role: 'user', content: message }
-            ],
+            messages: messages,
             temperature: agentConfig?.temperature || 0.7,
             max_tokens: agentConfig?.max_tokens || 1000,
           }),
@@ -206,6 +252,11 @@ serve(async (req) => {
       assistantResponse = `Compreendo sua mensagem: "${message}". ` +
         `Como assistente de acolhimento, estou aqui para oferecer suporte emocional personalizado. `
       
+      // Mencionar continuidade se houver histórico
+      if (messageHistory && messageHistory.length > 0) {
+        assistantResponse += `\n\nLembro-me de nossa conversa anterior e posso continuar de onde paramos. `
+      }
+      
       if (relevantChunks && relevantChunks.length > 0) {
         assistantResponse += `\n\nBaseado nas informações da nossa base de conhecimento, posso compartilhar algumas orientações relevantes:\n\n`
         
@@ -236,7 +287,8 @@ serve(async (req) => {
         metadata: {
           chunks_used: relevantChunks?.length || 0,
           model_used: agentConfig?.model || 'gpt-4o-mini',
-          has_api_key: !!openaiApiKey
+          has_api_key: !!openaiApiKey,
+          has_history: !!(messageHistory && messageHistory.length > 0)
         }
       })
 
@@ -257,7 +309,7 @@ serve(async (req) => {
       console.error('[CHAT-RAG] Erro ao atualizar conversa:', updateConvError)
     }
 
-    console.log(`[CHAT-RAG] Chat concluído para conversa ${conversation.id}`)
+    console.log(`[CHAT-RAG] Chat concluído para conversa ${conversation.id} ${messageHistory?.length ? 'com histórico' : 'sem histórico'}`)
 
     return new Response(
       JSON.stringify({ 
@@ -266,7 +318,8 @@ serve(async (req) => {
         response: assistantResponse,
         sources: sources,
         chunks_found: relevantChunks?.length || 0,
-        lead_captured: !!(leadData && leadData.name && leadData.email)
+        lead_captured: !!(leadData && leadData.name && leadData.email),
+        has_history: !!(messageHistory && messageHistory.length > 0)
       }),
       { 
         headers: { 

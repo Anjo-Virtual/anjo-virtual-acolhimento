@@ -27,7 +27,7 @@ export const RagChatBox = ({
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  const { messages, isLoading, sendMessage } = useChatMessages(userId, conversationId);
+  const { messages, isLoading, isInputReady, sendMessage } = useChatMessages(userId, conversationId);
 
   // Auto scroll para última mensagem
   useEffect(() => {
@@ -35,14 +35,14 @@ export const RagChatBox = ({
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || !isInputReady) return;
     const userMessage = input.trim();
     setInput("");
     await sendMessage(userMessage, onConversationCreated, leadData);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && isInputReady) {
       e.preventDefault();
       handleSendMessage();
     }
@@ -54,7 +54,7 @@ export const RagChatBox = ({
       
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
-        {messages.length === 0 && <ChatEmptyState />}
+        {messages.length === 0 && isInputReady && <ChatEmptyState />}
         
         {messages.map((message) => (
           <ChatMessage key={message.id} message={message} />
@@ -68,6 +68,7 @@ export const RagChatBox = ({
       <ChatInput
         input={input}
         isLoading={isLoading}
+        isInputReady={isInputReady}
         onInputChange={setInput}
         onSendMessage={handleSendMessage}
         onKeyPress={handleKeyPress}

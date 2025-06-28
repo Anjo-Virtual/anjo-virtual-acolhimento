@@ -21,6 +21,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState(conversationId);
+  const [isInputReady, setIsInputReady] = useState(false);
   const [sessionId] = useState(() => {
     // Gerar sessionId único para usuários anônimos
     if (!userId) {
@@ -30,7 +31,12 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
   });
 
   const loadMessages = async () => {
-    if (!currentConversationId) return;
+    if (!currentConversationId) {
+      setIsInputReady(true);
+      return;
+    }
+
+    console.log('Carregando mensagens para conversa:', currentConversationId);
 
     try {
       const { data, error } = await supabase
@@ -41,6 +47,11 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
 
       if (error) {
         console.error('Erro ao carregar mensagens:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar o histórico da conversa.",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -60,8 +71,16 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
       }));
 
       setMessages(typedMessages);
+      console.log(`Carregadas ${typedMessages.length} mensagens`);
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao carregar mensagens.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsInputReady(true);
     }
   };
 
@@ -76,7 +95,9 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
   ) => {
     if (!userMessage.trim() || isLoading) return;
 
+    console.log('Enviando mensagem:', userMessage);
     setIsLoading(true);
+    setIsInputReady(false);
 
     // Adicionar mensagem do usuário imediatamente na UI
     const tempUserMessage: Message = {
@@ -114,15 +135,23 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
 
       // Se criou nova conversa, atualizar ID
       if (data.conversationId && data.conversationId !== currentConversationId) {
+        console.log('Nova conversa criada:', data.conversationId);
         setCurrentConversationId(data.conversationId);
         onConversationCreated?.(data.conversationId);
       }
 
-      // Mostrar feedback sobre captura de lead
+      // Mostrar feedback sobre recursos utilizados
+      if (data.has_history) {
+        console.log('IA utilizou histórico da conversa para resposta contextualizada');
+      }
+
       if (data.lead_captured) {
         console.log('Lead capturado com sucesso');
       }
 
+      // Remover mensagem temporária e recarregar todas as mensagens
+      setMessages(prev => prev.filter(m => m.id !== tempUserMessage.id));
+      
       // Aguardar um momento e recarregar mensagens para garantir consistência
       setTimeout(() => {
         loadMessages();
@@ -142,20 +171,30 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
         created_at: new Date().toISOString()
       };
       setMessages(prev => [...prev, errorMessage]);
+
+      toast({
+        title: "Erro",
+        description: "Não foi possível enviar a mensagem. Tente novamente.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
+      setIsInputReady(true);
     }
   };
 
   useEffect(() => {
     if (currentConversationId) {
       loadMessages();
+    } else {
+      setIsInputReady(true);
     }
   }, [currentConversationId]);
 
   return {
     messages,
     isLoading,
+    isInputReady,
     currentConversationId,
     sendMessage,
     setCurrentConversationId
