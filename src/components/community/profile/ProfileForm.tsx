@@ -38,6 +38,7 @@ const ProfileForm = () => {
         .from('community_profiles')
         .update({
           display_name: displayName,
+          bio: bio,
           is_anonymous: isAnonymous,
           updated_at: new Date().toISOString()
         })

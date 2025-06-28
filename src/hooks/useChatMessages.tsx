@@ -120,25 +120,28 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
 
       // Mostrar feedback sobre captura de lead
       if (data.lead_captured) {
-        toast({
-          title: "Lead capturado",
-          description: "Seus dados foram registrados com sucesso!",
-        });
+        console.log('Lead capturado com sucesso');
       }
 
-      // Recarregar mensagens para pegar as versões salvas no banco
-      await loadMessages();
+      // Aguardar um momento e recarregar mensagens para garantir consistência
+      setTimeout(() => {
+        loadMessages();
+      }, 500);
 
     } catch (error) {
       console.error('Erro no chat:', error);
-      toast({
-        title: "Erro no chat",
-        description: "Erro ao enviar mensagem. Tente novamente.",
-        variant: "destructive",
-      });
-
+      
       // Remover mensagem temporária em caso de erro
       setMessages(prev => prev.filter(m => m.id !== tempUserMessage.id));
+      
+      // Adicionar mensagem de erro
+      const errorMessage: Message = {
+        id: `error-${Date.now()}`,
+        role: 'assistant',
+        content: 'Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.',
+        created_at: new Date().toISOString()
+      };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }

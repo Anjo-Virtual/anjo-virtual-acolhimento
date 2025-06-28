@@ -2,9 +2,11 @@
 import { useCheckoutHandler } from '@/utils/checkoutUtils';
 import { Loader2 } from "lucide-react";
 import { isFeatureEnabled } from '@/utils/featureFlags';
+import { useModalControls } from './FloatingButtons';
 
 const Hero = () => {
   const { handleCheckout, isLoading } = useCheckoutHandler();
+  const { openChatModal } = useModalControls();
 
   const startFreePlan = () => {
     if (!isFeatureEnabled('STRIPE_CHECKOUT_ENABLED')) {
@@ -27,12 +29,18 @@ const Hero = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <button 
+              onClick={openChatModal}
+              className="bg-primary text-white px-8 py-3 rounded-button hover:bg-opacity-90 hover:translate-y-[-2px] hover:shadow-soft text-center whitespace-nowrap animate-scaleIn transition-all duration-300"
+            >
+              Conversar com Anjo Virtual
+            </button>
+            <button 
               onClick={startFreePlan}
               disabled={isCheckoutDisabled || isLoading === "free"}
               className={`px-8 py-3 rounded-button text-center whitespace-nowrap animate-scaleIn flex items-center justify-center transition-all duration-300 ${
                 isCheckoutDisabled 
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                  : 'bg-primary text-white hover:bg-opacity-90 hover:translate-y-[-2px] hover:shadow-soft'
+                  : 'border border-gray-300 text-gray-700 hover:bg-gray-50 hover:translate-y-[-2px] hover:shadow-soft'
               }`}
             >
               {isLoading === "free" ? (
@@ -41,7 +49,7 @@ const Hero = () => {
                   Processando...
                 </>
               ) : (
-                isCheckoutDisabled ? "Em Breve" : "Iniciar Acolhimento Gratuito"
+                isCheckoutDisabled ? "Planos em Breve" : "Ver Planos"
               )}
             </button>
             <a 
