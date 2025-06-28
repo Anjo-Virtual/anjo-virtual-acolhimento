@@ -8,7 +8,6 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -19,16 +18,20 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { message, conversationId, userId } = await req.json()
+    const { message, conversationId, userId, leadData } = await req.json()
     
     if (!message || !userId) {
       throw new Error('Mensagem e userId são obrigatórios')
     }
 
+    console.log(`[CHAT-RAG] Iniciando chat para usuário ${userId}`)
+
     let conversation = null
 
     // Se não tiver conversationId, criar nova conversa
     if (!conversationId) {
+      console.log('[CHAT-RAG] Criando nova conversa')
+      
       const { data: newConversation, error: convError } = await supabaseClient
         .from('conversations')
         .insert({
@@ -40,10 +43,43 @@ serve(async (req) => {
         .single()
 
       if (convError) {
-        throw new Error('Erro ao criar conversa')
+        throw new Error('Erro ao criar conversa: ' + convError.message)
       }
       
       conversation = newConversation
+      
+      // Se temos dados de lead, criar registro de lead
+      if (leadData && leadData.name && leadData.email) {
+        console.log('[CHAT-RAG] Salvando dados do lead')
+        
+        const { data: chatLead, error: leadError } = await supabaseClient
+          .from('chat_leads')
+          .insert({
+            name: leadData.name,
+            email: leadData.email,
+            phone: leadData.phone || null,
+            conversation_id: conversation.id,
+            metadata: {
+              source: 'chat_modal',
+              first_message: message.substring(0, 100),
+              user_agent: req.headers.get('user-agent') || 'unknown'
+            }
+          })
+          .select()
+          .single()
+
+        if (leadError) {
+          console.error('[CHAT-RAG] Erro ao salvar lead:', leadError)
+        } else {
+          // Atualizar conversa com o lead_id
+          await supabaseClient
+            .from('conversations')
+            .update({ lead_id: chatLead.id })
+            .eq('id', conversation.id)
+          
+          console.log(`[CHAT-RAG] Lead capturado: ${chatLead.id}`)
+        }
+      }
     } else {
       // Buscar conversa existente
       const { data: existingConv, error: fetchError } = await supabaseClient
@@ -69,23 +105,23 @@ serve(async (req) => {
       })
 
     if (userMsgError) {
-      console.error('Erro ao salvar mensagem do usuário:', userMsgError)
+      console.error('[CHAT-RAG] Erro ao salvar mensagem do usuário:', userMsgError)
     }
 
-    // Buscar chunks relevantes na base de conhecimento
+    // Buscar chunks relevantes usando a função melhorada
+    console.log('[CHAT-RAG] Buscando conhecimento relevante')
+    
     const { data: relevantChunks, error: searchError } = await supabaseClient
-      .from('knowledge_base')
-      .select(`
-        *,
-        documents (
-          name,
-          file_path
-        )
-      `)
-      .textSearch('chunk_text', message)
-      .limit(5)
+      .rpc('search_knowledge_base', {
+        search_query: message,
+        limit_results: 5
+      })
 
-    console.log('Chunks encontrados:', relevantChunks?.length || 0)
+    if (searchError) {
+      console.error('[CHAT-RAG] Erro na busca:', searchError)
+    }
+
+    console.log(`[CHAT-RAG] Encontrados ${relevantChunks?.length || 0} chunks relevantes`)
 
     // Buscar configuração do agente
     const { data: agentConfig, error: configError } = await supabaseClient
@@ -95,73 +131,97 @@ serve(async (req) => {
       .single()
 
     if (configError) {
-      console.error('Erro ao buscar configuração do agente:', configError)
+      console.error('[CHAT-RAG] Erro ao buscar configuração do agente:', configError)
     }
 
-    // Construir contexto para o GPT
-    let context = agentConfig?.system_prompt || 'Você é um assistente útil.'
+    // Construir contexto melhorado para o GPT
+    let context = agentConfig?.system_prompt || `Você é um assistente especializado em acolhimento emocional. 
+    Sua função é oferecer suporte, orientação e informações úteis de forma empática e acolhedora.
+    Sempre mantenha um tom respeitoso, compreensivo e humanizado em suas respostas.`
     
     if (relevantChunks && relevantChunks.length > 0) {
-      context += '\n\nInformações relevantes da base de conhecimento:\n'
+      context += '\n\n=== INFORMAÇÕES DA BASE DE CONHECIMENTO ===\n'
       relevantChunks.forEach((chunk, index) => {
-        context += `\n[Fonte ${index + 1}: ${chunk.documents?.name || 'Documento'}]\n${chunk.chunk_text}\n`
+        context += `\n[Fonte ${index + 1}: ${chunk.document_name}]\n`
+        context += `Resumo: ${chunk.chunk_summary || 'Conteúdo sobre acolhimento'}\n`
+        context += `Conteúdo: ${chunk.chunk_text}\n`
+        context += `Relevância: ${(chunk.similarity_score * 100).toFixed(1)}%\n`
       })
-      context += '\n\nUse essas informações para responder de forma precisa e cite as fontes quando relevante.'
+      context += '\n=== FIM DAS INFORMAÇÕES ===\n'
+      context += '\n\nUse essas informações para fornecer respostas precisas e fundamentadas. Sempre cite as fontes quando utilizar informações específicas da base de conhecimento.'
     }
 
-    // Simular resposta da OpenAI (em produção, usar API real)
+    // Gerar resposta com OpenAI
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
     let assistantResponse = ''
     let sources = []
 
     if (openaiApiKey) {
-      // Fazer chamada real para OpenAI
-      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openaiApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: agentConfig?.model || 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: context },
-            { role: 'user', content: message }
-          ],
-          temperature: agentConfig?.temperature || 0.7,
-          max_tokens: agentConfig?.max_tokens || 1000,
-        }),
-      })
-
-      if (!openaiResponse.ok) {
-        throw new Error('Erro na API da OpenAI')
-      }
-
-      const openaiData = await openaiResponse.json()
-      assistantResponse = openaiData.choices[0]?.message?.content || 'Erro ao gerar resposta'
+      console.log('[CHAT-RAG] Gerando resposta com OpenAI')
       
-      // Extrair fontes utilizadas
+      try {
+        const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: agentConfig?.model || 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: context },
+              { role: 'user', content: message }
+            ],
+            temperature: agentConfig?.temperature || 0.7,
+            max_tokens: agentConfig?.max_tokens || 1000,
+          }),
+        })
+
+        if (!openaiResponse.ok) {
+          const errorData = await openaiResponse.text()
+          throw new Error(`OpenAI API Error: ${errorData}`)
+        }
+
+        const openaiData = await openaiResponse.json()
+        assistantResponse = openaiData.choices[0]?.message?.content || 'Desculpe, não consegui gerar uma resposta adequada.'
+        
+      } catch (error) {
+        console.error('[CHAT-RAG] Erro na API OpenAI:', error)
+        assistantResponse = 'Desculpe, estou enfrentando dificuldades técnicas no momento. Tente novamente em alguns instantes.'
+      }
+      
+      // Preparar fontes utilizadas
       if (relevantChunks && relevantChunks.length > 0) {
         sources = relevantChunks.map(chunk => ({
-          documentName: chunk.documents?.name || 'Documento',
+          documentName: chunk.document_name || 'Documento',
           documentId: chunk.document_id,
-          chunkText: chunk.chunk_text.substring(0, 200) + '...'
+          chunkText: chunk.chunk_text.substring(0, 200) + '...',
+          summary: chunk.chunk_summary,
+          relevanceScore: Math.round(chunk.similarity_score * 100)
         }))
       }
     } else {
-      // Resposta simulada se não tiver API key
-      assistantResponse = `Entendo sua pergunta: "${message}". ` +
-        `Como assistente de acolhimento, estou aqui para oferecer suporte emocional. ` +
-        (relevantChunks && relevantChunks.length > 0 
-          ? `Encontrei ${relevantChunks.length} informações relevantes em nossa base de conhecimento que podem ajudar.`
-          : 'Embora não tenha encontrado informações específicas, posso oferecer suporte geral.')
+      console.log('[CHAT-RAG] Usando resposta simulada (sem OpenAI API Key)')
+      
+      assistantResponse = `Compreendo sua mensagem: "${message}". ` +
+        `Como assistente de acolhimento, estou aqui para oferecer suporte emocional personalizado. `
       
       if (relevantChunks && relevantChunks.length > 0) {
+        assistantResponse += `\n\nBaseado nas informações da nossa base de conhecimento, posso compartilhar algumas orientações relevantes:\n\n`
+        
+        relevantChunks.slice(0, 2).forEach((chunk, index) => {
+          assistantResponse += `${index + 1}. ${chunk.chunk_summary || 'Informação sobre acolhimento'}\n`
+        })
+        
         sources = relevantChunks.map(chunk => ({
-          documentName: chunk.documents?.name || 'Documento',
+          documentName: chunk.document_name || 'Documento',
           documentId: chunk.document_id,
-          chunkText: chunk.chunk_text.substring(0, 200) + '...'
+          chunkText: chunk.chunk_text.substring(0, 200) + '...',
+          summary: chunk.chunk_summary,
+          relevanceScore: Math.round(chunk.similarity_score * 100)
         }))
+      } else {
+        assistantResponse += `\n\nEmbora não tenha encontrado informações específicas em nossa base de conhecimento para sua consulta, posso oferecer suporte geral e orientações baseadas em boas práticas de acolhimento.`
       }
     }
 
@@ -172,11 +232,16 @@ serve(async (req) => {
         conversation_id: conversation.id,
         role: 'assistant',
         content: assistantResponse,
-        sources: sources
+        sources: sources,
+        metadata: {
+          chunks_used: relevantChunks?.length || 0,
+          model_used: agentConfig?.model || 'gpt-4o-mini',
+          has_api_key: !!openaiApiKey
+        }
       })
 
     if (assistantMsgError) {
-      console.error('Erro ao salvar resposta do assistente:', assistantMsgError)
+      console.error('[CHAT-RAG] Erro ao salvar resposta do assistente:', assistantMsgError)
     }
 
     // Atualizar contador de mensagens na conversa
@@ -189,15 +254,19 @@ serve(async (req) => {
       .eq('id', conversation.id)
 
     if (updateConvError) {
-      console.error('Erro ao atualizar conversa:', updateConvError)
+      console.error('[CHAT-RAG] Erro ao atualizar conversa:', updateConvError)
     }
+
+    console.log(`[CHAT-RAG] Chat concluído para conversa ${conversation.id}`)
 
     return new Response(
       JSON.stringify({ 
         success: true,
         conversationId: conversation.id,
         response: assistantResponse,
-        sources: sources
+        sources: sources,
+        chunks_found: relevantChunks?.length || 0,
+        lead_captured: !!(leadData && leadData.name && leadData.email)
       }),
       { 
         headers: { 
@@ -208,10 +277,11 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Erro no chat RAG:', error)
+    console.error('[CHAT-RAG] Erro no chat RAG:', error)
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'Erro interno do servidor' 
+        error: error.message || 'Erro interno do servidor',
+        details: 'Verifique os logs da função para mais detalhes'
       }),
       { 
         status: 500,

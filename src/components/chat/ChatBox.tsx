@@ -17,8 +17,12 @@ const ChatBox = ({ onClose, leadData }: ChatBoxProps) => {
   return (
     <RagChatBox 
       userId={user?.id}
+      leadData={leadData}
       onConversationCreated={(conversationId) => {
         console.log('Nova conversa criada:', conversationId);
+        if (leadData) {
+          console.log('Lead capturado:', leadData);
+        }
       }}
     />
   );

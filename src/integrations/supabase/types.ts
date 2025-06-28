@@ -164,6 +164,47 @@ export type Database = {
           },
         ]
       }
+      chat_leads: {
+        Row: {
+          captured_at: string | null
+          conversation_id: string | null
+          created_at: string | null
+          email: string
+          id: string
+          metadata: Json | null
+          name: string
+          phone: string | null
+        }
+        Insert: {
+          captured_at?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          metadata?: Json | null
+          name: string
+          phone?: string | null
+        }
+        Update: {
+          captured_at?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          metadata?: Json | null
+          name?: string
+          phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_leads_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_prompts: {
         Row: {
           active: boolean
@@ -426,6 +467,7 @@ export type Database = {
         Row: {
           id: string
           last_message_at: string | null
+          lead_id: string | null
           message_count: number | null
           metadata: Json | null
           started_at: string | null
@@ -436,6 +478,7 @@ export type Database = {
         Insert: {
           id?: string
           last_message_at?: string | null
+          lead_id?: string | null
           message_count?: number | null
           metadata?: Json | null
           started_at?: string | null
@@ -446,6 +489,7 @@ export type Database = {
         Update: {
           id?: string
           last_message_at?: string | null
+          lead_id?: string | null
           message_count?: number | null
           metadata?: Json | null
           started_at?: string | null
@@ -453,7 +497,15 @@ export type Database = {
           title?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "conversations_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "chat_leads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       documents: {
         Row: {
@@ -832,30 +884,39 @@ export type Database = {
       knowledge_base: {
         Row: {
           chunk_index: number
+          chunk_summary: string | null
           chunk_text: string
           created_at: string | null
           document_id: string | null
           embedding_data: string | null
           id: string
           metadata: Json | null
+          processed_at: string | null
+          word_count: number | null
         }
         Insert: {
           chunk_index: number
+          chunk_summary?: string | null
           chunk_text: string
           created_at?: string | null
           document_id?: string | null
           embedding_data?: string | null
           id?: string
           metadata?: Json | null
+          processed_at?: string | null
+          word_count?: number | null
         }
         Update: {
           chunk_index?: number
+          chunk_summary?: string | null
           chunk_text?: string
           created_at?: string | null
           document_id?: string | null
           embedding_data?: string | null
           id?: string
           metadata?: Json | null
+          processed_at?: string | null
+          word_count?: number | null
         }
         Relationships: [
           {
@@ -1261,6 +1322,17 @@ export type Database = {
       is_admin: {
         Args: { user_uuid: string }
         Returns: boolean
+      }
+      search_knowledge_base: {
+        Args: { search_query: string; limit_results?: number }
+        Returns: {
+          id: string
+          document_id: string
+          chunk_text: string
+          chunk_index: number
+          document_name: string
+          similarity_score: number
+        }[]
       }
       user_has_liked_post: {
         Args: { user_uuid: string; post_uuid: string }

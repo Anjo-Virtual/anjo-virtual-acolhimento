@@ -10,12 +10,18 @@ import { useChatMessages } from "@/hooks/useChatMessages";
 interface RagChatBoxProps {
   userId?: string;
   conversationId?: string;
+  leadData?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+  } | null;
   onConversationCreated?: (conversationId: string) => void;
 }
 
 export const RagChatBox = ({ 
   userId, 
-  conversationId, 
+  conversationId,
+  leadData,
   onConversationCreated 
 }: RagChatBoxProps) => {
   const [input, setInput] = useState("");
@@ -32,7 +38,7 @@ export const RagChatBox = ({
     if (!input.trim()) return;
     const userMessage = input.trim();
     setInput("");
-    await sendMessage(userMessage, onConversationCreated);
+    await sendMessage(userMessage, onConversationCreated, leadData);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

@@ -86,8 +86,14 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
       const webhookSuccess = await sendLeadToN8n(leadData, n8nConfig);
       
       if (webhookSuccess) {
-        setLeadData(data); // Armazenar dados do lead para usar no chat
+        // Armazenar dados do lead para usar no chat (incluindo para captura interna)
+        setLeadData(data);
         setChatStarted(true);
+        
+        toast({
+          title: "Chat iniciado",
+          description: "Seus dados foram registrados e o chat foi iniciado com sucesso!",
+        });
       }
     } catch (error) {
       console.error("Erro ao processar formulário:", error);

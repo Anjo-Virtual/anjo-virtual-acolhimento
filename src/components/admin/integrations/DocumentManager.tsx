@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Upload, Trash2, Eye, CheckCircle, Clock } from "lucide-react";
+import { FileText, Upload, Trash2, CheckCircle, Clock, RefreshCw } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -106,8 +106,8 @@ export const DocumentManager = () => {
           description: `${file.name} foi enviado com sucesso`,
         });
 
-        // Processar documento automaticamente
-        await processDocument(docData.id);
+        // Processar documento automaticamente com a função aprimorada
+        await processDocumentEnhanced(docData.id);
       }
       
       // Recarregar lista de documentos
@@ -127,11 +127,13 @@ export const DocumentManager = () => {
     }
   };
 
-  const processDocument = async (documentId: string) => {
+  const processDocumentEnhanced = async (documentId: string) => {
     setIsProcessing(documentId);
     
     try {
-      const { data, error } = await supabase.functions.invoke('process-document', {
+      console.log('Iniciando processamento aprimorado do documento:', documentId);
+      
+      const { data, error } = await supabase.functions.invoke('process-document-enhanced', {
         body: { documentId }
       });
 
@@ -139,9 +141,11 @@ export const DocumentManager = () => {
         throw error;
       }
 
+      console.log('Resultado do processamento:', data);
+
       toast({
         title: "Documento processado",
-        description: `Documento dividido em ${data.chunks} chunks`,
+        description: `Documento processado com sucesso! ${data.chunks} chunks criados com extração real de texto.`,
       });
 
       // Recarregar documentos
@@ -151,7 +155,7 @@ export const DocumentManager = () => {
       console.error('Erro ao processar documento:', error);
       toast({
         title: "Erro no processamento",
-        description: "Erro ao processar documento",
+        description: "Erro ao processar documento. Verifique os logs para mais detalhes.",
         variant: "destructive",
       });
     } finally {
@@ -211,7 +215,7 @@ export const DocumentManager = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="w-5 h-5" />
-          Gerenciamento de Documentos
+          Gerenciamento de Documentos - Base de Conhecimento
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -236,10 +240,10 @@ export const DocumentManager = () => {
               <Upload className="w-8 h-8 text-gray-500" />
               <div>
                 <p className="text-sm font-medium">
-                  {isUploading ? 'Fazendo upload...' : 'Clique para fazer upload'}
+                  {isUploading ? 'Fazendo upload e processando...' : 'Clique para fazer upload'}
                 </p>
                 <p className="text-xs text-gray-500">
-                  Apenas arquivos PDF são suportados
+                  Apenas arquivos PDF são suportados - Processamento aprimorado com extração real de texto
                 </p>
               </div>
             </label>
@@ -265,7 +269,7 @@ export const DocumentManager = () => {
                         {doc.processed ? (
                           <span className="text-green-600 inline-flex items-center gap-1 ml-1">
                             <CheckCircle className="w-3 h-3" />
-                            {doc.chunk_count} chunks
+                            {doc.chunk_count} chunks processados
                           </span>
                         ) : (
                           <span className="text-yellow-600 inline-flex items-center gap-1 ml-1">
@@ -278,16 +282,15 @@ export const DocumentManager = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {!doc.processed && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => processDocument(doc.id)}
-                        disabled={isProcessing === doc.id}
-                      >
-                        {isProcessing === doc.id ? 'Processando...' : 'Processar'}
-                      </Button>
-                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => processDocumentEnhanced(doc.id)}
+                      disabled={isProcessing === doc.id}
+                    >
+                      <RefreshCw className={`w-4 h-4 mr-1 ${isProcessing === doc.id ? 'animate-spin' : ''}`} />
+                      {isProcessing === doc.id ? 'Processando...' : 'Reprocessar'}
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"

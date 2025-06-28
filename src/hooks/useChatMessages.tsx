@@ -11,6 +11,8 @@ interface Message {
     documentName: string;
     documentId: string;
     chunkText: string;
+    summary?: string;
+    relevanceScore?: number;
   }>;
   created_at: string;
 }
@@ -44,6 +46,8 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
           documentName: string;
           documentId: string;
           chunkText: string;
+          summary?: string;
+          relevanceScore?: number;
         }> : undefined,
         created_at: msg.created_at
       }));
@@ -54,7 +58,15 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
     }
   };
 
-  const sendMessage = async (userMessage: string, onConversationCreated?: (conversationId: string) => void) => {
+  const sendMessage = async (
+    userMessage: string, 
+    onConversationCreated?: (conversationId: string) => void,
+    leadData?: {
+      name?: string;
+      email?: string;
+      phone?: string;
+    } | null
+  ) => {
     if (!userMessage.trim() || isLoading) return;
     if (!userId) {
       toast({
@@ -77,11 +89,19 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
     setMessages(prev => [...prev, tempUserMessage]);
 
     try {
+      console.log('Enviando mensagem para chat-rag:', {
+        message: userMessage,
+        conversationId: currentConversationId,
+        userId: userId,
+        hasLeadData: !!leadData
+      });
+
       const { data, error } = await supabase.functions.invoke('chat-rag', {
         body: {
           message: userMessage,
           conversationId: currentConversationId,
-          userId: userId
+          userId: userId,
+          leadData: leadData // Passar dados do lead para a função
         }
       });
 
@@ -89,10 +109,20 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
         throw error;
       }
 
+      console.log('Resposta do chat-rag:', data);
+
       // Se criou nova conversa, atualizar ID
       if (data.conversationId && data.conversationId !== currentConversationId) {
         setCurrentConversationId(data.conversationId);
         onConversationCreated?.(data.conversationId);
+      }
+
+      // Mostrar feedback sobre captura de lead
+      if (data.lead_captured) {
+        toast({
+          title: "Lead capturado",
+          description: "Seus dados foram registrados com sucesso!",
+        });
       }
 
       // Recarregar mensagens para pegar as versões salvas no banco
