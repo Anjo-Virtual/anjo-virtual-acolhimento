@@ -42,11 +42,7 @@ export const useChatHistory = () => {
     try {
       let query = supabase
         .from('conversations')
-        .select(`
-          *,
-          profiles:auth.users!conversations_user_id_fkey(email),
-          messages!inner(content)
-        `, { count: 'exact' });
+        .select('*', { count: 'exact' });
 
       // Se não é admin, filtrar apenas conversas do usuário
       if (!canViewAllConversations && userId) {
@@ -78,7 +74,7 @@ export const useChatHistory = () => {
 
       // Ordenação e paginação
       const offset = (currentPage - 1) * pageSize;
-      const { data, error, count } = await query
+      const { data: conversationsData, error, count } = await query
         .order('last_message_at', { ascending: false })
         .range(offset, offset + pageSize - 1);
 
@@ -92,14 +88,36 @@ export const useChatHistory = () => {
         return;
       }
 
-      // Processar dados para incluir informações adicionais
-      const processedConversations: ConversationWithDetails[] = (data || []).map(conv => ({
-        ...conv,
-        user_email: conv.profiles?.email || 'Email não disponível',
-        last_message_preview: conv.messages?.[0]?.content?.substring(0, 100) || 'Sem mensagens'
-      }));
+      // Buscar informações adicionais para cada conversa
+      const conversationsWithDetails: ConversationWithDetails[] = [];
+      
+      if (conversationsData && conversationsData.length > 0) {
+        for (const conv of conversationsData) {
+          // Buscar último preview da mensagem
+          const { data: lastMessage } = await supabase
+            .from('messages')
+            .select('content')
+            .eq('conversation_id', conv.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
 
-      setConversations(processedConversations);
+          // Para admin, buscar email do usuário se necessário
+          let userEmail = 'Email não disponível';
+          if (canViewAllConversations && conv.user_id) {
+            const { data: userData } = await supabase.auth.admin.getUserById(conv.user_id);
+            userEmail = userData.user?.email || 'Email não disponível';
+          }
+
+          conversationsWithDetails.push({
+            ...conv,
+            user_email: canViewAllConversations ? userEmail : undefined,
+            last_message_preview: lastMessage?.content?.substring(0, 100) || 'Sem mensagens'
+          });
+        }
+      }
+
+      setConversations(conversationsWithDetails);
       setTotalCount(count || 0);
     } catch (error) {
       console.error('Erro ao carregar conversas:', error);
