@@ -33,12 +33,6 @@ export const useCommunityProfile = () => {
     console.log('[useCommunityProfile] Iniciando busca/criação do perfil para usuário:', user.id);
     
     try {
-      // Primeiro, tentar usar a função de debug para verificar o perfil
-      const { data: debugData, error: debugError } = await supabase
-        .rpc('debug_user_profile', { user_uuid: user.id });
-
-      console.log('[useCommunityProfile] Debug do perfil:', { debugData, debugError });
-
       // Tentar buscar perfil existente
       let { data: existingProfile, error: fetchError } = await supabase
         .from('community_profiles')
@@ -86,11 +80,12 @@ export const useCommunityProfile = () => {
       }
     } catch (error) {
       console.error('[useCommunityProfile] Erro geral:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar seu perfil da comunidade.",
-        variant: "destructive",
-      });
+      // Não mostrar toast de erro para não atrapalhar a UX
+      // toast({
+      //   title: "Erro",
+      //   description: "Não foi possível carregar seu perfil da comunidade.",
+      //   variant: "destructive",
+      // });
     } finally {
       setLoading(false);
     }

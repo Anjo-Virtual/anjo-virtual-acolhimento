@@ -8,14 +8,9 @@ import { MessageCircle, History } from "lucide-react";
 
 interface ChatBoxProps {
   onClose?: () => void;
-  leadData?: {
-    name?: string;
-    email?: string;
-    phone?: string;
-  } | null;
 }
 
-const ChatBox = ({ onClose, leadData }: ChatBoxProps) => {
+const ChatBox = ({ onClose }: ChatBoxProps) => {
   const { user } = useCommunityAuth();
   const [activeView, setActiveView] = useState<'chat' | 'history'>('chat');
   const [selectedConversationId, setSelectedConversationId] = useState<string | undefined>();
@@ -33,12 +28,8 @@ const ChatBox = ({ onClose, leadData }: ChatBoxProps) => {
   if (!user) {
     return (
       <RagChatBox 
-        leadData={leadData}
         onConversationCreated={(conversationId) => {
           console.log('Nova conversa criada:', conversationId);
-          if (leadData) {
-            console.log('Lead capturado:', leadData);
-          }
         }}
       />
     );
@@ -87,13 +78,9 @@ const ChatBox = ({ onClose, leadData }: ChatBoxProps) => {
             <RagChatBox 
               userId={user.id}
               conversationId={selectedConversationId}
-              leadData={leadData}
               onConversationCreated={(conversationId) => {
                 console.log('Nova conversa criada:', conversationId);
                 setSelectedConversationId(conversationId);
-                if (leadData) {
-                  console.log('Lead capturado:', leadData);
-                }
               }}
             />
           </div>

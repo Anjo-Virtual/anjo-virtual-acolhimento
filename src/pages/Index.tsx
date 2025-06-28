@@ -1,3 +1,4 @@
+
 import About from "@/components/About";
 import Business from "@/components/Business";
 import Community from "@/components/Community";
@@ -10,7 +11,6 @@ import Plans from "@/components/Plans";
 import Testimonials from "@/components/Testimonials";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import ContactModal from "@/components/modals/ContactModal";
 import ChatModal from "@/components/modals/ChatModal";
 
 const Index = () => {
@@ -68,11 +68,6 @@ const Index = () => {
       <Business />
       <Footer />
       <FloatingButtons />
-      
-      <ContactModal
-        isOpen={showChatModal}
-        onClose={() => setShowChatModal(false)}
-      />
       
       <ChatModal
         isOpen={showChatModal}
