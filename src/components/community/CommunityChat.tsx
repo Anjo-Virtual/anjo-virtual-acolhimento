@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MessageCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,12 +7,25 @@ import ChatBox from "../chat/ChatBox";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { useOriginRedirect } from "@/hooks/useOriginRedirect";
 import { useNavigate } from "react-router-dom";
+import { useChatInstance } from "@/hooks/useChatInstance";
+
+const CHAT_INSTANCE_ID = "community-chat";
 
 const CommunityChat = () => {
   const { user } = useCommunityAuth();
   const { setOrigin } = useOriginRedirect();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const { openChat, closeChat, isActiveInstance } = useChatInstance();
+
+  useEffect(() => {
+    // Verificar se esta instância deve estar ativa
+    if (isActiveInstance(CHAT_INSTANCE_ID) && !isOpen) {
+      setIsOpen(true);
+    } else if (!isActiveInstance(CHAT_INSTANCE_ID) && isOpen) {
+      setIsOpen(false);
+    }
+  }, [isActiveInstance(CHAT_INSTANCE_ID)]);
 
   const handleToggleChat = () => {
     if (!user) {
@@ -20,8 +33,20 @@ const CommunityChat = () => {
       navigate('/comunidade/login');
       return;
     }
-    setIsOpen(!isOpen);
+
+    if (!isOpen) {
+      openChat(CHAT_INSTANCE_ID);
+      setIsOpen(true);
+    } else {
+      closeChat();
+      setIsOpen(false);
+    }
   };
+
+  // Se outra instância de chat estiver ativa, não mostrar este
+  if (isActiveInstance('modal-chat')) {
+    return null;
+  }
 
   if (!isOpen) {
     return (

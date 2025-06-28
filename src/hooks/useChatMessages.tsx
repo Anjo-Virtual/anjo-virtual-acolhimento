@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
@@ -23,14 +23,13 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
   const [currentConversationId, setCurrentConversationId] = useState(conversationId);
   const [isInputReady, setIsInputReady] = useState(false);
   const [sessionId] = useState(() => {
-    // Gerar sessionId único para usuários anônimos
     if (!userId) {
       return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
     return null;
   });
 
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     if (!currentConversationId) {
       setIsInputReady(true);
       return;
@@ -55,7 +54,6 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
         return;
       }
 
-      // Type-safe conversion from database format to component format
       const typedMessages: Message[] = (data || []).map(msg => ({
         id: msg.id,
         role: msg.role as 'user' | 'assistant',
@@ -82,9 +80,9 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
     } finally {
       setIsInputReady(true);
     }
-  };
+  }, [currentConversationId]);
 
-  const sendMessage = async (
+  const sendMessage = useCallback(async (
     userMessage: string, 
     onConversationCreated?: (conversationId: string) => void,
     leadData?: {
@@ -99,7 +97,6 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
     setIsLoading(true);
     setIsInputReady(false);
 
-    // Adicionar mensagem do usuário imediatamente na UI
     const tempUserMessage: Message = {
       id: `temp-${Date.now()}`,
       role: 'user',
@@ -122,7 +119,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
           message: userMessage,
           conversationId: currentConversationId,
           userId: userId,
-          sessionId: sessionId, // Para usuários anônimos
+          sessionId: sessionId,
           leadData: leadData
         }
       });
@@ -133,14 +130,12 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
 
       console.log('Resposta do chat-rag:', data);
 
-      // Se criou nova conversa, atualizar ID
       if (data.conversationId && data.conversationId !== currentConversationId) {
         console.log('Nova conversa criada:', data.conversationId);
         setCurrentConversationId(data.conversationId);
         onConversationCreated?.(data.conversationId);
       }
 
-      // Mostrar feedback sobre recursos utilizados
       if (data.has_history) {
         console.log('IA utilizou histórico da conversa para resposta contextualizada');
       }
@@ -149,10 +144,8 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
         console.log('Lead capturado com sucesso');
       }
 
-      // Remover mensagem temporária e recarregar todas as mensagens
       setMessages(prev => prev.filter(m => m.id !== tempUserMessage.id));
       
-      // Aguardar um momento e recarregar mensagens para garantir consistência
       setTimeout(() => {
         loadMessages();
       }, 500);
@@ -160,10 +153,8 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
     } catch (error) {
       console.error('Erro no chat:', error);
       
-      // Remover mensagem temporária em caso de erro
       setMessages(prev => prev.filter(m => m.id !== tempUserMessage.id));
       
-      // Adicionar mensagem de erro
       const errorMessage: Message = {
         id: `error-${Date.now()}`,
         role: 'assistant',
@@ -181,7 +172,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
       setIsLoading(false);
       setIsInputReady(true);
     }
-  };
+  }, [currentConversationId, userId, sessionId, isLoading, loadMessages]);
 
   useEffect(() => {
     if (currentConversationId) {
@@ -189,7 +180,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
     } else {
       setIsInputReady(true);
     }
-  }, [currentConversationId]);
+  }, [currentConversationId, loadMessages]);
 
   return {
     messages,

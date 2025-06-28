@@ -18,6 +18,7 @@ import {
   Share2,
   Settings,
   PenTool,
+  MessageCircle,
 } from "lucide-react";
 
 export const AdminSidebar = () => {
@@ -29,6 +30,11 @@ export const AdminSidebar = () => {
       path: "/admin",
       icon: LayoutDashboard,
       exact: true
+    },
+    {
+      title: "Chat Dashboard",
+      path: "/admin/chat-dashboard",
+      icon: MessageCircle
     },
     {
       title: "Contatos",

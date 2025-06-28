@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -17,13 +17,16 @@ export const useCommunityProfile = () => {
   const [profile, setProfile] = useState<CommunityProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const fetchAttempted = useRef(false);
 
   useEffect(() => {
-    if (user) {
+    if (user && !fetchAttempted.current) {
+      fetchAttempted.current = true;
       fetchOrCreateProfile();
-    } else {
+    } else if (!user) {
       setProfile(null);
       setLoading(false);
+      fetchAttempted.current = false;
     }
   }, [user]);
 
@@ -40,8 +43,6 @@ export const useCommunityProfile = () => {
         .eq('user_id', user.id)
         .single();
 
-      console.log('[useCommunityProfile] Perfil existente:', { existingProfile, fetchError });
-
       if (fetchError && fetchError.code !== 'PGRST116') {
         console.error('[useCommunityProfile] Erro ao buscar perfil:', fetchError);
         throw fetchError;
@@ -49,7 +50,6 @@ export const useCommunityProfile = () => {
 
       if (!existingProfile) {
         console.log('[useCommunityProfile] Criando novo perfil...');
-        // Criar perfil se não existir
         const newProfileData = {
           user_id: user.id,
           display_name: user.email?.split('@')[0] || 'Membro Anônimo',
@@ -57,15 +57,11 @@ export const useCommunityProfile = () => {
           is_anonymous: true
         };
 
-        console.log('[useCommunityProfile] Dados do novo perfil:', newProfileData);
-
         const { data: newProfile, error: createError } = await supabase
           .from('community_profiles')
           .insert(newProfileData)
           .select()
           .single();
-
-        console.log('[useCommunityProfile] Resultado da criação:', { newProfile, createError });
 
         if (createError) {
           console.error('[useCommunityProfile] Erro ao criar perfil:', createError);
@@ -80,12 +76,7 @@ export const useCommunityProfile = () => {
       }
     } catch (error) {
       console.error('[useCommunityProfile] Erro geral:', error);
-      // Não mostrar toast de erro para não atrapalhar a UX
-      // toast({
-      //   title: "Erro",
-      //   description: "Não foi possível carregar seu perfil da comunidade.",
-      //   variant: "destructive",
-      // });
+      // Não bloquear a interface com erros de perfil
     } finally {
       setLoading(false);
     }

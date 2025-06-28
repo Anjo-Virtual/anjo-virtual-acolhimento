@@ -5,38 +5,46 @@ import { useNavigate } from "react-router-dom";
 import ChatBox from "../chat/ChatBox";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { useOriginRedirect } from "@/hooks/useOriginRedirect";
+import { useChatInstance } from "@/hooks/useChatInstance";
 
 interface ChatModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+const MODAL_CHAT_INSTANCE_ID = "modal-chat";
+
 const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
   const { user } = useCommunityAuth();
   const navigate = useNavigate();
   const { setOrigin } = useOriginRedirect();
   const [chatStarted, setChatStarted] = useState(false);
+  const { openChat, closeChat } = useChatInstance();
   
   useEffect(() => {
     if (isOpen && user) {
-      // Se usuário estiver logado, inicia chat diretamente
       setChatStarted(true);
+      openChat(MODAL_CHAT_INSTANCE_ID);
     } else if (isOpen && !user) {
-      // Se não estiver logado, reset do estado
       setChatStarted(false);
     }
   }, [isOpen, user]);
 
+  const handleClose = () => {
+    closeChat();
+    onClose();
+  };
+
   const handleSignUpRedirect = () => {
     setOrigin('chat');
-    onClose();
+    handleClose();
     navigate('/comunidade/login');
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className={`modal ${isOpen ? "active" : ""}`} onClick={onClose}>
+    <div className={`modal ${isOpen ? "active" : ""}`} onClick={handleClose}>
       <div 
         className={`bg-white rounded-lg shadow-soft animate-scaleIn mx-4 my-4 sm:mx-auto sm:my-8 relative
           ${chatStarted 
@@ -46,7 +54,7 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
         onClick={(e) => e.stopPropagation()}
       >
         <button 
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 transition-colors z-10"
         >
           <i className="ri-close-line ri-lg"></i>
@@ -72,7 +80,7 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
           </div>
         ) : (
           <div className="h-full p-4">
-            <ChatBox onClose={onClose} />
+            <ChatBox onClose={handleClose} />
           </div>
         )}
       </div>
