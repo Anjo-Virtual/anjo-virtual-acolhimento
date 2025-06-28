@@ -5,12 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ChatBox from "../chat/ChatBox";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
+import { useOriginRedirect } from "@/hooks/useOriginRedirect";
+import { useNavigate } from "react-router-dom";
 
 const CommunityChat = () => {
   const { user } = useCommunityAuth();
+  const { setOrigin } = useOriginRedirect();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleToggleChat = () => {
+    if (!user) {
+      setOrigin('community');
+      navigate('/comunidade/login');
+      return;
+    }
     setIsOpen(!isOpen);
   };
 

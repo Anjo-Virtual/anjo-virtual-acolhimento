@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useOriginRedirect } from "@/hooks/useOriginRedirect";
 
 type CommunityAuthContextType = {
   session: Session | null;
@@ -26,6 +27,7 @@ export const CommunityAuthProvider = ({ children }: { children: React.ReactNode 
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { redirectAfterLogin } = useOriginRedirect();
 
   useEffect(() => {
     let mounted = true;
@@ -61,6 +63,13 @@ export const CommunityAuthProvider = ({ children }: { children: React.ReactNode 
           setSession(session);
           setUser(session?.user ?? null);
           setLoading(false);
+          
+          // Executar redirecionamento após login bem-sucedido
+          if (event === 'SIGNED_IN' && session?.user) {
+            setTimeout(() => {
+              redirectAfterLogin();
+            }, 100);
+          }
         }
       }
     );
@@ -71,7 +80,7 @@ export const CommunityAuthProvider = ({ children }: { children: React.ReactNode 
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [redirectAfterLogin]);
 
   const signIn = async (email: string, password: string) => {
     try {

@@ -1,6 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { Users } from "lucide-react";
+import { useHeaderNavigation } from "@/hooks/useHeaderNavigation";
 
 interface NavigationLinksProps {
   onCommunityScroll: () => void;
@@ -8,14 +9,22 @@ interface NavigationLinksProps {
 }
 
 export const NavigationLinks = ({ onCommunityScroll, onEmpresasClick }: NavigationLinksProps) => {
+  const { handleComoFuncionaClick, handlePlanosClick } = useHeaderNavigation();
+
   return (
     <div className="hidden md:flex space-x-6">
-      <a href="#como-funciona" className="text-gray-700 hover:text-primary transition-colors">
+      <button 
+        onClick={handleComoFuncionaClick}
+        className="text-gray-700 hover:text-primary transition-colors"
+      >
         Como Funciona
-      </a>
-      <a href="#planos" className="text-gray-700 hover:text-primary transition-colors">
+      </button>
+      <button 
+        onClick={handlePlanosClick}
+        className="text-gray-700 hover:text-primary transition-colors"
+      >
         Planos
-      </a>
+      </button>
       <button 
         onClick={onCommunityScroll}
         className="text-gray-700 hover:text-primary transition-colors flex items-center gap-2"
@@ -29,9 +38,6 @@ export const NavigationLinks = ({ onCommunityScroll, onEmpresasClick }: Navigati
       >
         Para Empresas
       </button>
-      <Link to="/blog" className="text-gray-700 hover:text-primary transition-colors">
-        Blog
-      </Link>
     </div>
   );
 };

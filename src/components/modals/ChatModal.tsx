@@ -1,119 +1,36 @@
 
 import { useState, useEffect } from "react";
-import { toast } from "@/components/ui/use-toast";
-import * as z from "zod";
-import { chatFormSchema } from "@/lib/validations/form-schemas";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import ChatBox from "../chat/ChatBox";
-import { supabase } from "@/integrations/supabase/client";
-import { ChatForm } from "../chat/ChatForm";
-import { 
-  N8nWebhookConfig, 
-  LeadData,
-  sendLeadToN8n 
-} from "@/utils/webhookUtils";
-import { fetchPerplexityKey } from "@/utils/perplexityUtils";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
+import { useOriginRedirect } from "@/hooks/useOriginRedirect";
 
 interface ChatModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type FormData = z.infer<typeof chatFormSchema>;
-
 const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
   const { user } = useCommunityAuth();
+  const navigate = useNavigate();
+  const { setOrigin } = useOriginRedirect();
   const [chatStarted, setChatStarted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [n8nConfig, setN8nConfig] = useState<N8nWebhookConfig | null>(null);
-  const [leadData, setLeadData] = useState<FormData | null>(null);
   
   useEffect(() => {
-    if (isOpen) {
-      fetchN8nWebhookConfig();
-      fetchPerplexityKey();
-      
+    if (isOpen && user) {
       // Se usuário estiver logado, inicia chat diretamente
-      if (user) {
-        // Criar lead data a partir dos dados do usuário
-        const userLeadData: FormData = {
-          name: user.email?.split('@')[0] || 'Usuário',
-          email: user.email || '',
-          phone: ''
-        };
-        setLeadData(userLeadData);
-        setChatStarted(true);
-      }
+      setChatStarted(true);
+    } else if (isOpen && !user) {
+      // Se não estiver logado, reset do estado
+      setChatStarted(false);
     }
   }, [isOpen, user]);
 
-  const fetchN8nWebhookConfig = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('site_settings')
-        .select()
-        .eq('key', 'n8n_webhook_config')
-        .single();
-
-      if (error) {
-        console.error("Erro ao buscar configuração do webhook:", error);
-        return;
-      }
-      
-      if (data && data.value) {
-        const configData = data.value as unknown as N8nWebhookConfig;
-        setN8nConfig(configData);
-      }
-    } catch (error) {
-      console.error("Erro ao buscar configuração do webhook:", error);
-    }
-  };
-
-  const onSubmit = async (data: FormData) => {
-    const perplexityKey = localStorage.getItem('perplexityKey');
-    if (!perplexityKey) {
-      const apiKey = await fetchPerplexityKey();
-      if (!apiKey) {
-        toast({
-          title: "Erro",
-          description: "O serviço de chat não está configurado corretamente. Por favor, tente novamente mais tarde.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
-    setIsSubmitting(true);
-    
-    try {
-      const leadData: LeadData = {
-        name: data.name || "",
-        email: data.email || "",
-        phone: data.phone || ""
-      };
-      
-      // Enviar dados para o webhook do n8n
-      const webhookSuccess = await sendLeadToN8n(leadData, n8nConfig);
-      
-      if (webhookSuccess) {
-        setLeadData(data);
-        setChatStarted(true);
-        
-        toast({
-          title: "Chat iniciado",
-          description: "Seus dados foram registrados e o chat foi iniciado com sucesso!",
-        });
-      }
-    } catch (error) {
-      console.error("Erro ao processar formulário:", error);
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao iniciar o chat. Por favor, tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleSignUpRedirect = () => {
+    setOrigin('chat');
+    onClose();
+    navigate('/comunidade/login');
   };
 
   if (!isOpen) return null;
@@ -138,14 +55,24 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
         {!chatStarted ? (
           <div className="p-8">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-2">Iniciar Conversa</h2>
-              <p className="text-gray-600">Preencha seus dados para começar a conversar com nosso assistente</p>
+              <h2 className="text-2xl font-bold mb-2">Conversar com Anjo Virtual</h2>
+              <p className="text-gray-600 mb-6">
+                Para conversar com nosso assistente virtual, você precisa ter uma conta.
+              </p>
+              <Button 
+                onClick={handleSignUpRedirect}
+                className="w-full bg-primary hover:bg-primary/90 text-white"
+              >
+                Cadastre-se para Conversar
+              </Button>
+              <p className="text-sm text-gray-500 mt-4">
+                Já tem uma conta? O login também está na próxima página.
+              </p>
             </div>
-            <ChatForm onSubmit={onSubmit} isSubmitting={isSubmitting} />
           </div>
         ) : (
           <div className="h-full p-4">
-            <ChatBox onClose={onClose} leadData={leadData} />
+            <ChatBox onClose={onClose} />
           </div>
         )}
       </div>

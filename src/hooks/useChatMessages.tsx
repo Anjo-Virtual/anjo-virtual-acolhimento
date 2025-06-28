@@ -21,6 +21,13 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState(conversationId);
+  const [sessionId] = useState(() => {
+    // Gerar sessionId único para usuários anônimos
+    if (!userId) {
+      return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+    return null;
+  });
 
   const loadMessages = async () => {
     if (!currentConversationId) return;
@@ -68,14 +75,6 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
     } | null
   ) => {
     if (!userMessage.trim() || isLoading) return;
-    if (!userId) {
-      toast({
-        title: "Erro",
-        description: "Você precisa estar logado para usar o chat",
-        variant: "destructive",
-      });
-      return;
-    }
 
     setIsLoading(true);
 
@@ -93,6 +92,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
         message: userMessage,
         conversationId: currentConversationId,
         userId: userId,
+        sessionId: sessionId,
         hasLeadData: !!leadData
       });
 
@@ -101,7 +101,8 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
           message: userMessage,
           conversationId: currentConversationId,
           userId: userId,
-          leadData: leadData // Passar dados do lead para a função
+          sessionId: sessionId, // Para usuários anônimos
+          leadData: leadData
         }
       });
 

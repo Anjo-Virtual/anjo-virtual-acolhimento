@@ -1,3 +1,4 @@
+
 import About from "@/components/About";
 import Business from "@/components/Business";
 import Community from "@/components/Community";
@@ -8,9 +9,23 @@ import Hero from "@/components/Hero";
 import HowItWorks from "@/components/HowItWorks";
 import Plans from "@/components/Plans";
 import Testimonials from "@/components/Testimonials";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import ContactModal from "@/components/modals/ContactModal";
 
 const Index = () => {
+  const location = useLocation();
+  const [showChatModal, setShowChatModal] = useState(false);
+
+  useEffect(() => {
+    // Verificar se deve abrir o chat após redirecionamento
+    if (location.state?.openChat) {
+      setShowChatModal(true);
+      // Limpar o state para evitar reabrir em navegações futuras
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
   useEffect(() => {
     // Implementando efeito de rolagem suave para links de ancoragem
     const handleSmoothScroll = (e: MouseEvent) => {
@@ -53,6 +68,11 @@ const Index = () => {
       <Business />
       <Footer />
       <FloatingButtons />
+      
+      <ContactModal
+        isOpen={showChatModal}
+        onClose={() => setShowChatModal(false)}
+      />
     </div>
   );
 };

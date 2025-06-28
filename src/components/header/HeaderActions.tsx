@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MessageCircle, UserCircle } from "lucide-react";
 import { User } from "@supabase/supabase-js";
 import { useBlogNavigation } from "@/hooks/useBlogNavigation";
+import { useOriginRedirect } from "@/hooks/useOriginRedirect";
 
 interface HeaderActionsProps {
   user: User | null;
@@ -12,9 +13,13 @@ interface HeaderActionsProps {
 
 export const HeaderActions = ({ user, openChatModal }: HeaderActionsProps) => {
   const { navigateToBlog } = useBlogNavigation();
+  const { setOrigin } = useOriginRedirect();
 
   const handleContactClick = () => {
     console.log("Botão Fale Conosco clicado");
+    if (!user) {
+      setOrigin('chat');
+    }
     openChatModal();
   };
 

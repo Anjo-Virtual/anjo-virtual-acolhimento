@@ -1,40 +1,50 @@
 
+import { useNavigate, useLocation } from "react-router-dom";
+
 export const useHeaderNavigation = () => {
-  const handleCommunityScroll = () => {
-    // Scroll to the community section on home page
-    const communitySection = document.getElementById('comunidade');
-    if (communitySection) {
-      const headerOffset = 80;
-      const elementPosition = communitySection.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const scrollToSection = (sectionId: string) => {
+    // Se estiver na home, fazer scroll direto
+    if (location.pathname === '/') {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        const headerOffset = 80;
+        const elementPosition = section.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
     } else {
-      // If not on home page, navigate to home and then scroll
-      window.location.href = '/#comunidade';
+      // Se não estiver na home, navegar para home e depois fazer scroll
+      navigate('/', { state: { scrollTo: sectionId } });
     }
+  };
+
+  const handleCommunityScroll = () => {
+    scrollToSection('comunidade');
   };
 
   const handleEmpresasClick = () => {
-    // Scroll to the business section
-    const businessSection = document.getElementById('empresas');
-    if (businessSection) {
-      const headerOffset = 80;
-      const elementPosition = businessSection.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    } else {
-      // If not on home page, navigate to home and then scroll
-      window.location.href = '/#empresas';
-    }
+    scrollToSection('empresas');
   };
 
-  return { handleCommunityScroll, handleEmpresasClick };
+  const handleComoFuncionaClick = () => {
+    scrollToSection('como-funciona');
+  };
+
+  const handlePlanosClick = () => {
+    scrollToSection('planos');
+  };
+
+  return { 
+    handleCommunityScroll, 
+    handleEmpresasClick,
+    handleComoFuncionaClick,
+    handlePlanosClick
+  };
 };
