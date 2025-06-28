@@ -53,7 +53,7 @@ export const AdminChatHistory = ({ onSelectConversation }: AdminChatHistoryProps
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>
-              {isAdminUser ? 'Todas as Conversas' : 'Suas Conversas'} 
+              {!!isAdminUser ? 'Todas as Conversas' : 'Suas Conversas'} 
               ({totalCount})
             </span>
           </CardTitle>
@@ -64,7 +64,7 @@ export const AdminChatHistory = ({ onSelectConversation }: AdminChatHistoryProps
             onSearch={searchConversations}
             onFilterChange={updateFilters}
             onClearFilters={clearFilters}
-            isAdmin={isAdminUser}
+            isAdmin={!!isAdminUser}
             loading={loading}
           />
 
@@ -73,7 +73,7 @@ export const AdminChatHistory = ({ onSelectConversation }: AdminChatHistoryProps
             {conversations.length === 0 ? (
               <div className="text-center p-8 text-gray-500">
                 <p>Nenhuma conversa encontrada.</p>
-                {isAdminUser ? (
+                {!!isAdminUser ? (
                   <p className="text-sm mt-2">Aguarde usuários iniciarem conversas no chat.</p>
                 ) : (
                   <p className="text-sm mt-2">Inicie uma nova conversa para começar!</p>
@@ -85,7 +85,7 @@ export const AdminChatHistory = ({ onSelectConversation }: AdminChatHistoryProps
                   key={conversation.id}
                   conversation={conversation}
                   onSelect={onSelectConversation}
-                  isAdmin={isAdminUser}
+                  isAdmin={!!isAdminUser}
                   loading={loading}
                 />
               ))
