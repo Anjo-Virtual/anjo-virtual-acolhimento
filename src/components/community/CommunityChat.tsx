@@ -32,12 +32,7 @@ const CommunityChat = () => {
   }, [isActiveInstance(CHAT_INSTANCE_ID), isOpen]);
 
   const handleToggleChat = () => {
-    if (!user) {
-      setOrigin('community');
-      navigate('/comunidade/login');
-      return;
-    }
-
+    // Permitir chat mesmo sem login (como anônimo)
     if (!isOpen) {
       openChat(CHAT_INSTANCE_ID);
       setIsOpen(true);
@@ -58,7 +53,7 @@ const CommunityChat = () => {
         <Button
           onClick={handleToggleChat}
           className="bg-primary hover:bg-primary/90 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110"
-          title={user ? "Abrir Chat" : "Fazer Login para Chat"}
+          title="Abrir Chat"
         >
           <MessageCircle size={24} />
         </Button>

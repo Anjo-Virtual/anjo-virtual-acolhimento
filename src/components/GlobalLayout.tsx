@@ -11,8 +11,8 @@ const GlobalLayout = () => {
       {/* FloatingButtons sempre visível para usuários não logados */}
       {!user && <FloatingButtons />}
       
-      {/* CommunityChat sempre visível para usuários logados */}
-      {user && <CommunityChat />}
+      {/* CommunityChat sempre visível - funciona com ou sem login */}
+      <CommunityChat />
     </>
   );
 };

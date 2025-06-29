@@ -7,7 +7,7 @@ import { AdminChatHistory } from "../../chat/AdminChatHistory";
 import { MessagesViewer } from "./MessagesViewer";
 import { LeadsList } from "./LeadsList";
 import { useChatDashboardData } from "@/hooks/admin/useChatDashboardData";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, MessageSquare, Users, BarChart3 } from "lucide-react";
 
 export const AdminChatManager = () => {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
@@ -17,7 +17,8 @@ export const AdminChatManager = () => {
     leads,
     conversationMessages,
     messagesLoading,
-    loadConversationMessages
+    loadConversationMessages,
+    metrics
   } = useChatDashboardData();
 
   const handleSelectConversation = async (conversationId: string) => {
@@ -33,6 +34,45 @@ export const AdminChatManager = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header com métricas rápidas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <MessageSquare className="h-5 w-5 text-blue-500" />
+              <div>
+                <p className="text-sm font-medium">Total de Conversas</p>
+                <p className="text-2xl font-bold">{metrics?.totalConversations || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Users className="h-5 w-5 text-green-500" />
+              <div>
+                <p className="text-sm font-medium">Leads Capturados</p>
+                <p className="text-2xl font-bold">{metrics?.totalLeads || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <BarChart3 className="h-5 w-5 text-purple-500" />
+              <div>
+                <p className="text-sm font-medium">Conversas Ativas</p>
+                <p className="text-2xl font-bold">{metrics?.activeConversations || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Gerenciamento de Chat</h2>
         {selectedConversation && (

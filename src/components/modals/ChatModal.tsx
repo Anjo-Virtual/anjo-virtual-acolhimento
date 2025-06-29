@@ -18,17 +18,13 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
   const { user } = useCommunityAuth();
   const navigate = useNavigate();
   const { setOrigin } = useOriginRedirect();
-  const [chatStarted, setChatStarted] = useState(false);
   const { openChat, closeChat } = useChatInstance();
   
   useEffect(() => {
-    if (isOpen && user) {
-      setChatStarted(true);
+    if (isOpen) {
       openChat(MODAL_CHAT_INSTANCE_ID);
-    } else if (isOpen && !user) {
-      setChatStarted(false);
     }
-  }, [isOpen, user]);
+  }, [isOpen]);
 
   const handleClose = () => {
     closeChat();
@@ -46,11 +42,7 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
   return (
     <div className={`modal ${isOpen ? "active" : ""}`} onClick={handleClose}>
       <div 
-        className={`bg-white rounded-lg shadow-soft animate-scaleIn mx-4 my-4 sm:mx-auto sm:my-8 relative
-          ${chatStarted 
-            ? 'w-full max-w-4xl h-[calc(100vh-2rem)] sm:h-[calc(100vh-4rem)] max-h-[800px]' 
-            : 'w-full max-w-md p-8'
-          }`}
+        className="bg-white rounded-lg shadow-soft animate-scaleIn mx-4 my-4 sm:mx-auto sm:my-8 relative w-full max-w-4xl h-[calc(100vh-2rem)] sm:h-[calc(100vh-4rem)] max-h-[800px]"
         onClick={(e) => e.stopPropagation()}
       >
         <button 
@@ -60,27 +52,28 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
           <i className="ri-close-line ri-lg"></i>
         </button>
 
-        {!chatStarted ? (
-          <div className="p-8">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-2">Conversar com Anjo Virtual</h2>
-              <p className="text-gray-600 mb-6">
-                Para conversar com nosso assistente virtual, você precisa ter uma conta.
-              </p>
+        <div className="h-full p-4">
+          <ChatBox onClose={handleClose} />
+        </div>
+
+        {/* Sugestão de login para usuários não logados */}
+        {!user && (
+          <div className="absolute bottom-4 left-4 right-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-800">
+                  Para salvar o histórico das suas conversas, faça login ou cadastre-se.
+                </p>
+              </div>
               <Button 
                 onClick={handleSignUpRedirect}
-                className="w-full bg-primary hover:bg-primary/90 text-white"
+                size="sm"
+                variant="outline"
+                className="ml-3"
               >
-                Cadastre-se para Conversar
+                Entrar
               </Button>
-              <p className="text-sm text-gray-500 mt-4">
-                Já tem uma conta? O login também está na próxima página.
-              </p>
             </div>
-          </div>
-        ) : (
-          <div className="h-full p-4">
-            <ChatBox onClose={handleClose} />
           </div>
         )}
       </div>

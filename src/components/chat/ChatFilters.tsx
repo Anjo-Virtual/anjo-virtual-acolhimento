@@ -22,8 +22,8 @@ export const ChatFilters = ({
   loading = false 
 }: ChatFiltersProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [status, setStatus] = useState<string>("");
-  const [hasLead, setHasLead] = useState<string>("");
+  const [status, setStatus] = useState<string>("all");
+  const [hasLead, setHasLead] = useState<string>("all");
 
   const handleSearch = () => {
     onSearch(searchTerm);
@@ -37,20 +37,20 @@ export const ChatFilters = ({
 
   const handleStatusChange = (value: string) => {
     setStatus(value);
-    onFilterChange({ status: value || undefined });
+    onFilterChange({ status: value === 'all' ? undefined : value });
   };
 
   const handleLeadFilterChange = (value: string) => {
     setHasLead(value);
     onFilterChange({ 
-      hasLead: value === 'true' ? true : value === 'false' ? false : undefined 
+      hasLead: value === 'all' ? undefined : value === 'true' ? true : false
     });
   };
 
   const handleClearAll = () => {
     setSearchTerm("");
-    setStatus("");
-    setHasLead("");
+    setStatus("all");
+    setHasLead("all");
     onClearFilters();
   };
 
@@ -84,7 +84,7 @@ export const ChatFilters = ({
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os Status</SelectItem>
+                <SelectItem value="all">Todos os Status</SelectItem>
                 <SelectItem value="active">Ativo</SelectItem>
                 <SelectItem value="paused">Pausado</SelectItem>
                 <SelectItem value="completed">Concluído</SelectItem>
@@ -96,7 +96,7 @@ export const ChatFilters = ({
                 <SelectValue placeholder="Leads" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="true">Com Lead</SelectItem>
                 <SelectItem value="false">Sem Lead</SelectItem>
               </SelectContent>
