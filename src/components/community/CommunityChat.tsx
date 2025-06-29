@@ -19,8 +19,13 @@ const CommunityChat = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { openChat, closeChat, isActiveInstance } = useChatInstance();
 
-  // Não mostrar o chat em páginas de admin
+  // Não mostrar o chat em páginas de admin ou se o usuário não estiver logado
   const isAdminPage = location.pathname.startsWith('/admin');
+  
+  // Se não há usuário logado, não renderizar nada
+  if (!user || isAdminPage) {
+    return null;
+  }
   
   useEffect(() => {
     // Verificar se esta instância deve estar ativa
@@ -32,7 +37,6 @@ const CommunityChat = () => {
   }, [isActiveInstance(CHAT_INSTANCE_ID), isOpen]);
 
   const handleToggleChat = () => {
-    // Permitir chat mesmo sem login (como anônimo)
     if (!isOpen) {
       openChat(CHAT_INSTANCE_ID);
       setIsOpen(true);
@@ -42,8 +46,8 @@ const CommunityChat = () => {
     }
   };
 
-  // Não renderizar em páginas de admin ou se outra instância estiver ativa
-  if (isAdminPage || isActiveInstance('modal-chat')) {
+  // Não renderizar se outra instância estiver ativa
+  if (isActiveInstance('modal-chat')) {
     return null;
   }
 

@@ -52,30 +52,44 @@ const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
           <i className="ri-close-line ri-lg"></i>
         </button>
 
+        {/* Conteúdo principal do modal */}
         <div className="h-full p-4">
-          <ChatBox onClose={handleClose} />
-        </div>
-
-        {/* Sugestão de login para usuários não logados */}
-        {!user && (
-          <div className="absolute bottom-4 left-4 right-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-blue-800">
-                  Para salvar o histórico das suas conversas, faça login ou cadastre-se.
+          {user ? (
+            <ChatBox onClose={handleClose} />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full space-y-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                  Faça login para usar o chat
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  Para ter acesso ao nosso assistente virtual e salvar o histórico das suas conversas, você precisa estar logado.
                 </p>
               </div>
-              <Button 
-                onClick={handleSignUpRedirect}
-                size="sm"
-                variant="outline"
-                className="ml-3"
-              >
-                Entrar
-              </Button>
+              
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button 
+                  onClick={handleSignUpRedirect}
+                  className="bg-primary text-white px-6 py-3"
+                >
+                  Fazer Login / Cadastro
+                </Button>
+                <Button 
+                  onClick={handleClose}
+                  variant="outline"
+                  className="px-6 py-3"
+                >
+                  Fechar
+                </Button>
+              </div>
+              
+              <div className="text-center text-sm text-gray-500">
+                <p>Já tem uma conta? Faça login.</p>
+                <p>Novo por aqui? Cadastre-se gratuitamente.</p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
