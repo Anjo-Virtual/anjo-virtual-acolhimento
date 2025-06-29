@@ -63,21 +63,22 @@ const Blog = () => {
         ) : (
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-12">
             {posts.map((post) => (
-              <Card key={post.id} className="hover:shadow-lg transition-all duration-300 cursor-pointer group overflow-hidden" onClick={() => navigateToBlogPost(post.id)}>
-                <div className="h-48 overflow-hidden bg-gray-100">
+              <Card key={post.id} className="hover:shadow-lg transition-all duration-300 cursor-pointer group overflow-hidden h-full flex flex-col" onClick={() => navigateToBlogPost(post.id)}>
+                <div className="relative overflow-hidden bg-gray-100" style={{ minHeight: '200px' }}>
                   {post.image_url ? (
                     <img 
                       src={post.image_url} 
                       alt={post.title} 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      style={{ height: '200px' }}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/20">
+                    <div className="w-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/20" style={{ height: '200px' }}>
                       <ImageIcon className="h-16 w-16 text-primary/40" />
                     </div>
                   )}
                 </div>
-                <CardHeader className="pb-2">
+                <CardHeader className="pb-2 flex-grow">
                   <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
@@ -91,9 +92,9 @@ const Blog = () => {
                     {post.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0">
-                  <p className="text-gray-600 line-clamp-3 leading-relaxed">{post.description}</p>
-                  <div className="mt-4 flex items-center text-primary text-sm font-medium">
+                <CardContent className="pt-0 mt-auto">
+                  <p className="text-gray-600 line-clamp-3 leading-relaxed mb-4">{post.description}</p>
+                  <div className="flex items-center text-primary text-sm font-medium">
                     Ler mais <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </CardContent>

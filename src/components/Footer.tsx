@@ -1,5 +1,5 @@
 
-import Newsletter from "./Newsletter";
+import FooterNewsletter from "./FooterNewsletter";
 
 const Footer = () => {
   return (
@@ -60,7 +60,7 @@ const Footer = () => {
             </ul>
             <div className="mt-6">
               <h4 className="text-lg font-medium mb-4">Newsletter</h4>
-              <Newsletter />
+              <FooterNewsletter />
             </div>
           </div>
         </div>
