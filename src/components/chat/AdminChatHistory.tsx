@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ChatFilters } from "./ChatFilters";
 import { ConversationPreview } from "./ConversationPreview";
+import { ChatHistorySkeleton } from "./ChatHistorySkeleton";
 import { useChatHistory } from "@/hooks/useChatHistory";
 
 interface AdminChatHistoryProps {
@@ -40,11 +41,7 @@ export const AdminChatHistory = ({ onSelectConversation }: AdminChatHistoryProps
   };
 
   if (loading && conversations.length === 0) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <ChatHistorySkeleton />;
   }
 
   return (
