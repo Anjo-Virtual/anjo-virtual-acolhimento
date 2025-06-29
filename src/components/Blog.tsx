@@ -64,16 +64,15 @@ const Blog = () => {
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-12">
             {posts.map((post) => (
               <Card key={post.id} className="hover:shadow-lg transition-all duration-300 cursor-pointer group overflow-hidden h-full flex flex-col" onClick={() => navigateToBlogPost(post.id)}>
-                <div className="relative overflow-hidden bg-gray-100" style={{ minHeight: '200px' }}>
+                <div className="relative overflow-hidden bg-gray-100 aspect-[4/3] w-full">
                   {post.image_url ? (
                     <img 
                       src={post.image_url} 
                       alt={post.title} 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      style={{ height: '200px' }}
                     />
                   ) : (
-                    <div className="w-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/20" style={{ height: '200px' }}>
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/20">
                       <ImageIcon className="h-16 w-16 text-primary/40" />
                     </div>
                   )}

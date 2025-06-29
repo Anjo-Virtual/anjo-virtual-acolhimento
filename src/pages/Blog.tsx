@@ -80,16 +80,15 @@ const Blog = () => {
             {filteredPosts.map((post) => (
               <Link to={`/blog/${post.id}`} key={post.id}>
                 <Card className="hover:shadow-lg transition-shadow h-full overflow-hidden flex flex-col">
-                  <div className="relative overflow-hidden bg-gray-100" style={{ minHeight: '200px' }}>
+                  <div className="relative overflow-hidden bg-gray-100 aspect-[4/3] w-full">
                     {post.image_url ? (
                       <img 
                         src={post.image_url} 
                         alt={post.title} 
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                        style={{ height: '200px' }}
                       />
                     ) : (
-                      <div className="w-full flex items-center justify-center" style={{ height: '200px' }}>
+                      <div className="w-full h-full flex items-center justify-center">
                         <ImageIcon className="h-12 w-12 text-gray-300" />
                       </div>
                     )}

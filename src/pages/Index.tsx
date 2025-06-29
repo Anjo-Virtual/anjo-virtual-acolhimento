@@ -8,7 +8,6 @@ import Community from "@/components/Community";
 import Blog from "@/components/Blog";
 import Business from "@/components/Business";
 import Testimonials from "@/components/Testimonials";
-import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
 
 const Index = () => {
@@ -23,7 +22,6 @@ const Index = () => {
       <Blog />
       <Business />
       <Testimonials />
-      <Newsletter />
       <Footer />
     </div>
   );
