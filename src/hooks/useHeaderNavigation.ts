@@ -25,14 +25,6 @@ export const useHeaderNavigation = () => {
     }
   };
 
-  const handleCommunityScroll = () => {
-    scrollToSection('comunidade');
-  };
-
-  const handleEmpresasClick = () => {
-    scrollToSection('empresas');
-  };
-
   const handleComoFuncionaClick = () => {
     scrollToSection('como-funciona');
   };
@@ -41,10 +33,23 @@ export const useHeaderNavigation = () => {
     scrollToSection('planos');
   };
 
+  const handleCommunityScroll = () => {
+    scrollToSection('comunidade');
+  };
+
+  const handleEmpresasClick = () => {
+    scrollToSection('empresas');
+  };
+
+  const handleBlogClick = () => {
+    scrollToSection('blog');
+  };
+
   return { 
+    handleComoFuncionaClick,
+    handlePlanosClick,
     handleCommunityScroll, 
     handleEmpresasClick,
-    handleComoFuncionaClick,
-    handlePlanosClick
+    handleBlogClick
   };
 };

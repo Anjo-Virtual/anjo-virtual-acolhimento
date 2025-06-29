@@ -17,7 +17,7 @@ const Header = () => {
   const isMobile = useMobile();
   const { user } = useSafeAdminAuth();
   const isScrolled = useHeaderScroll();
-  const { handleCommunityScroll, handleEmpresasClick } = useHeaderNavigation();
+  const { handleCommunityScroll, handleEmpresasClick, handleBlogClick } = useHeaderNavigation();
   const { contactModalOpen, openContactModal, closeContactModal } = useModalControls();
 
   return (
@@ -66,6 +66,7 @@ const Header = () => {
               user={user}
               onCommunityScroll={handleCommunityScroll}
               onEmpresasClick={handleEmpresasClick}
+              onBlogClick={handleBlogClick}
               openChatModal={openContactModal}
             />
           )}

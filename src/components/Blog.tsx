@@ -63,36 +63,39 @@ const Blog = () => {
         ) : (
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-12">
             {posts.map((post) => (
-              <Card key={post.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigateToBlogPost(post.id)}>
-                <div className="aspect-video overflow-hidden bg-gray-100">
+              <Card key={post.id} className="hover:shadow-lg transition-all duration-300 cursor-pointer group overflow-hidden" onClick={() => navigateToBlogPost(post.id)}>
+                <div className="h-48 overflow-hidden bg-gray-100">
                   {post.image_url ? (
                     <img 
                       src={post.image_url} 
                       alt={post.title} 
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <ImageIcon className="h-12 w-12 text-gray-300" />
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/20">
+                      <ImageIcon className="h-16 w-16 text-primary/40" />
                     </div>
                   )}
                 </div>
-                <CardHeader>
-                  <div className="flex items-center gap-4 text-sm text-gray-500 mb-2">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       {new Date(post.created_at).toLocaleDateString('pt-BR')}
                     </span>
-                    <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs">
+                    <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-medium">
                       {post.category}
                     </span>
                   </div>
-                  <CardTitle className="text-xl line-clamp-2 hover:text-primary transition-colors">
+                  <CardTitle className="text-xl line-clamp-2 group-hover:text-primary transition-colors leading-tight">
                     {post.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 line-clamp-3">{post.description}</p>
+                <CardContent className="pt-0">
+                  <p className="text-gray-600 line-clamp-3 leading-relaxed">{post.description}</p>
+                  <div className="mt-4 flex items-center text-primary text-sm font-medium">
+                    Ler mais <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </CardContent>
               </Card>
             ))}

@@ -4,10 +4,10 @@ import Hero from "@/components/Hero";
 import About from "@/components/About";
 import HowItWorks from "@/components/HowItWorks";
 import Plans from "@/components/Plans";
-import Testimonials from "@/components/Testimonials";
-import Business from "@/components/Business";
 import Community from "@/components/Community";
 import Blog from "@/components/Blog";
+import Business from "@/components/Business";
+import Testimonials from "@/components/Testimonials";
 import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
 
@@ -19,10 +19,10 @@ const Index = () => {
       <About />
       <HowItWorks />
       <Plans />
-      <Testimonials />
-      <Business />
       <Community />
       <Blog />
+      <Business />
+      <Testimonials />
       <Newsletter />
       <Footer />
     </div>

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Users } from "lucide-react";
 import { User } from "@supabase/supabase-js";
+import { useHeaderNavigation } from "@/hooks/useHeaderNavigation";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface MobileMenuProps {
   user: User | null;
   onCommunityScroll: () => void;
   onEmpresasClick: () => void;
+  onBlogClick: () => void;
   openChatModal: () => void;
 }
 
@@ -19,26 +21,33 @@ export const MobileMenu = ({
   user, 
   onCommunityScroll, 
   onEmpresasClick, 
+  onBlogClick,
   openChatModal 
 }: MobileMenuProps) => {
+  const { handleComoFuncionaClick, handlePlanosClick } = useHeaderNavigation();
+
   if (!isOpen) return null;
 
   return (
     <div className="mt-4 pb-4 space-y-3">
-      <a
-        href="#como-funciona"
-        className="block text-gray-700 hover:text-primary transition-colors py-2"
-        onClick={onClose}
+      <button
+        onClick={() => {
+          onClose();
+          handleComoFuncionaClick();
+        }}
+        className="block text-gray-700 hover:text-primary transition-colors py-2 text-left w-full"
       >
         Como Funciona
-      </a>
-      <a
-        href="#planos"
-        className="block text-gray-700 hover:text-primary transition-colors py-2"
-        onClick={onClose}
+      </button>
+      <button
+        onClick={() => {
+          onClose();
+          handlePlanosClick();
+        }}
+        className="block text-gray-700 hover:text-primary transition-colors py-2 text-left w-full"
       >
         Planos
-      </a>
+      </button>
       <button
         onClick={() => {
           onClose();
@@ -54,21 +63,23 @@ export const MobileMenu = ({
           onClose();
           onEmpresasClick();
         }}
-        className="block text-gray-700 hover:text-primary transition-colors py-2 text-left"
+        className="block text-gray-700 hover:text-primary transition-colors py-2 text-left w-full"
       >
         Para Empresas
       </button>
-      <Link
-        to="/blog"
-        className="block text-gray-700 hover:text-primary transition-colors py-2"
-        onClick={onClose}
+      <button
+        onClick={() => {
+          onClose();
+          onBlogClick();
+        }}
+        className="block text-gray-700 hover:text-primary transition-colors py-2 text-left w-full"
       >
         Blog
-      </Link>
+      </button>
       
       {user ? (
         <Link
-          to="/minha-conta"
+          to="/comunidade/perfil"
           className="block text-gray-700 hover:text-primary transition-colors py-2"
           onClick={onClose}
         >
@@ -76,7 +87,7 @@ export const MobileMenu = ({
         </Link>
       ) : (
         <Link
-          to="/admin/login"
+          to="/comunidade/login"
           className="block text-gray-700 hover:text-primary transition-colors py-2"
           onClick={onClose}
         >

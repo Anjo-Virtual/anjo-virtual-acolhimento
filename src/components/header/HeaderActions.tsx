@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, UserCircle } from "lucide-react";
 import { User } from "@supabase/supabase-js";
-import { useBlogNavigation } from "@/hooks/useBlogNavigation";
 import { useOriginRedirect } from "@/hooks/useOriginRedirect";
 
 interface HeaderActionsProps {
@@ -12,7 +11,6 @@ interface HeaderActionsProps {
 }
 
 export const HeaderActions = ({ user, openChatModal }: HeaderActionsProps) => {
-  const { navigateToBlog } = useBlogNavigation();
   const { setOrigin } = useOriginRedirect();
 
   const handleContactClick = () => {
@@ -25,14 +23,6 @@ export const HeaderActions = ({ user, openChatModal }: HeaderActionsProps) => {
 
   return (
     <div className="flex items-center space-x-4">
-      <Button
-        onClick={navigateToBlog}
-        variant="ghost"
-        className="text-gray-700 hover:text-primary transition-colors"
-      >
-        Blog
-      </Button>
-      
       {user ? (
         <Link 
           to="/comunidade/perfil" 

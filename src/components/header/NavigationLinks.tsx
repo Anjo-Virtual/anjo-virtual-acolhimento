@@ -9,7 +9,7 @@ interface NavigationLinksProps {
 }
 
 export const NavigationLinks = ({ onCommunityScroll, onEmpresasClick }: NavigationLinksProps) => {
-  const { handleComoFuncionaClick, handlePlanosClick } = useHeaderNavigation();
+  const { handleComoFuncionaClick, handlePlanosClick, handleBlogClick } = useHeaderNavigation();
 
   return (
     <div className="hidden md:flex space-x-6">
@@ -37,6 +37,12 @@ export const NavigationLinks = ({ onCommunityScroll, onEmpresasClick }: Navigati
         className="text-gray-700 hover:text-primary transition-colors"
       >
         Para Empresas
+      </button>
+      <button 
+        onClick={handleBlogClick}
+        className="text-gray-700 hover:text-primary transition-colors"
+      >
+        Blog
       </button>
     </div>
   );
