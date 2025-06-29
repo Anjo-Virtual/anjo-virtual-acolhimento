@@ -54,7 +54,7 @@ export const AdminChatManager = () => {
               <Users className="h-5 w-5 text-green-500" />
               <div>
                 <p className="text-sm font-medium">Leads Capturados</p>
-                <p className="text-2xl font-bold">{metrics?.totalLeads || 0}</p>
+                <p className="text-2xl font-bold">{metrics?.leadsGenerated || 0}</p>
               </div>
             </div>
           </CardContent>
