@@ -11,8 +11,8 @@ const GlobalLayout = () => {
       {/* Mostrar FloatingButtons apenas para usuários não logados */}
       {!user && <FloatingButtons />}
       
-      {/* CommunityChat apenas para usuários logados */}
-      {user && <CommunityChat />}
+      {/* CommunityChat será renderizado condicionalmente dentro do próprio componente */}
+      <CommunityChat />
     </>
   );
 };

@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface TrackingSettings {
@@ -11,35 +11,83 @@ interface TrackingSettings {
 export const TrackingScripts = () => {
   const [trackingSettings, setTrackingSettings] = useState<TrackingSettings | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [hasPermissions, setHasPermissions] = useState(false);
 
-  useEffect(() => {
-    const loadTrackingSettings = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('site_settings')
-          .select('value')
-          .eq('key', 'tracking_settings')
-          .single();
-
-        if (error && error.code !== 'PGRST116') {
-          console.error('Erro ao carregar configurações de rastreamento:', error);
-          return;
-        }
-
-        if (data?.value) {
-          // Cast the value to unknown first, then to TrackingSettings
-          const settings = data.value as unknown as TrackingSettings;
-          setTrackingSettings(settings);
-        }
-      } catch (error) {
-        console.error('Erro ao carregar configurações de rastreamento:', error);
-      } finally {
+  // Verificar permissões antes de tentar carregar configurações
+  const checkPermissions = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.log('TrackingScripts: Usuário não autenticado, pulando carregamento');
         setIsLoaded(true);
+        return;
       }
-    };
 
-    loadTrackingSettings();
+      // Verificar se é admin usando a função do banco
+      const { data: isAdmin, error } = await supabase.rpc('is_admin', { user_uuid: user.id });
+      
+      if (error) {
+        console.log('TrackingScripts: Erro ao verificar permissões, usando fallback', error);
+        setIsLoaded(true);
+        return;
+      }
+      
+      setHasPermissions(isAdmin || false);
+    } catch (error) {
+      console.log('TrackingScripts: Erro ao verificar permissões, usando fallback', error);
+      setHasPermissions(false);
+    }
   }, []);
+
+  const loadTrackingSettings = useCallback(async () => {
+    if (!hasPermissions) {
+      setIsLoaded(true);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'tracking_settings')
+        .single();
+
+      if (error) {
+        // Se erro de permissão ou tabela não encontrada, usar fallback silencioso
+        if (error.code === 'PGRST116' || error.message?.includes('permission')) {
+          console.log('TrackingScripts: Configurações de tracking não encontradas ou sem permissão');
+        } else {
+          console.error('TrackingScripts: Erro ao carregar configurações:', error);
+        }
+        setIsLoaded(true);
+        return;
+      }
+
+      if (data?.value) {
+        const settings = data.value as unknown as TrackingSettings;
+        setTrackingSettings(settings);
+      }
+    } catch (error) {
+      console.error('TrackingScripts: Erro ao carregar configurações:', error);
+    } finally {
+      setIsLoaded(true);
+    }
+  }, [hasPermissions]);
+
+  // Verificar permissões primeiro
+  useEffect(() => {
+    checkPermissions();
+  }, [checkPermissions]);
+
+  // Carregar configurações após verificar permissões
+  useEffect(() => {
+    if (hasPermissions) {
+      loadTrackingSettings();
+    } else {
+      setIsLoaded(true);
+    }
+  }, [hasPermissions, loadTrackingSettings]);
 
   useEffect(() => {
     if (!isLoaded || !trackingSettings) return;
@@ -125,12 +173,6 @@ export const TrackingScripts = () => {
         document.head.appendChild(newScript);
       });
     }
-    
-    // Clean up function
-    return () => {
-      // We don't remove scripts as they've already been loaded
-      // This is more for React's useEffect cleanup
-    };
   }, [isLoaded, trackingSettings]);
 
   // This component doesn't render anything visible

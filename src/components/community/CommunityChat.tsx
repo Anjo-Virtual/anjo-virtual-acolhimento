@@ -19,22 +19,21 @@ const CommunityChat = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { openChat, closeChat, isActiveInstance } = useChatInstance();
 
-  // Não mostrar o chat em páginas de admin ou se o usuário não estiver logado
+  // Verificar condições após todos os hooks
   const isAdminPage = location.pathname.startsWith('/admin');
-  
-  // Se não há usuário logado, não renderizar nada
-  if (!user || isAdminPage) {
-    return null;
-  }
+  const shouldRender = user && !isAdminPage;
   
   useEffect(() => {
+    // Só executar se deve renderizar
+    if (!shouldRender) return;
+    
     // Verificar se esta instância deve estar ativa
     if (isActiveInstance(CHAT_INSTANCE_ID) && !isOpen) {
       setIsOpen(true);
     } else if (!isActiveInstance(CHAT_INSTANCE_ID) && isOpen) {
       setIsOpen(false);
     }
-  }, [isActiveInstance(CHAT_INSTANCE_ID), isOpen]);
+  }, [isActiveInstance, CHAT_INSTANCE_ID, isOpen, shouldRender]);
 
   const handleToggleChat = () => {
     if (!isOpen) {
@@ -45,6 +44,11 @@ const CommunityChat = () => {
       setIsOpen(false);
     }
   };
+
+  // Renderização condicional após todos os hooks
+  if (!shouldRender) {
+    return null;
+  }
 
   // Não renderizar se outra instância estiver ativa
   if (isActiveInstance('modal-chat')) {
