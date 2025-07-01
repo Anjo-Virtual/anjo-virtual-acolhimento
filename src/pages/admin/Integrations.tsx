@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageSquare, Share2, BarChart } from "lucide-react";
+import { MessageSquare, Share2, BarChart, MessageCircle } from "lucide-react";
 import N8nWebhookConfigModal from "@/components/modals/N8nWebhookConfigModal";
 import WhatsAppConfigModal from "@/components/modals/WhatsAppConfigModal";
 import { ChatAdmin } from "@/components/chat/ChatAdmin";
