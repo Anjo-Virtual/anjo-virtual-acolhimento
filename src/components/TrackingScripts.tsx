@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface TrackingSettings {
@@ -11,54 +11,45 @@ interface TrackingSettings {
 export const TrackingScripts = () => {
   const [trackingSettings, setTrackingSettings] = useState<TrackingSettings | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [hasPermissions, setHasPermissions] = useState(false);
+  const initialized = useRef(false);
 
-  // Verificar permissões antes de tentar carregar configurações
-  const checkPermissions = useCallback(async () => {
+  const loadTrackingSettings = useCallback(async () => {
+    // Evitar múltiplas execuções
+    if (initialized.current) return;
+    initialized.current = true;
+
+    // Verificar se estamos em desenvolvimento e pular se necessário
+    if (process.env.NODE_ENV === 'development') {
+      console.log('TrackingScripts: Modo desenvolvimento - carregamento opcional');
+    }
+
     try {
+      // Primeiro verificar se o usuário tem permissões
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        console.log('TrackingScripts: Usuário não autenticado, pulando carregamento');
         setIsLoaded(true);
         return;
       }
 
-      // Verificar se é admin usando a função do banco
-      const { data: isAdmin, error } = await supabase.rpc('is_admin', { user_uuid: user.id });
-      
-      if (error) {
-        console.log('TrackingScripts: Erro ao verificar permissões, usando fallback', error);
-        setIsLoaded(true);
-        return;
-      }
-      
-      setHasPermissions(isAdmin || false);
-    } catch (error) {
-      console.log('TrackingScripts: Erro ao verificar permissões, usando fallback', error);
-      setHasPermissions(false);
-    }
-  }, []);
+      // Tentar carregar as configurações com timeout
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      );
 
-  const loadTrackingSettings = useCallback(async () => {
-    if (!hasPermissions) {
-      setIsLoaded(true);
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
+      const queryPromise = supabase
         .from('site_settings')
         .select('value')
         .eq('key', 'tracking_settings')
         .single();
 
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+
       if (error) {
-        // Se erro de permissão ou tabela não encontrada, usar fallback silencioso
-        if (error.code === 'PGRST116' || error.message?.includes('permission')) {
-          console.log('TrackingScripts: Configurações de tracking não encontradas ou sem permissão');
-        } else {
-          console.error('TrackingScripts: Erro ao carregar configurações:', error);
+        // Falhar silenciosamente se não tiver permissão ou tabela não existir
+        if (error.code === 'PGRST116' || error.code === 'PGRST301' || 
+            error.message?.includes('permission') || error.message?.includes('relation')) {
+          console.log('TrackingScripts: Configurações não disponíveis ou sem permissão');
         }
         setIsLoaded(true);
         return;
@@ -68,38 +59,28 @@ export const TrackingScripts = () => {
         const settings = data.value as unknown as TrackingSettings;
         setTrackingSettings(settings);
       }
-    } catch (error) {
-      console.error('TrackingScripts: Erro ao carregar configurações:', error);
+    } catch (error: any) {
+      // Falhar silenciosamente em caso de erro
+      console.log('TrackingScripts: Erro silencioso:', error.message);
     } finally {
       setIsLoaded(true);
     }
-  }, [hasPermissions]);
+  }, []);
 
-  // Verificar permissões primeiro
   useEffect(() => {
-    checkPermissions();
-  }, [checkPermissions]);
-
-  // Carregar configurações após verificar permissões
-  useEffect(() => {
-    if (hasPermissions) {
-      loadTrackingSettings();
-    } else {
-      setIsLoaded(true);
-    }
-  }, [hasPermissions, loadTrackingSettings]);
+    // Carregar apenas uma vez
+    loadTrackingSettings();
+  }, [loadTrackingSettings]);
 
   useEffect(() => {
     if (!isLoaded || !trackingSettings) return;
 
-    // Inject Google Analytics if ID exists
-    if (trackingSettings.google_analytics_id) {
+    // Injetar scripts apenas se existirem configurações válidas
+    if (trackingSettings.google_analytics_id && trackingSettings.google_analytics_id.trim()) {
       const gaScript = document.createElement('script');
       gaScript.async = true;
       
-      // Check if it's a GA4 (G-) or Universal Analytics (UA-) ID
       if (trackingSettings.google_analytics_id.startsWith('G-')) {
-        // Google Analytics 4
         gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${trackingSettings.google_analytics_id}`;
         document.head.appendChild(gaScript);
 
@@ -111,22 +92,10 @@ export const TrackingScripts = () => {
           gtag('config', '${trackingSettings.google_analytics_id}');
         `;
         document.head.appendChild(gaConfigScript);
-      } else if (trackingSettings.google_analytics_id.startsWith('UA-')) {
-        // Universal Analytics
-        gaScript.innerHTML = `
-          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-          })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-          ga('create', '${trackingSettings.google_analytics_id}', 'auto');
-          ga('send', 'pageview');
-        `;
-        document.head.appendChild(gaScript);
       }
     }
 
-    // Inject Facebook Pixel if ID exists
-    if (trackingSettings.facebook_pixel_id) {
+    if (trackingSettings.facebook_pixel_id && trackingSettings.facebook_pixel_id.trim()) {
       const fbPixelScript = document.createElement('script');
       fbPixelScript.innerHTML = `
         !function(f,b,e,v,n,t,s)
@@ -141,40 +110,23 @@ export const TrackingScripts = () => {
         fbq('track', 'PageView');
       `;
       document.head.appendChild(fbPixelScript);
-      
-      const fbPixelNoscript = document.createElement('noscript');
-      const fbPixelImg = document.createElement('img');
-      fbPixelImg.height = 1;
-      fbPixelImg.width = 1;
-      fbPixelImg.style.display = 'none';
-      fbPixelImg.src = `https://www.facebook.com/tr?id=${trackingSettings.facebook_pixel_id}&ev=PageView&noscript=1`;
-      fbPixelNoscript.appendChild(fbPixelImg);
-      document.head.appendChild(fbPixelNoscript);
     }
 
-    // Inject custom tracking scripts if they exist
-    if (trackingSettings.custom_tracking_scripts) {
+    if (trackingSettings.custom_tracking_scripts && trackingSettings.custom_tracking_scripts.trim()) {
       const customScriptsContainer = document.createElement('div');
       customScriptsContainer.innerHTML = trackingSettings.custom_tracking_scripts;
       
-      // Append all script nodes to head
       const scriptNodes = customScriptsContainer.querySelectorAll('script');
       scriptNodes.forEach(scriptNode => {
         const newScript = document.createElement('script');
-        
-        // Copy attributes
         Array.from(scriptNode.attributes).forEach(attr => {
           newScript.setAttribute(attr.name, attr.value);
         });
-        
-        // Copy content
         newScript.innerHTML = scriptNode.innerHTML;
-        
         document.head.appendChild(newScript);
       });
     }
   }, [isLoaded, trackingSettings]);
 
-  // This component doesn't render anything visible
   return null;
 };

@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { checkAdminRole } from "@/utils/admin-role";
@@ -9,43 +9,60 @@ export const useAdminAuthInit = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  
+  // Usar ref para evitar múltiplas verificações simultâneas
+  const adminCheckInProgress = useRef(false);
+  const mounted = useRef(true);
+
+  // Debounce da verificação de admin role
+  const checkAdminRoleDebounced = useCallback(async (userId: string) => {
+    if (adminCheckInProgress.current) return;
+    
+    adminCheckInProgress.current = true;
+    
+    try {
+      const adminStatus = await checkAdminRole(userId);
+      if (mounted.current) {
+        setIsAdmin(adminStatus);
+      }
+    } catch (error) {
+      console.error("Erro ao verificar admin role:", error);
+      if (mounted.current) {
+        setIsAdmin(false);
+      }
+    } finally {
+      adminCheckInProgress.current = false;
+    }
+  }, []);
 
   useEffect(() => {
-    let mounted = true;
+    mounted.current = true;
 
     const initializeAuth = async () => {
       try {
-        console.log("useAdminAuthInit - Iniciando verificação de sessão...");
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error("Erro ao obter sessão:", error);
-          if (mounted) {
+          if (mounted.current) {
             setLoading(false);
           }
           return;
         }
         
-        console.log("useAdminAuthInit - Sessão obtida:", session?.user?.email || "sem sessão");
-        
-        if (mounted) {
+        if (mounted.current) {
           setSession(session);
           setUser(session?.user ?? null);
           
           if (session?.user) {
-            console.log("useAdminAuthInit - Verificando role de admin para:", session.user.email);
-            const adminStatus = await checkAdminRole(session.user.id);
-            console.log("useAdminAuthInit - Status admin:", adminStatus);
-            setIsAdmin(adminStatus);
-          } else {
-            setIsAdmin(false);
+            await checkAdminRoleDebounced(session.user.id);
           }
           
           setLoading(false);
         }
       } catch (error) {
         console.error("Erro na inicialização da auth:", error);
-        if (mounted) {
+        if (mounted.current) {
           setLoading(false);
         }
       }
@@ -53,27 +70,23 @@ export const useAdminAuthInit = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("useAdminAuthInit - Auth state change:", event, session?.user?.email || "sem usuário");
+        console.log("useAdminAuthInit - Auth state change:", event);
         
-        if (mounted) {
+        if (mounted.current) {
           setSession(session);
           setUser(session?.user ?? null);
           
-          if (session?.user) {
-            // Use setTimeout para evitar deadlock no callback
-            setTimeout(async () => {
-              if (mounted) {
-                console.log("useAdminAuthInit - Verificando admin role após auth change");
-                const adminStatus = await checkAdminRole(session.user.id);
-                console.log("useAdminAuthInit - Admin status após change:", adminStatus);
-                setIsAdmin(adminStatus);
+          if (session?.user && event !== 'INITIAL_SESSION') {
+            // Usar setTimeout para evitar deadlock
+            setTimeout(() => {
+              if (mounted.current) {
+                checkAdminRoleDebounced(session.user.id);
               }
-            }, 0);
+            }, 100);
           } else {
             setIsAdmin(false);
           }
           
-          // Só marca como não carregando depois que processou o usuário
           if (event !== 'INITIAL_SESSION') {
             setLoading(false);
           }
@@ -84,10 +97,10 @@ export const useAdminAuthInit = () => {
     initializeAuth();
 
     return () => {
-      mounted = false;
+      mounted.current = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [checkAdminRoleDebounced]);
 
   return { session, user, loading, isAdmin, setSession, setUser, setIsAdmin };
 };

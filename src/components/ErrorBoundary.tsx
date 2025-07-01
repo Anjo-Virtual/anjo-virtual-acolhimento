@@ -2,7 +2,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
@@ -31,7 +31,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error('ErrorBoundary capturou um erro:', error, errorInfo);
     
     this.setState({
       error,
@@ -51,6 +51,10 @@ class ErrorBoundary extends Component<Props, State> {
     });
   };
 
+  private handleGoHome = () => {
+    window.location.href = '/';
+  };
+
   public render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
@@ -66,25 +70,33 @@ class ErrorBoundary extends Component<Props, State> {
               </div>
               <CardTitle className="text-red-600">Oops! Algo deu errado</CardTitle>
               <CardDescription>
-                Ocorreu um erro inesperado. Tente recarregar a página ou entre em contato conosco se o problema persistir.
+                Ocorreu um erro inesperado. Tente uma das opções abaixo para continuar.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex flex-col gap-2">
                 <Button 
-                  onClick={this.handleReload}
-                  className="flex-1"
+                  onClick={this.handleGoHome}
+                  className="w-full"
                   variant="default"
                 >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Recarregar Página
+                  <Home className="h-4 w-4 mr-2" />
+                  Ir para Página Inicial
                 </Button>
                 <Button 
                   onClick={this.handleReset}
-                  className="flex-1"
+                  className="w-full"
                   variant="outline"
                 >
                   Tentar Novamente
+                </Button>
+                <Button 
+                  onClick={this.handleReload}
+                  className="w-full"
+                  variant="outline"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Recarregar Página
                 </Button>
               </div>
               
@@ -93,7 +105,7 @@ class ErrorBoundary extends Component<Props, State> {
                   <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-800">
                     Detalhes do erro (desenvolvimento)
                   </summary>
-                  <pre className="mt-2 text-xs bg-gray-100 p-2 rounded overflow-auto max-h-40">
+                  <pre className="mt-2 text-xs bg-gray-100 p-2 rounded overflow-auto max-h-40 whitespace-pre-wrap">
                     {this.state.error.toString()}
                     {this.state.errorInfo?.componentStack}
                   </pre>

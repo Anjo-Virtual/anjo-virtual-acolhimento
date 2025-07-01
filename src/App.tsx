@@ -43,13 +43,15 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error: any) => {
-        // Não tentar novamente em erros de permissão
-        if (error?.code === 'PGRST301' || error?.message?.includes('permission')) {
+        // Não tentar novamente em erros de permissão ou tabela não encontrada
+        if (error?.code === 'PGRST301' || error?.code === 'PGRST116' || 
+            error?.message?.includes('permission') || error?.message?.includes('relation')) {
           return false;
         }
-        return failureCount < 3;
+        return failureCount < 2; // Reduzir tentativas
       },
       staleTime: 5 * 60 * 1000, // 5 minutos
+      refetchOnWindowFocus: false, // Evitar refetch desnecessário
     },
   },
 });
@@ -92,9 +94,11 @@ const App = () => (
               
               {/* Protected Admin Routes */}
               <Route path="/admin" element={
-                <ProtectedAdminRoute>
-                  <AdminLayout />
-                </ProtectedAdminRoute>
+                <ErrorBoundary>
+                  <ProtectedAdminRoute>
+                    <AdminLayout />
+                  </ProtectedAdminRoute>
+                </ErrorBoundary>
               }>
                 <Route index element={<Dashboard />} />
                 <Route path="contacts" element={<Contacts />} />
