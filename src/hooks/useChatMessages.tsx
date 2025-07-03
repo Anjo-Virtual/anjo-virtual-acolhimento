@@ -151,7 +151,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
   ) => {
     if (!userMessage.trim() || isLoading) return;
 
-    console.log('Enviando mensagem:', userMessage);
+    console.log('🚀 [CHAT] Enviando mensagem:', userMessage);
     setIsLoading(true);
     setIsInputReady(false);
 
@@ -161,17 +161,15 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
       content: userMessage,
       created_at: new Date().toISOString()
     };
-    setMessages(prev => {
-      const newMessages = [...prev, tempUserMessage];
-      saveMessagesToSession(newMessages, currentConversationId);
-      return newMessages;
-    });
+    
+    // Adicionar mensagem temporária imediatamente
+    setMessages(prev => [...prev, tempUserMessage]);
 
     try {
       const effectiveUserId = userId || currentUser?.id;
       
-      console.log('Enviando mensagem para chat-rag:', {
-        message: userMessage,
+      console.log('📡 [CHAT] Chamando função chat-rag:', {
+        message: userMessage.substring(0, 50) + '...',
         conversationId: currentConversationId,
         userId: effectiveUserId,
         sessionId: sessionId,
@@ -188,69 +186,85 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
         }
       });
 
+      console.log('📥 [CHAT] Resposta raw da função:', { data, error });
+
       if (error) {
-        throw error;
+        console.error('❌ [CHAT] Erro da função:', error);
+        throw new Error(`Erro na função: ${error.message || 'Erro desconhecido'}`);
       }
 
-      console.log('Resposta do chat-rag:', data);
+      if (!data || !data.success) {
+        console.error('❌ [CHAT] Resposta inválida:', data);
+        throw new Error('Resposta inválida do servidor');
+      }
 
+      console.log('✅ [CHAT] Resposta processada com sucesso');
+
+      // Atualizar conversationId se foi criada nova conversa
       if (data.conversationId && data.conversationId !== currentConversationId) {
-        console.log('Nova conversa criada:', data.conversationId);
+        console.log('🆕 [CHAT] Nova conversa criada:', data.conversationId);
         setCurrentConversationId(data.conversationId);
-        loadedConversationId.current = null; // Reset para recarregar
         onConversationCreated?.(data.conversationId);
       }
 
-      if (data.has_history) {
-        console.log('IA utilizou histórico da conversa para resposta contextualizada');
-      }
-
-      if (data.lead_captured) {
-        console.log('Lead capturado com sucesso');
-      }
-
+      // Remover mensagem temporária e adicionar resposta do assistente
       setMessages(prev => {
-        const filteredMessages = prev.filter(m => m.id !== tempUserMessage.id);
-        saveMessagesToSession(filteredMessages, currentConversationId);
-        return filteredMessages;
+        const filtered = prev.filter(m => m.id !== tempUserMessage.id);
+        const assistantMessage: Message = {
+          id: `assistant-${Date.now()}`,
+          role: 'assistant',
+          content: data.response || 'Resposta recebida com sucesso.',
+          sources: data.sources || [],
+          created_at: new Date().toISOString()
+        };
+        
+        const finalUserMessage: Message = {
+          id: `user-${Date.now()}`,
+          role: 'user',
+          content: userMessage,
+          created_at: new Date().toISOString()
+        };
+
+        const newMessages = [...filtered, finalUserMessage, assistantMessage];
+        saveMessagesToSession(newMessages, data.conversationId || currentConversationId);
+        return newMessages;
       });
-      
-      // Aguardar um pouco antes de recarregar as mensagens
-      setTimeout(() => {
-        loadMessages();
-      }, 300);
 
     } catch (error) {
-      console.error('Erro no chat:', error);
+      console.error('💥 [CHAT] Erro crítico:', error);
       
+      // Remover mensagem temporária e mostrar erro
       setMessages(prev => {
-        const filteredMessages = prev.filter(m => m.id !== tempUserMessage.id);
-        saveMessagesToSession(filteredMessages, currentConversationId);
-        return filteredMessages;
-      });
-      
-      const errorMessage: Message = {
-        id: `error-${Date.now()}`,
-        role: 'assistant',
-        content: 'Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.',
-        created_at: new Date().toISOString()
-      };
-      setMessages(prev => {
-        const newMessages = [...prev, errorMessage];
+        const filtered = prev.filter(m => m.id !== tempUserMessage.id);
+        const errorMessage: Message = {
+          id: `error-${Date.now()}`,
+          role: 'assistant',
+          content: `Desculpe, ocorreu um erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}. Tente novamente.`,
+          created_at: new Date().toISOString()
+        };
+        
+        const finalUserMessage: Message = {
+          id: `user-${Date.now()}`,
+          role: 'user',
+          content: userMessage,
+          created_at: new Date().toISOString()
+        };
+
+        const newMessages = [...filtered, finalUserMessage, errorMessage];
         saveMessagesToSession(newMessages, currentConversationId);
         return newMessages;
       });
 
       toast({
-        title: "Erro",
-        description: "Não foi possível enviar a mensagem. Tente novamente.",
+        title: "Erro no Chat",
+        description: `Falha ao enviar mensagem: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
       setIsInputReady(true);
     }
-  }, [currentConversationId, currentUser?.id, userId, sessionId, isLoading, loadMessages, saveMessagesToSession]);
+  }, [currentConversationId, currentUser?.id, userId, sessionId, isLoading, saveMessagesToSession]);
 
   // Resetar quando conversationId muda
   useEffect(() => {

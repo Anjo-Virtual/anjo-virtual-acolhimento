@@ -13,23 +13,44 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    const { message, conversationId, userId, sessionId, leadData } = await req.json()
+    console.log('🔧 [CHAT-RAG] Inicializando função...');
     
-    if (!message) {
-      throw new Error('Mensagem é obrigatória')
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('❌ [CHAT-RAG] Variáveis de ambiente não configuradas');
+      throw new Error('Configuração do servidor incompleta');
+    }
+
+    const supabaseClient = createClient(supabaseUrl, supabaseKey);
+    console.log('✅ [CHAT-RAG] Cliente Supabase criado');
+
+    const requestBody = await req.json().catch(err => {
+      console.error('❌ [CHAT-RAG] Erro ao ler body da requisição:', err);
+      throw new Error('Formato de requisição inválido');
+    });
+
+    const { message, conversationId, userId, sessionId, leadData } = requestBody;
+    
+    console.log('📝 [CHAT-RAG] Dados recebidos:', {
+      messageLength: message?.length || 0,
+      conversationId: conversationId || 'novo',
+      userId: userId || 'anônimo',
+      sessionId: sessionId || 'sem sessão',
+      hasLeadData: !!leadData
+    });
+    
+    if (!message || typeof message !== 'string' || !message.trim()) {
+      throw new Error('Mensagem é obrigatória e deve ser um texto válido');
     }
 
     // Para usuários anônimos, usar sessionId
     if (!userId && !sessionId) {
-      throw new Error('userId ou sessionId são obrigatórios')
+      throw new Error('userId ou sessionId são obrigatórios');
     }
 
-    console.log(`[CHAT-RAG] Iniciando chat para ${userId ? `usuário ${userId}` : `sessão ${sessionId}`}`)
+    console.log(`🚀 [CHAT-RAG] Iniciando processamento para ${userId ? `usuário ${userId}` : `sessão ${sessionId}`}`);
 
     let conversation = null
 
@@ -309,18 +330,27 @@ serve(async (req) => {
       console.error('[CHAT-RAG] Erro ao atualizar conversa:', updateConvError)
     }
 
-    console.log(`[CHAT-RAG] Chat concluído para conversa ${conversation.id} ${messageHistory?.length ? 'com histórico' : 'sem histórico'}`)
+    console.log(`✅ [CHAT-RAG] Chat concluído para conversa ${conversation.id} ${messageHistory?.length ? 'com histórico' : 'sem histórico'}`);
+
+    const successResponse = {
+      success: true,
+      conversationId: conversation.id,
+      response: assistantResponse,
+      sources: sources,
+      chunks_found: relevantChunks?.length || 0,
+      lead_captured: !!(leadData && leadData.name && leadData.email),
+      has_history: !!(messageHistory && messageHistory.length > 0)
+    };
+
+    console.log('📤 [CHAT-RAG] Enviando resposta de sucesso:', {
+      conversationId: successResponse.conversationId,
+      responseLength: assistantResponse.length,
+      sourcesCount: sources.length,
+      chunks_found: successResponse.chunks_found
+    });
 
     return new Response(
-      JSON.stringify({ 
-        success: true,
-        conversationId: conversation.id,
-        response: assistantResponse,
-        sources: sources,
-        chunks_found: relevantChunks?.length || 0,
-        lead_captured: !!(leadData && leadData.name && leadData.email),
-        has_history: !!(messageHistory && messageHistory.length > 0)
-      }),
+      JSON.stringify(successResponse),
       { 
         headers: { 
           'Content-Type': 'application/json',
@@ -330,12 +360,19 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('[CHAT-RAG] Erro no chat RAG:', error)
+    console.error('💥 [CHAT-RAG] Erro crítico no chat RAG:', error);
+    
+    const errorResponse = {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erro interno do servidor',
+      details: 'Verifique os logs da função para mais detalhes',
+      timestamp: new Date().toISOString()
+    };
+
+    console.log('📤 [CHAT-RAG] Enviando resposta de erro:', errorResponse);
+
     return new Response(
-      JSON.stringify({ 
-        error: error.message || 'Erro interno do servidor',
-        details: 'Verifique os logs da função para mais detalhes'
-      }),
+      JSON.stringify(errorResponse),
       { 
         status: 500,
         headers: { 
