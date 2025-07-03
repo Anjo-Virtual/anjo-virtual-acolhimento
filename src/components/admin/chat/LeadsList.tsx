@@ -50,24 +50,44 @@ export const LeadsList = ({ leads, onViewConversation, messagesLoading }: LeadsL
                      <p>{lead.email}</p>
                      {lead.phone && <p>{lead.phone}</p>}
                      
-                     {/* Informações do perfil conectado */}
-                     {lead.conversations?.community_profiles && (
-                       <div className="mt-2 p-2 bg-blue-50 rounded">
-                         <p className="text-blue-700">
-                           <strong>Conectado ao perfil:</strong> {lead.conversations.community_profiles.display_name}
-                         </p>
-                         {lead.conversations.community_profiles.grief_type && (
-                           <p className="text-blue-600 text-xs">
-                             Tipo de luto: {lead.conversations.community_profiles.grief_type}
-                           </p>
-                         )}
-                         {lead.conversations.community_profiles.bio && (
-                           <p className="text-blue-600 text-xs italic">
-                             "{lead.conversations.community_profiles.bio.substring(0, 80)}..."
-                           </p>
-                         )}
-                       </div>
-                     )}
+                      {/* Status do lead e tipo */}
+                      <div className="mt-2 flex gap-2 flex-wrap">
+                        {/* Verificar se é lead recuperado */}
+                        {lead.email?.includes('@recovered.local') && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                            🔄 Lead Recuperado
+                          </span>
+                        )}
+                        {lead.email?.includes('@user.local') && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            👤 Usuário Logado
+                          </span>
+                        )}
+                        {!lead.email?.includes('@recovered.local') && !lead.email?.includes('@user.local') && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            ✉️ Lead Direto
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Informações do perfil conectado */}
+                      {lead.conversations?.community_profiles && (
+                        <div className="mt-2 p-2 bg-blue-50 rounded">
+                          <p className="text-blue-700">
+                            <strong>Conectado ao perfil:</strong> {lead.conversations.community_profiles.display_name}
+                          </p>
+                          {lead.conversations.community_profiles.grief_type && (
+                            <p className="text-blue-600 text-xs">
+                              Tipo de luto: {lead.conversations.community_profiles.grief_type}
+                            </p>
+                          )}
+                          {lead.conversations.community_profiles.bio && (
+                            <p className="text-blue-600 text-xs italic">
+                              "{lead.conversations.community_profiles.bio.substring(0, 80)}..."
+                            </p>
+                          )}
+                        </div>
+                      )}
                      
                      <p className="flex items-center gap-1 mt-2">
                        <Calendar className="h-3 w-3" />

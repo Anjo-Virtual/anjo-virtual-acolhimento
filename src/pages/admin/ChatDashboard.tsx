@@ -18,8 +18,10 @@ const ChatDashboard = () => {
     loading,
     conversationMessages,
     messagesLoading,
+    recoveryLoading,
     loadDashboardData,
-    loadConversationMessages
+    loadConversationMessages,
+    recoverLostLeads
   } = useChatDashboardData();
 
   useEffect(() => {
@@ -47,10 +49,21 @@ const ChatDashboard = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Dashboard do Chat</h1>
-        <Button onClick={loadDashboardData} variant="outline" disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Atualizar Dados
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={recoverLostLeads} 
+            variant="secondary" 
+            disabled={recoveryLoading || loading}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${recoveryLoading ? 'animate-spin' : ''}`} />
+            {recoveryLoading ? 'Recuperando...' : 'Recuperar Leads'}
+          </Button>
+          <Button onClick={loadDashboardData} variant="outline" disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Atualizar Dados
+          </Button>
+        </div>
       </div>
 
       <ChatMetricsCards metrics={metrics} />

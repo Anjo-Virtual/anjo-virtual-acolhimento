@@ -100,36 +100,118 @@ serve(async (req) => {
       
       conversation = newConversation
       
-      // Se temos dados de lead, criar registro de lead
-      if (leadData && leadData.name && leadData.email) {
-        console.log('[CHAT-RAG] Salvando dados do lead')
+      // NOVO: Captura automática de lead para usuários logados
+      if (userId && userProfile) {
+        console.log('[CHAT-RAG] Verificando lead automático para usuário logado')
         
-        const { data: chatLead, error: leadError } = await supabaseClient
+        // Verificar se já existe lead para este usuário
+        const { data: existingLead, error: leadCheckError } = await supabaseClient
           .from('chat_leads')
-          .insert({
-            name: leadData.name,
-            email: leadData.email,
-            phone: leadData.phone || null,
-            conversation_id: conversation.id,
-            metadata: {
-              source: 'chat_modal',
-              first_message: message.substring(0, 100),
-              user_agent: req.headers.get('user-agent') || 'unknown'
-            }
-          })
-          .select()
+          .select('*')
+          .eq('email', userProfile.user_id + '@user.local') // Email temporário baseado no user_id
           .single()
 
-        if (leadError) {
-          console.error('[CHAT-RAG] Erro ao salvar lead:', leadError)
+        if (leadCheckError && leadCheckError.code !== 'PGRST116') { // PGRST116 = not found
+          console.error('[CHAT-RAG] Erro ao verificar lead existente:', leadCheckError)
+        }
+
+        if (!existingLead) {
+          // Criar lead automático para usuário logado
+          console.log('[CHAT-RAG] Criando lead automático para usuário logado')
+          
+          const { data: autoLead, error: autoLeadError } = await supabaseClient
+            .from('chat_leads')
+            .insert({
+              name: userProfile.display_name,
+              email: userProfile.user_id + '@user.local', // Email temporário
+              phone: null,
+              conversation_id: conversation.id,
+              metadata: {
+                source: 'auto_capture',
+                type: 'logged_user',
+                user_id: userId,
+                first_message: message.substring(0, 100),
+                user_agent: req.headers.get('user-agent') || 'unknown',
+                grief_type: userProfile.grief_type || null
+              }
+            })
+            .select()
+            .single()
+
+          if (autoLeadError) {
+            console.error('[CHAT-RAG] Erro ao criar lead automático:', autoLeadError)
+          } else {
+            // Atualizar conversa com o lead_id
+            await supabaseClient
+              .from('conversations')
+              .update({ lead_id: autoLead.id })
+              .eq('id', conversation.id)
+            
+            console.log(`[CHAT-RAG] Lead automático capturado: ${autoLead.id}`)
+          }
         } else {
-          // Atualizar conversa com o lead_id
+          // Lead já existe, apenas conectar à conversa
           await supabaseClient
             .from('conversations')
-            .update({ lead_id: chatLead.id })
+            .update({ lead_id: existingLead.id })
             .eq('id', conversation.id)
           
-          console.log(`[CHAT-RAG] Lead capturado: ${chatLead.id}`)
+          console.log(`[CHAT-RAG] Conversa conectada ao lead existente: ${existingLead.id}`)
+        }
+      }
+      
+      // Se temos dados de lead explícitos, criar registro de lead
+      if (leadData && leadData.name && leadData.email) {
+        console.log('[CHAT-RAG] Salvando dados do lead explícito')
+        
+        // Verificar duplicação por email
+        const { data: existingEmailLead, error: emailCheckError } = await supabaseClient
+          .from('chat_leads')
+          .select('*')
+          .eq('email', leadData.email)
+          .single()
+
+        if (emailCheckError && emailCheckError.code !== 'PGRST116') {
+          console.error('[CHAT-RAG] Erro ao verificar lead por email:', emailCheckError)
+        }
+
+        if (!existingEmailLead) {
+          const { data: chatLead, error: leadError } = await supabaseClient
+            .from('chat_leads')
+            .insert({
+              name: leadData.name,
+              email: leadData.email,
+              phone: leadData.phone || null,
+              conversation_id: conversation.id,
+              metadata: {
+                source: 'chat_modal',
+                type: 'explicit_capture',
+                first_message: message.substring(0, 100),
+                user_agent: req.headers.get('user-agent') || 'unknown'
+              }
+            })
+            .select()
+            .single()
+
+          if (leadError) {
+            console.error('[CHAT-RAG] Erro ao salvar lead:', leadError)
+          } else {
+            // Atualizar conversa com o lead_id
+            await supabaseClient
+              .from('conversations')
+              .update({ lead_id: chatLead.id })
+              .eq('id', conversation.id)
+            
+            console.log(`[CHAT-RAG] Lead explícito capturado: ${chatLead.id}`)
+          }
+        } else {
+          // Lead já existe, conectar à conversa
+          await supabaseClient
+            .from('conversations')
+            .update({ lead_id: existingEmailLead.id })
+            .eq('id', conversation.id)
+          
+          console.log(`[CHAT-RAG] Conversa conectada ao lead existente: ${existingEmailLead.id}`)
         }
       }
     } else {
