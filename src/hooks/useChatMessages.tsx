@@ -35,8 +35,16 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
   // Função para salvar mensagens no sessionStorage
   const saveMessagesToSession = useCallback((msgs: Message[], convId?: string) => {
     try {
-      const storageKey = `chat_messages_${convId || 'temp'}`;
+      const storageKey = `chat_messages_${convId || 'global-temp'}`;
       sessionStorage.setItem(storageKey, JSON.stringify(msgs));
+      
+      // Também salvar metadados da sessão
+      const sessionMeta = {
+        conversationId: convId,
+        lastActivity: Date.now(),
+        messageCount: msgs.length
+      };
+      sessionStorage.setItem('chat_session_meta', JSON.stringify(sessionMeta));
     } catch (error) {
       console.warn('Erro ao salvar mensagens no session storage:', error);
     }
@@ -45,7 +53,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
   // Função para carregar mensagens do sessionStorage
   const loadMessagesFromSession = useCallback((convId?: string): Message[] => {
     try {
-      const storageKey = `chat_messages_${convId || 'temp'}`;
+      const storageKey = `chat_messages_${convId || 'global-temp'}`;
       const stored = sessionStorage.getItem(storageKey);
       return stored ? JSON.parse(stored) : [];
     } catch (error) {

@@ -48,6 +48,15 @@
     @apply bg-background text-foreground font-raleway;
   }
 
+  /* Chat Global Persistente */
+  .global-chat {
+    z-index: 9999 !important;
+  }
+
+  .global-chat .shadow-2xl {
+    box-shadow: 0 25px 50px -12px hsl(var(--primary) / 0.25);
+  }
+
   h1, h2, h3 {
     @apply font-playfair;
   }

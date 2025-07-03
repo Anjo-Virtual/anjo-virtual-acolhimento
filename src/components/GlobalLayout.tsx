@@ -1,6 +1,6 @@
 
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
-import CommunityChat from "./community/CommunityChat";
+import GlobalPersistentChat from "./chat/GlobalPersistentChat";
 import FloatingButtons from "./FloatingButtons";
 
 const GlobalLayout = () => {
@@ -11,8 +11,8 @@ const GlobalLayout = () => {
       {/* Mostrar FloatingButtons apenas para usuários não logados */}
       {!user && <FloatingButtons />}
       
-      {/* CommunityChat será renderizado condicionalmente dentro do próprio componente */}
-      <CommunityChat />
+      {/* Chat global persistente - disponível em todas as páginas (exceto admin) */}
+      <GlobalPersistentChat />
     </>
   );
 };
