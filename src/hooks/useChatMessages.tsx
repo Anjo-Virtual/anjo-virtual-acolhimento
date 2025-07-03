@@ -35,6 +35,32 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
   // PERSISTÊNCIA UNIFICADA - Chave única para o chat global
   const UNIFIED_STORAGE_KEY = 'global-persistent-chat';
 
+  // Função para buscar perfil do usuário
+  const getUserProfile = useCallback(async () => {
+    const effectiveUserId = userId || currentUser?.id;
+    if (!effectiveUserId) return null;
+
+    try {
+      console.log('👤 [PROFILE] Buscando perfil do usuário:', effectiveUserId);
+      const { data: profile, error } = await supabase
+        .from('community_profiles')
+        .select('*')
+        .eq('user_id', effectiveUserId)
+        .single();
+
+      if (error) {
+        console.log('⚠️ [PROFILE] Perfil não encontrado:', error.message);
+        return null;
+      }
+
+      console.log('✅ [PROFILE] Perfil encontrado:', profile.display_name);
+      return profile;
+    } catch (error) {
+      console.error('❌ [PROFILE] Erro ao buscar perfil:', error);
+      return null;
+    }
+  }, [userId, currentUser?.id]);
+
   // Função para salvar dados unificados do chat
   const saveUnifiedChatData = useCallback((msgs: Message[], convId?: string) => {
     try {
@@ -231,12 +257,17 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
     try {
       const effectiveUserId = userId || currentUser?.id;
       
+      // Buscar perfil do usuário para personalização
+      const userProfile = await getUserProfile();
+      
       console.log('📡 [CHAT] Chamando função chat-rag:', {
         message: userMessage.substring(0, 50) + '...',
         conversationId: currentConversationId,
         userId: effectiveUserId,
         sessionId: sessionId,
-        hasLeadData: !!leadData
+        hasLeadData: !!leadData,
+        hasProfile: !!userProfile,
+        profileName: userProfile?.display_name
       });
 
       const { data, error } = await supabase.functions.invoke('chat-rag', {
@@ -245,7 +276,8 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
           conversationId: currentConversationId,
           userId: effectiveUserId,
           sessionId: sessionId,
-          leadData: leadData
+          leadData: leadData,
+          userProfile: userProfile
         }
       });
 
@@ -327,7 +359,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
       setIsLoading(false);
       setIsInputReady(true);
     }
-  }, [currentConversationId, currentUser?.id, userId, sessionId, isLoading, saveUnifiedChatData]);
+  }, [currentConversationId, currentUser?.id, userId, sessionId, isLoading, saveUnifiedChatData, getUserProfile]);
 
   // Resetar quando conversationId muda com logs detalhados
   useEffect(() => {

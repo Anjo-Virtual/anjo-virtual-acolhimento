@@ -31,14 +31,16 @@ serve(async (req) => {
       throw new Error('Formato de requisição inválido');
     });
 
-    const { message, conversationId, userId, sessionId, leadData } = requestBody;
+    const { message, conversationId, userId, sessionId, leadData, userProfile } = requestBody;
     
     console.log('📝 [CHAT-RAG] Dados recebidos:', {
       messageLength: message?.length || 0,
       conversationId: conversationId || 'novo',
       userId: userId || 'anônimo',
       sessionId: sessionId || 'sem sessão',
-      hasLeadData: !!leadData
+      hasLeadData: !!leadData,
+      hasUserProfile: !!userProfile,
+      userName: userProfile?.display_name || 'Não informado'
     });
     
     if (!message || typeof message !== 'string' || !message.trim()) {
@@ -53,11 +55,11 @@ serve(async (req) => {
     console.log(`🚀 [CHAT-RAG] Iniciando processamento para ${userId ? `usuário ${userId}` : `sessão ${sessionId}`}`);
 
     let conversation = null
-    let userProfile = null
-
-    // Buscar perfil do usuário se estiver logado
-    if (userId) {
-      console.log('[CHAT-RAG] Buscando perfil do usuário:', userId)
+    
+    // Usar perfil passado pelo frontend ou buscar no banco se necessário
+    let effectiveUserProfile = userProfile
+    if (userId && !effectiveUserProfile) {
+      console.log('[CHAT-RAG] Buscando perfil do usuário no banco:', userId)
       const { data: profile, error: profileError } = await supabaseClient
         .from('community_profiles')
         .select('*')
@@ -67,9 +69,11 @@ serve(async (req) => {
       if (profileError) {
         console.log('[CHAT-RAG] Perfil não encontrado ou erro:', profileError.message)
       } else {
-        userProfile = profile
-        console.log('[CHAT-RAG] Perfil encontrado:', profile.display_name)
+        effectiveUserProfile = profile
+        console.log('[CHAT-RAG] Perfil encontrado no banco:', profile.display_name)
       }
+    } else if (effectiveUserProfile) {
+      console.log('[CHAT-RAG] Usando perfil do frontend:', effectiveUserProfile.display_name)
     }
 
     // Se não tiver conversationId, criar nova conversa
@@ -78,8 +82,8 @@ serve(async (req) => {
       
       // Gerar título mais inteligente baseado no perfil e mensagem
       let conversationTitle = message.substring(0, 50) + '...'
-      if (userProfile) {
-        conversationTitle = `Conversa com ${userProfile.display_name}`
+      if (effectiveUserProfile) {
+        conversationTitle = `Conversa com ${effectiveUserProfile.display_name}`
       }
       
       const conversationData = {
@@ -101,14 +105,14 @@ serve(async (req) => {
       conversation = newConversation
       
       // NOVO: Captura automática de lead para usuários logados
-      if (userId && userProfile) {
+      if (userId && effectiveUserProfile) {
         console.log('[CHAT-RAG] Verificando lead automático para usuário logado')
         
         // Verificar se já existe lead para este usuário
         const { data: existingLead, error: leadCheckError } = await supabaseClient
           .from('chat_leads')
           .select('*')
-          .eq('email', userProfile.user_id + '@user.local') // Email temporário baseado no user_id
+          .eq('email', effectiveUserProfile.user_id + '@user.local') // Email temporário baseado no user_id
           .single()
 
         if (leadCheckError && leadCheckError.code !== 'PGRST116') { // PGRST116 = not found
@@ -122,8 +126,8 @@ serve(async (req) => {
           const { data: autoLead, error: autoLeadError } = await supabaseClient
             .from('chat_leads')
             .insert({
-              name: userProfile.display_name,
-              email: userProfile.user_id + '@user.local', // Email temporário
+              name: effectiveUserProfile.display_name,
+              email: effectiveUserProfile.user_id + '@user.local', // Email temporário
               phone: null,
               conversation_id: conversation.id,
               metadata: {
@@ -132,7 +136,7 @@ serve(async (req) => {
                 user_id: userId,
                 first_message: message.substring(0, 100),
                 user_agent: req.headers.get('user-agent') || 'unknown',
-                grief_type: userProfile.grief_type || null
+                grief_type: effectiveUserProfile.grief_type || null
               }
             })
             .select()
@@ -287,16 +291,16 @@ serve(async (req) => {
     Sempre mantenha um tom respeitoso, compreensivo e humanizado em suas respostas.`
     
     // NOVO: Adicionar informações do perfil do usuário ao contexto
-    if (userProfile) {
+    if (effectiveUserProfile) {
       context += '\n\n=== INFORMAÇÕES DO USUÁRIO ===\n'
-      context += `Nome: ${userProfile.display_name}\n`
-      if (userProfile.bio) {
-        context += `Bio: ${userProfile.bio}\n`
+      context += `Nome: ${effectiveUserProfile.display_name}\n`
+      if (effectiveUserProfile.bio) {
+        context += `Bio: ${effectiveUserProfile.bio}\n`
       }
-      if (userProfile.grief_type) {
-        context += `Tipo de luto: ${userProfile.grief_type}\n`
+      if (effectiveUserProfile.grief_type) {
+        context += `Tipo de luto: ${effectiveUserProfile.grief_type}\n`
       }
-      context += `Usuário anônimo: ${userProfile.is_anonymous ? 'Sim' : 'Não'}\n`
+      context += `Usuário anônimo: ${effectiveUserProfile.is_anonymous ? 'Sim' : 'Não'}\n`
       context += '=== FIM DAS INFORMAÇÕES DO USUÁRIO ===\n'
       context += `\nUse essas informações para personalizar suas respostas. Se o usuário preferir anonimato, seja discreto. Adapte seu tom baseado no tipo de luto quando mencionado. Chame o usuário pelo nome quando apropriado.\n`
     }
