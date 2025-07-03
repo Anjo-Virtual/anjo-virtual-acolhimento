@@ -32,8 +32,35 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
     return null;
   });
 
+  // Função para salvar mensagens no sessionStorage
+  const saveMessagesToSession = useCallback((msgs: Message[], convId?: string) => {
+    try {
+      const storageKey = `chat_messages_${convId || 'temp'}`;
+      sessionStorage.setItem(storageKey, JSON.stringify(msgs));
+    } catch (error) {
+      console.warn('Erro ao salvar mensagens no session storage:', error);
+    }
+  }, []);
+
+  // Função para carregar mensagens do sessionStorage
+  const loadMessagesFromSession = useCallback((convId?: string): Message[] => {
+    try {
+      const storageKey = `chat_messages_${convId || 'temp'}`;
+      const stored = sessionStorage.getItem(storageKey);
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.warn('Erro ao carregar mensagens do session storage:', error);
+      return [];
+    }
+  }, []);
+
   const loadMessages = useCallback(async () => {
     if (!currentConversationId) {
+      // Carregar mensagens da sessão se não há conversationId
+      const sessionMessages = loadMessagesFromSession();
+      if (sessionMessages.length > 0) {
+        setMessages(sessionMessages);
+      }
       setIsInputReady(true);
       return;
     }
@@ -98,6 +125,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
       }));
 
       setMessages(typedMessages);
+      saveMessagesToSession(typedMessages, currentConversationId);
       loadedConversationId.current = currentConversationId;
       console.log(`Carregadas ${typedMessages.length} mensagens`);
     } catch (error) {
@@ -133,7 +161,11 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
       content: userMessage,
       created_at: new Date().toISOString()
     };
-    setMessages(prev => [...prev, tempUserMessage]);
+    setMessages(prev => {
+      const newMessages = [...prev, tempUserMessage];
+      saveMessagesToSession(newMessages, currentConversationId);
+      return newMessages;
+    });
 
     try {
       const effectiveUserId = userId || currentUser?.id;
@@ -177,7 +209,11 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
         console.log('Lead capturado com sucesso');
       }
 
-      setMessages(prev => prev.filter(m => m.id !== tempUserMessage.id));
+      setMessages(prev => {
+        const filteredMessages = prev.filter(m => m.id !== tempUserMessage.id);
+        saveMessagesToSession(filteredMessages, currentConversationId);
+        return filteredMessages;
+      });
       
       // Aguardar um pouco antes de recarregar as mensagens
       setTimeout(() => {
@@ -187,7 +223,11 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
     } catch (error) {
       console.error('Erro no chat:', error);
       
-      setMessages(prev => prev.filter(m => m.id !== tempUserMessage.id));
+      setMessages(prev => {
+        const filteredMessages = prev.filter(m => m.id !== tempUserMessage.id);
+        saveMessagesToSession(filteredMessages, currentConversationId);
+        return filteredMessages;
+      });
       
       const errorMessage: Message = {
         id: `error-${Date.now()}`,
@@ -195,7 +235,11 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
         content: 'Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.',
         created_at: new Date().toISOString()
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => {
+        const newMessages = [...prev, errorMessage];
+        saveMessagesToSession(newMessages, currentConversationId);
+        return newMessages;
+      });
 
       toast({
         title: "Erro",
@@ -206,7 +250,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
       setIsLoading(false);
       setIsInputReady(true);
     }
-  }, [currentConversationId, currentUser?.id, userId, sessionId, isLoading, loadMessages]);
+  }, [currentConversationId, currentUser?.id, userId, sessionId, isLoading, loadMessages, saveMessagesToSession]);
 
   // Resetar quando conversationId muda
   useEffect(() => {
@@ -222,7 +266,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
     } else {
       setIsInputReady(true);
     }
-  }, [currentConversationId, loadMessages]);
+  }, [currentConversationId, loadMessages, loadMessagesFromSession]);
 
   return {
     messages,

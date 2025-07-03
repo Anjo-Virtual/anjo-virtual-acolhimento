@@ -39,13 +39,18 @@ export const ChatInput = ({
   const canSend = input.trim() && !isDisabled;
 
   const handleTextareaKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // No mobile, permitir quebra de linha normalmente
-    if (isMobile) return;
-    
-    // No desktop, enviar com Enter (sem Shift)
-    if (e.key === 'Enter' && !e.shiftKey && canSend) {
-      e.preventDefault();
-      onSendMessage();
+    if (e.key === 'Enter') {
+      if (e.shiftKey) {
+        // Shift+Enter sempre adiciona nova linha
+        return;
+      } else if (canSend) {
+        // Enter simples envia mensagem
+        e.preventDefault();
+        onSendMessage();
+      } else {
+        // Prevenir quebra de linha se não pode enviar
+        e.preventDefault();
+      }
     }
   };
 
@@ -61,9 +66,7 @@ export const ChatInput = ({
               onKeyPress={handleTextareaKeyPress}
               placeholder={
                 isInputReady 
-                  ? isMobile 
-                    ? "Sua mensagem..." 
-                    : "Digite sua mensagem... (Enter para enviar, Shift+Enter para nova linha)"
+                  ? "Digite sua mensagem... (Enter=enviar, Shift+Enter=nova linha)"
                   : "Carregando..."
               }
               disabled={isDisabled}
@@ -94,12 +97,13 @@ export const ChatInput = ({
           </Button>
         </div>
         
-        {/* Dica para mobile */}
-        {isMobile && (
-          <p className="text-xs text-gray-400 mt-2 text-center">
-            Toque no botão para enviar sua mensagem
-          </p>
-        )}
+        {/* Dica universal */}
+        <p className="text-xs text-gray-400 mt-2 text-center">
+          {isMobile 
+            ? "Toque no botão para enviar • Use quebras de linha normalmente"
+            : "Enter=enviar • Shift+Enter=nova linha"
+          }
+        </p>
       </div>
     </div>
   );
