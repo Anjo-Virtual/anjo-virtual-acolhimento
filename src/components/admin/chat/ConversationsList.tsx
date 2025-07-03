@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Calendar, Eye } from "lucide-react";
+import { MessageSquare, Calendar, Eye, ArrowRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -109,15 +109,17 @@ export const ConversationsList = ({
                      </span>
                    </div>
                  </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => onViewConversation(conversation.id)}
-                  disabled={messagesLoading}
-                >
-                  <Eye className="h-4 w-4 mr-1" />
-                  Ver
-                </Button>
+                 <Button 
+                   variant="default" 
+                   size="sm"
+                   onClick={() => onViewConversation(conversation.id)}
+                   disabled={messagesLoading}
+                   className="bg-blue-600 hover:bg-blue-700 text-white min-w-[100px] transition-all duration-200 hover:scale-105"
+                 >
+                   <Eye className="h-4 w-4 mr-2" />
+                   Visualizar
+                   <ArrowRight className="h-3 w-3 ml-1" />
+                 </Button>
               </div>
             ))
           )}

@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Eye } from "lucide-react";
+import { Calendar, Eye, ArrowRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -78,15 +78,17 @@ export const LeadsList = ({ leads, onViewConversation, messagesLoading }: LeadsL
                      </p>
                    </div>
                  </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => onViewConversation(lead.conversation_id)}
-                  disabled={messagesLoading}
-                >
-                  <Eye className="h-4 w-4 mr-1" />
-                  Ver Conversa
-                </Button>
+                 <Button 
+                   variant="default" 
+                   size="sm"
+                   onClick={() => onViewConversation(lead.conversation_id)}
+                   disabled={messagesLoading}
+                   className="bg-green-600 hover:bg-green-700 text-white min-w-[120px] transition-all duration-200 hover:scale-105"
+                 >
+                   <Eye className="h-4 w-4 mr-2" />
+                   Ver Conversa
+                   <ArrowRight className="h-3 w-3 ml-1" />
+                 </Button>
               </div>
             ))
           )}
