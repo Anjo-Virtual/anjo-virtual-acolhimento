@@ -51,55 +51,83 @@ const ChatDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Dashboard do Chat</h1>
-        <div className="flex gap-2">
-          <Button 
-            onClick={() => setShowFilters(!showFilters)}
-            variant="outline"
-            className={showFilters ? "bg-blue-50 border-blue-200" : ""}
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            Filtros
-          </Button>
+      {/* Header reorganizado */}
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard do Chat</h1>
+          <p className="text-muted-foreground">Gerencie leads e conversas em tempo real</p>
+        </div>
+        
+        {/* Ações consolidadas */}
+        <div className="flex items-center gap-3">
           <Button 
             onClick={recoverLostLeads} 
             variant="secondary" 
             disabled={recoveryLoading || loading}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${recoveryLoading ? 'animate-spin' : ''}`} />
             {recoveryLoading ? 'Recuperando...' : 'Recuperar Leads'}
           </Button>
-          <Button onClick={loadDashboardData} variant="outline" disabled={loading}>
+          <Button 
+            onClick={loadDashboardData} 
+            disabled={loading}
+            className="bg-primary hover:bg-primary/90 shadow-sm"
+          >
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Atualizar Dados
+            Atualizar
           </Button>
         </div>
       </div>
 
+      {/* Métricas aprimoradas */}
       <ChatMetricsCards metrics={metrics} />
 
-      {/* Filtros */}
-      {showFilters && (
-        <ChatFilters 
-          filters={filters}
-          onFiltersChange={setFilters}
-          totalResults={consolidatedLeads.length + conversations.length}
-        />
-      )}
+      {/* Seção de Filtros - movida para baixo das métricas */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-foreground">Filtros e Visualizações</h2>
+          <Button 
+            onClick={() => setShowFilters(!showFilters)}
+            variant="outline"
+            size="sm"
+            className={showFilters ? "bg-blue-50 border-blue-200 text-blue-700" : ""}
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
+          </Button>
+        </div>
+        
+        {showFilters && (
+          <ChatFilters 
+            filters={filters}
+            onFiltersChange={setFilters}
+            totalResults={consolidatedLeads.length + conversations.length}
+          />
+        )}
+      </div>
 
-      <Tabs defaultValue="leads" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="leads" className="flex items-center gap-2">
+      {/* Tabs aprimoradas */}
+      <Tabs defaultValue="leads" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:grid-cols-3">
+          <TabsTrigger value="leads" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
             <Users className="h-4 w-4" />
-            Leads ({consolidatedLeads.length})
+            <span className="hidden sm:inline">Leads</span>
+            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full">
+              {consolidatedLeads.length}
+            </span>
           </TabsTrigger>
-          <TabsTrigger value="conversations" className="flex items-center gap-2">
+          <TabsTrigger value="conversations" className="flex items-center gap-2 data-[state=active]:bg-green-600 data-[state=active]:text-white">
             <MessageSquare className="h-4 w-4" />
-            Conversas ({conversations.length})
+            <span className="hidden sm:inline">Conversas</span>
+            <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded-full">
+              {conversations.length}
+            </span>
           </TabsTrigger>
-          <TabsTrigger value="messages">Mensagens</TabsTrigger>
+          <TabsTrigger value="messages" className="flex items-center gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+            <MessageSquare className="h-4 w-4" />
+            <span className="hidden sm:inline">Mensagens</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="leads" className="space-y-4">
