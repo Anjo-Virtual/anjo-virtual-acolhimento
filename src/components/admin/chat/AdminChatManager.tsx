@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminChatHistory } from "../../chat/AdminChatHistory";
 import { MessagesViewer } from "./MessagesViewer";
-import { LeadsList } from "./LeadsList";
+import { ConsolidatedLeadsList } from "./ConsolidatedLeadsList";
 import { useChatDashboardData } from "@/hooks/admin/useChatDashboardData";
 import { ArrowLeft, MessageSquare, Users, BarChart3 } from "lucide-react";
 
@@ -14,7 +14,7 @@ export const AdminChatManager = () => {
   const [activeView, setActiveView] = useState<'conversations' | 'leads' | 'messages'>('conversations');
   
   const {
-    leads,
+    consolidatedLeads,
     conversationMessages,
     messagesLoading,
     loadConversationMessages,
@@ -95,8 +95,8 @@ export const AdminChatManager = () => {
           </TabsContent>
 
           <TabsContent value="leads" className="space-y-4">
-            <LeadsList 
-              leads={leads}
+            <ConsolidatedLeadsList 
+              leads={consolidatedLeads}
               onViewConversation={handleSelectConversation}
               messagesLoading={messagesLoading}
             />

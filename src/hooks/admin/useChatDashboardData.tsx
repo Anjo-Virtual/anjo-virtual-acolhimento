@@ -12,6 +12,7 @@ interface ConversationStats {
   message_count: number;
   status: string;
   lead_id: string | null;
+  session_id?: string | null;
   community_profiles?: {
     id: string;
     display_name: string;
@@ -21,24 +22,29 @@ interface ConversationStats {
   };
 }
 
-interface ChatLead {
-  id: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  created_at: string;
-  conversation_id: string;
-  conversations?: {
+interface ConsolidatedLead {
+  user_id: string;
+  profile: {
     id: string;
-    title: string;
-    user_id: string;
-    community_profiles?: {
-      display_name: string;
-      bio: string | null;
-      grief_type: string | null;
-      is_anonymous: boolean;
-    };
+    display_name: string;
+    bio: string | null;
+    grief_type: string | null;
+    is_anonymous: boolean;
   };
+  conversations: ConversationStats[];
+  total_conversations: number;
+  total_messages: number;
+  first_interaction: string;
+  last_interaction: string;
+  lead_source: 'auto_capture' | 'explicit_capture' | 'recovered_lead';
+  engagement_score: number;
+}
+
+interface ChatFilters {
+  period: 'today' | 'week' | 'month' | 'all';
+  activity: 'last_24h' | 'most_active' | 'recent' | 'all';
+  engagement: 'high' | 'medium' | 'low' | 'all';
+  status: 'active' | 'paused' | 'completed' | 'all';
 }
 
 interface DashboardMetrics {
@@ -51,7 +57,7 @@ interface DashboardMetrics {
 
 export const useChatDashboardData = () => {
   const [conversations, setConversations] = useState<ConversationStats[]>([]);
-  const [leads, setLeads] = useState<ChatLead[]>([]);
+  const [consolidatedLeads, setConsolidatedLeads] = useState<ConsolidatedLead[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics>({
     totalConversations: 0,
     activeConversations: 0,
@@ -59,11 +65,123 @@ export const useChatDashboardData = () => {
     leadsGenerated: 0,
     avgMessagesPerConversation: 0
   });
+  const [filters, setFilters] = useState<ChatFilters>({
+    period: 'week',
+    activity: 'all',
+    engagement: 'all',
+    status: 'all'
+  });
   const [loading, setLoading] = useState(true);
   const [conversationMessages, setConversationMessages] = useState<any[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [recoveryLoading, setRecoveryLoading] = useState(false);
   const { toast } = useToast();
+
+  const applyFilters = useCallback((conversations: ConversationStats[]) => {
+    let filtered = [...conversations];
+
+    // Filtro por período
+    if (filters.period !== 'all') {
+      const now = new Date();
+      const cutoff = new Date();
+      
+      switch (filters.period) {
+        case 'today':
+          cutoff.setHours(0, 0, 0, 0);
+          break;
+        case 'week':
+          cutoff.setDate(now.getDate() - 7);
+          break;
+        case 'month':
+          cutoff.setDate(now.getDate() - 30);
+          break;
+      }
+      
+      filtered = filtered.filter(conv => new Date(conv.last_message_at) >= cutoff);
+    }
+
+    // Filtro por atividade
+    if (filters.activity !== 'all') {
+      const now = new Date();
+      
+      switch (filters.activity) {
+        case 'last_24h':
+          const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+          filtered = filtered.filter(conv => new Date(conv.last_message_at) >= yesterday);
+          break;
+        case 'most_active':
+          filtered = filtered.filter(conv => conv.message_count >= 10);
+          break;
+        case 'recent':
+          filtered = filtered.slice(0, 20);
+          break;
+      }
+    }
+
+    // Filtro por engajamento
+    if (filters.engagement !== 'all') {
+      switch (filters.engagement) {
+        case 'high':
+          filtered = filtered.filter(conv => conv.message_count >= 10);
+          break;
+        case 'medium':
+          filtered = filtered.filter(conv => conv.message_count >= 5 && conv.message_count < 10);
+          break;
+        case 'low':
+          filtered = filtered.filter(conv => conv.message_count < 5);
+          break;
+      }
+    }
+
+    // Filtro por status
+    if (filters.status !== 'all') {
+      filtered = filtered.filter(conv => conv.status === filters.status);
+    }
+
+    return filtered;
+  }, [filters]);
+
+  const consolidateLeadsByUser = useCallback((conversations: ConversationStats[]) => {
+    const userMap = new Map<string, ConsolidatedLead>();
+
+    conversations.forEach(conv => {
+      if (!conv.user_id || !conv.community_profiles) return;
+
+      const userId = conv.user_id;
+      
+      if (!userMap.has(userId)) {
+        userMap.set(userId, {
+          user_id: userId,
+          profile: conv.community_profiles,
+          conversations: [],
+          total_conversations: 0,
+          total_messages: 0,
+          first_interaction: conv.started_at || conv.last_message_at,
+          last_interaction: conv.last_message_at,
+          lead_source: 'auto_capture',
+          engagement_score: 0
+        });
+      }
+
+      const lead = userMap.get(userId)!;
+      lead.conversations.push(conv);
+      lead.total_conversations++;
+      lead.total_messages += conv.message_count || 0;
+      
+      // Atualizar primeira e última interação
+      if (new Date(conv.started_at || conv.last_message_at) < new Date(lead.first_interaction)) {
+        lead.first_interaction = conv.started_at || conv.last_message_at;
+      }
+      if (new Date(conv.last_message_at) > new Date(lead.last_interaction)) {
+        lead.last_interaction = conv.last_message_at;
+      }
+      
+      // Calcular score de engajamento
+      lead.engagement_score = lead.total_messages + (lead.total_conversations * 2);
+    });
+
+    return Array.from(userMap.values()).sort((a, b) => b.engagement_score - a.engagement_score);
+  }, []);
 
   const loadDashboardData = useCallback(async () => {
     setLoading(true);
@@ -109,36 +227,9 @@ export const useChatDashboardData = () => {
         };
       }) || [];
 
-      // Buscar leads básicos
-      const { data: leadsData, error: leadsError } = await supabase
-        .from('chat_leads')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (leadsError) {
-        console.error('Erro ao buscar leads:', leadsError);
-        toast({
-          title: "Erro",
-          description: "Erro ao carregar leads.",
-          variant: "destructive",
-        });
-      }
-
-      // Enriquecer leads com dados das conversas
-      const enrichedLeads = await Promise.all(
-        (leadsData || []).map(async (lead) => {
-          const conversation = enrichedConversations.find(c => c.id === lead.conversation_id);
-          return {
-            ...lead,
-            conversations: conversation ? {
-              id: conversation.id,
-              title: conversation.title,
-              user_id: conversation.user_id,
-              community_profiles: conversation.community_profiles
-            } : null
-          };
-        })
-      );
+      // Aplicar filtros e consolidar leads
+      const filteredConversations = applyFilters(enrichedConversations);
+      const consolidated = consolidateLeadsByUser(filteredConversations);
 
       // Buscar total de mensagens
       const { count: totalMessages, error: messagesError } = await supabase
@@ -152,11 +243,11 @@ export const useChatDashboardData = () => {
       // Calcular métricas
       const totalConversations = enrichedConversations?.length || 0;
       const activeConversations = enrichedConversations?.filter(c => c.status === 'active').length || 0;
-      const leadsGenerated = enrichedLeads?.length || 0;
+      const leadsGenerated = consolidated?.length || 0;
       const avgMessages = totalConversations > 0 ? Math.round((totalMessages || 0) / totalConversations) : 0;
 
       setConversations(enrichedConversations);
-      setLeads(enrichedLeads);
+      setConsolidatedLeads(consolidated);
       setMetrics({
         totalConversations,
         activeConversations,
@@ -167,7 +258,7 @@ export const useChatDashboardData = () => {
 
       console.log('Dashboard carregado com sucesso', {
         conversations: enrichedConversations.length,
-        leads: enrichedLeads.length,
+        consolidatedLeads: consolidated.length,
         profiles: profilesData.length
       });
 
@@ -181,7 +272,7 @@ export const useChatDashboardData = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, applyFilters, consolidateLeadsByUser]);
 
   const loadConversationMessages = useCallback(async (conversationId: string) => {
     setMessagesLoading(true);
@@ -374,8 +465,10 @@ export const useChatDashboardData = () => {
 
   return {
     conversations,
-    leads,
+    consolidatedLeads,
     metrics,
+    filters,
+    setFilters,
     loading,
     conversationMessages,
     messagesLoading,

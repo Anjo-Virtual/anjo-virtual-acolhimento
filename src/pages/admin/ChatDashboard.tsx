@@ -2,19 +2,23 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Users, MessageSquare, Filter } from "lucide-react";
 import { ChatMetricsCards } from "@/components/admin/chat/ChatMetricsCards";
 import { ConversationsList } from "@/components/admin/chat/ConversationsList";
-import { LeadsList } from "@/components/admin/chat/LeadsList";
+import { ConsolidatedLeadsList } from "@/components/admin/chat/ConsolidatedLeadsList";
 import { MessagesViewer } from "@/components/admin/chat/MessagesViewer";
+import { ChatFilters } from "@/components/admin/chat/ChatFilters";
 import { useChatDashboardData } from "@/hooks/admin/useChatDashboardData";
 
 const ChatDashboard = () => {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
   const {
     conversations,
-    leads,
+    consolidatedLeads,
     metrics,
+    filters,
+    setFilters,
     loading,
     conversationMessages,
     messagesLoading,
@@ -51,6 +55,14 @@ const ChatDashboard = () => {
         <h1 className="text-3xl font-bold">Dashboard do Chat</h1>
         <div className="flex gap-2">
           <Button 
+            onClick={() => setShowFilters(!showFilters)}
+            variant="outline"
+            className={showFilters ? "bg-blue-50 border-blue-200" : ""}
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            Filtros
+          </Button>
+          <Button 
             onClick={recoverLostLeads} 
             variant="secondary" 
             disabled={recoveryLoading || loading}
@@ -68,24 +80,39 @@ const ChatDashboard = () => {
 
       <ChatMetricsCards metrics={metrics} />
 
-      <Tabs defaultValue="conversations" className="space-y-4">
+      {/* Filtros */}
+      {showFilters && (
+        <ChatFilters 
+          filters={filters}
+          onFiltersChange={setFilters}
+          totalResults={consolidatedLeads.length + conversations.length}
+        />
+      )}
+
+      <Tabs defaultValue="leads" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="conversations">Conversas</TabsTrigger>
-          <TabsTrigger value="leads">Leads</TabsTrigger>
+          <TabsTrigger value="leads" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Leads ({consolidatedLeads.length})
+          </TabsTrigger>
+          <TabsTrigger value="conversations" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Conversas ({conversations.length})
+          </TabsTrigger>
           <TabsTrigger value="messages">Mensagens</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="conversations" className="space-y-4">
-          <ConversationsList 
-            conversations={conversations}
+        <TabsContent value="leads" className="space-y-4">
+          <ConsolidatedLeadsList 
+            leads={consolidatedLeads}
             onViewConversation={handleViewConversation}
             messagesLoading={messagesLoading}
           />
         </TabsContent>
 
-        <TabsContent value="leads" className="space-y-4">
-          <LeadsList 
-            leads={leads}
+        <TabsContent value="conversations" className="space-y-4">
+          <ConversationsList 
+            conversations={conversations}
             onViewConversation={handleViewConversation}
             messagesLoading={messagesLoading}
           />
