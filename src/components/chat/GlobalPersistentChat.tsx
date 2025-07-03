@@ -20,10 +20,41 @@ const GlobalPersistentChat = () => {
   const location = useLocation();
   const { openChat, closeChat, isActiveInstance } = useChatInstance();
   
-  // Estado inicial do chat carregado do sessionStorage
+  // Estado inicial do chat carregado do sessionStorage unificado
   const [chatState, setChatState] = useState<ChatState>(() => {
-    const savedState = sessionStorage.getItem('global-chat-state');
-    return savedState ? JSON.parse(savedState) : { isOpen: false, isMinimized: false };
+    try {
+      console.log('🎯 [GLOBAL_CHAT] Carregando estado inicial na rota:', location.pathname);
+      
+      // Tentar carregar do sistema unificado primeiro
+      const unifiedData = sessionStorage.getItem('global-persistent-chat');
+      if (unifiedData) {
+        const data = JSON.parse(unifiedData);
+        console.log('✅ [GLOBAL_CHAT] Estado carregado do sistema unificado:', {
+          conversationId: data.conversationId,
+          isActive: data.isActive,
+          messageCount: data.messageCount
+        });
+        
+        return {
+          isOpen: data.isActive || false,
+          isMinimized: false,
+          conversationId: data.conversationId
+        };
+      }
+      
+      // Fallback para sistema antigo
+      const savedState = sessionStorage.getItem('global-chat-state');
+      if (savedState) {
+        console.log('⚠️ [GLOBAL_CHAT] Usando fallback para sistema antigo');
+        return JSON.parse(savedState);
+      }
+      
+      console.log('📭 [GLOBAL_CHAT] Nenhum estado encontrado, usando padrão');
+      return { isOpen: false, isMinimized: false };
+    } catch (error) {
+      console.error('❌ [GLOBAL_CHAT] Erro ao carregar estado:', error);
+      return { isOpen: false, isMinimized: false };
+    }
   });
 
   // Verificar condições de renderização
@@ -32,8 +63,31 @@ const GlobalPersistentChat = () => {
   
   // Salvar estado no sessionStorage sempre que mudar
   useEffect(() => {
+    console.log('💾 [GLOBAL_CHAT] Salvando estado:', {
+      chatState,
+      location: location.pathname
+    });
+    
+    // Salvar no sistema antigo para compatibilidade
     sessionStorage.setItem('global-chat-state', JSON.stringify(chatState));
-  }, [chatState]);
+    
+    // Atualizar sistema unificado se existir
+    const unifiedData = sessionStorage.getItem('global-persistent-chat');
+    if (unifiedData) {
+      try {
+        const data = JSON.parse(unifiedData);
+        const updatedData = {
+          ...data,
+          isActive: chatState.isOpen,
+          lastActivity: Date.now(),
+          location: location.pathname
+        };
+        sessionStorage.setItem('global-persistent-chat', JSON.stringify(updatedData));
+      } catch (error) {
+        console.error('❌ [GLOBAL_CHAT] Erro ao atualizar dados unificados:', error);
+      }
+    }
+  }, [chatState, location.pathname]);
 
   // Gerenciar instância ativa do chat
   useEffect(() => {
@@ -61,6 +115,7 @@ const GlobalPersistentChat = () => {
   };
 
   const handleConversationCreated = (conversationId: string) => {
+    console.log('🆕 [GLOBAL_CHAT] Nova conversa criada:', conversationId, 'na rota:', location.pathname);
     setChatState(prev => ({ ...prev, conversationId }));
   };
 

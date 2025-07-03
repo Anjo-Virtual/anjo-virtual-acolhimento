@@ -32,42 +32,97 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
     return null;
   });
 
-  // Função para salvar mensagens no sessionStorage
-  const saveMessagesToSession = useCallback((msgs: Message[], convId?: string) => {
+  // PERSISTÊNCIA UNIFICADA - Chave única para o chat global
+  const UNIFIED_STORAGE_KEY = 'global-persistent-chat';
+
+  // Função para salvar dados unificados do chat
+  const saveUnifiedChatData = useCallback((msgs: Message[], convId?: string) => {
     try {
-      const storageKey = `chat_messages_${convId || 'global-temp'}`;
-      sessionStorage.setItem(storageKey, JSON.stringify(msgs));
-      
-      // Também salvar metadados da sessão
-      const sessionMeta = {
+      console.log('💾 [PERSISTENCE] Salvando dados unificados:', {
+        messagesCount: msgs.length,
         conversationId: convId,
+        storageKey: UNIFIED_STORAGE_KEY,
+        location: window.location.pathname
+      });
+
+      const unifiedData = {
+        conversationId: convId,
+        messages: msgs,
         lastActivity: Date.now(),
-        messageCount: msgs.length
+        messageCount: msgs.length,
+        isActive: true,
+        location: window.location.pathname
       };
-      sessionStorage.setItem('chat_session_meta', JSON.stringify(sessionMeta));
+      
+      sessionStorage.setItem(UNIFIED_STORAGE_KEY, JSON.stringify(unifiedData));
+      
+      // Manter compatibilidade com sistema antigo temporariamente
+      if (convId) {
+        sessionStorage.setItem(`chat_messages_${convId}`, JSON.stringify(msgs));
+      } else {
+        sessionStorage.setItem('chat_messages_global-temp', JSON.stringify(msgs));
+      }
     } catch (error) {
-      console.warn('Erro ao salvar mensagens no session storage:', error);
+      console.error('❌ [PERSISTENCE] Erro ao salvar dados unificados:', error);
     }
   }, []);
 
-  // Função para carregar mensagens do sessionStorage
-  const loadMessagesFromSession = useCallback((convId?: string): Message[] => {
+  // Função para carregar dados unificados do chat
+  const loadUnifiedChatData = useCallback((): { messages: Message[], conversationId?: string } => {
     try {
-      const storageKey = `chat_messages_${convId || 'global-temp'}`;
-      const stored = sessionStorage.getItem(storageKey);
-      return stored ? JSON.parse(stored) : [];
+      console.log('📂 [PERSISTENCE] Carregando dados unificados de:', UNIFIED_STORAGE_KEY, 'na rota:', window.location.pathname);
+
+      const stored = sessionStorage.getItem(UNIFIED_STORAGE_KEY);
+      if (stored) {
+        const data = JSON.parse(stored);
+        console.log('✅ [PERSISTENCE] Dados carregados:', {
+          messagesCount: data.messages?.length || 0,
+          conversationId: data.conversationId,
+          lastActivity: new Date(data.lastActivity),
+          savedLocation: data.location,
+          currentLocation: window.location.pathname
+        });
+        
+        return {
+          messages: data.messages || [],
+          conversationId: data.conversationId
+        };
+      }
+      
+      // Fallback para sistema antigo
+      console.log('⚠️ [PERSISTENCE] Usando fallback para sistema antigo');
+      const oldStorageKey = 'chat_messages_global-temp';
+      const oldStored = sessionStorage.getItem(oldStorageKey);
+      if (oldStored) {
+        const messages = JSON.parse(oldStored);
+        return { messages, conversationId: undefined };
+      }
+      
+      return { messages: [], conversationId: undefined };
     } catch (error) {
-      console.warn('Erro ao carregar mensagens do session storage:', error);
-      return [];
+      console.error('❌ [PERSISTENCE] Erro ao carregar dados unificados:', error);
+      return { messages: [], conversationId: undefined };
     }
   }, []);
 
   const loadMessages = useCallback(async () => {
+    console.log('🔄 [LOAD] Iniciando carregamento de mensagens. ConversationId:', currentConversationId, 'Rota:', window.location.pathname);
+
     if (!currentConversationId) {
-      // Carregar mensagens da sessão se não há conversationId
-      const sessionMessages = loadMessagesFromSession();
+      // Carregar dados unificados da sessão se não há conversationId
+      const { messages: sessionMessages, conversationId: storedConvId } = loadUnifiedChatData();
+      
       if (sessionMessages.length > 0) {
+        console.log('✅ [LOAD] Carregando mensagens da sessão:', sessionMessages.length, 'conversationId:', storedConvId);
         setMessages(sessionMessages);
+        
+        // Se tem conversationId armazenado, atualizar o estado
+        if (storedConvId && storedConvId !== currentConversationId) {
+          console.log('🔄 [LOAD] Atualizando conversationId do armazenamento:', storedConvId);
+          setCurrentConversationId(storedConvId);
+        }
+      } else {
+        console.log('📭 [LOAD] Nenhuma mensagem encontrada na sessão');
       }
       setIsInputReady(true);
       return;
@@ -133,9 +188,9 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
       }));
 
       setMessages(typedMessages);
-      saveMessagesToSession(typedMessages, currentConversationId);
+      saveUnifiedChatData(typedMessages, currentConversationId);
       loadedConversationId.current = currentConversationId;
-      console.log(`Carregadas ${typedMessages.length} mensagens`);
+      console.log(`✅ [LOAD] Carregadas ${typedMessages.length} mensagens do banco de dados`);
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error);
       toast({
@@ -234,7 +289,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
         };
 
         const newMessages = [...filtered, finalUserMessage, assistantMessage];
-        saveMessagesToSession(newMessages, data.conversationId || currentConversationId);
+        saveUnifiedChatData(newMessages, data.conversationId || currentConversationId);
         return newMessages;
       });
 
@@ -259,7 +314,7 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
         };
 
         const newMessages = [...filtered, finalUserMessage, errorMessage];
-        saveMessagesToSession(newMessages, currentConversationId);
+        saveUnifiedChatData(newMessages, currentConversationId);
         return newMessages;
       });
 
@@ -272,23 +327,45 @@ export const useChatMessages = (userId?: string, conversationId?: string) => {
       setIsLoading(false);
       setIsInputReady(true);
     }
-  }, [currentConversationId, currentUser?.id, userId, sessionId, isLoading, saveMessagesToSession]);
+  }, [currentConversationId, currentUser?.id, userId, sessionId, isLoading, saveUnifiedChatData]);
 
-  // Resetar quando conversationId muda
+  // Resetar quando conversationId muda com logs detalhados
   useEffect(() => {
+    console.log('🔄 [EFFECT] ConversationId mudou:', {
+      current: currentConversationId,
+      loaded: loadedConversationId.current,
+      willReset: currentConversationId !== loadedConversationId.current,
+      location: window.location.pathname
+    });
+
     if (currentConversationId !== loadedConversationId.current) {
+      console.log('🗑️ [RESET] Limpando mensagens devido a mudança de conversationId');
       setMessages([]);
       loadedConversationId.current = null;
     }
   }, [currentConversationId]);
 
+  // Carregamento inicial com debugging
   useEffect(() => {
+    console.log('🎯 [INIT] Efeito de inicialização:', {
+      currentConversationId,
+      hasCurrentConversationId: !!currentConversationId,
+      location: window.location.pathname
+    });
+
     if (currentConversationId) {
       loadMessages();
     } else {
-      setIsInputReady(true);
+      // Tentar carregar da sessão unificada
+      const { messages: storedMessages, conversationId: storedConvId } = loadUnifiedChatData();
+      if (storedMessages.length > 0 && storedConvId) {
+        console.log('🔄 [INIT] Encontrada conversa na sessão, restaurando:', storedConvId);
+        setCurrentConversationId(storedConvId);
+      } else {
+        setIsInputReady(true);
+      }
     }
-  }, [currentConversationId, loadMessages, loadMessagesFromSession]);
+  }, [currentConversationId, loadMessages, loadUnifiedChatData]);
 
   return {
     messages,
