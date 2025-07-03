@@ -12,6 +12,17 @@ interface ChatLead {
   phone: string | null;
   created_at: string;
   conversation_id: string;
+  conversations?: {
+    id: string;
+    title: string;
+    user_id: string;
+    community_profiles?: {
+      display_name: string;
+      bio: string | null;
+      grief_type: string | null;
+      is_anonymous: boolean;
+    };
+  };
 }
 
 interface LeadsListProps {
@@ -33,20 +44,40 @@ export const LeadsList = ({ leads, onViewConversation, messagesLoading }: LeadsL
           ) : (
             leads.slice(0, 20).map((lead) => (
               <div key={lead.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex-1">
-                  <h3 className="font-medium">{lead.name}</h3>
-                  <div className="text-sm text-gray-500">
-                    <p>{lead.email}</p>
-                    {lead.phone && <p>{lead.phone}</p>}
-                    <p className="flex items-center gap-1 mt-1">
-                      <Calendar className="h-3 w-3" />
-                      {formatDistanceToNow(new Date(lead.created_at), {
-                        addSuffix: true,
-                        locale: ptBR
-                      })}
-                    </p>
-                  </div>
-                </div>
+                 <div className="flex-1">
+                   <h3 className="font-medium">{lead.name}</h3>
+                   <div className="text-sm text-gray-500">
+                     <p>{lead.email}</p>
+                     {lead.phone && <p>{lead.phone}</p>}
+                     
+                     {/* Informações do perfil conectado */}
+                     {lead.conversations?.community_profiles && (
+                       <div className="mt-2 p-2 bg-blue-50 rounded">
+                         <p className="text-blue-700">
+                           <strong>Conectado ao perfil:</strong> {lead.conversations.community_profiles.display_name}
+                         </p>
+                         {lead.conversations.community_profiles.grief_type && (
+                           <p className="text-blue-600 text-xs">
+                             Tipo de luto: {lead.conversations.community_profiles.grief_type}
+                           </p>
+                         )}
+                         {lead.conversations.community_profiles.bio && (
+                           <p className="text-blue-600 text-xs italic">
+                             "{lead.conversations.community_profiles.bio.substring(0, 80)}..."
+                           </p>
+                         )}
+                       </div>
+                     )}
+                     
+                     <p className="flex items-center gap-1 mt-2">
+                       <Calendar className="h-3 w-3" />
+                       {formatDistanceToNow(new Date(lead.created_at), {
+                         addSuffix: true,
+                         locale: ptBR
+                       })}
+                     </p>
+                   </div>
+                 </div>
                 <Button 
                   variant="outline" 
                   size="sm"

@@ -53,13 +53,37 @@ serve(async (req) => {
     console.log(`🚀 [CHAT-RAG] Iniciando processamento para ${userId ? `usuário ${userId}` : `sessão ${sessionId}`}`);
 
     let conversation = null
+    let userProfile = null
+
+    // Buscar perfil do usuário se estiver logado
+    if (userId) {
+      console.log('[CHAT-RAG] Buscando perfil do usuário:', userId)
+      const { data: profile, error: profileError } = await supabaseClient
+        .from('community_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+
+      if (profileError) {
+        console.log('[CHAT-RAG] Perfil não encontrado ou erro:', profileError.message)
+      } else {
+        userProfile = profile
+        console.log('[CHAT-RAG] Perfil encontrado:', profile.display_name)
+      }
+    }
 
     // Se não tiver conversationId, criar nova conversa
     if (!conversationId) {
       console.log('[CHAT-RAG] Criando nova conversa')
       
+      // Gerar título mais inteligente baseado no perfil e mensagem
+      let conversationTitle = message.substring(0, 50) + '...'
+      if (userProfile) {
+        conversationTitle = `Conversa com ${userProfile.display_name}`
+      }
+      
       const conversationData = {
-        title: message.substring(0, 50) + '...',
+        title: conversationTitle,
         message_count: 0,
         ...(userId ? { user_id: userId } : { session_id: sessionId })
       }
@@ -175,10 +199,25 @@ serve(async (req) => {
       console.error('[CHAT-RAG] Erro ao buscar configuração do agente:', configError)
     }
 
-    // Construir contexto melhorado para o GPT COM HISTÓRICO
+    // Construir contexto melhorado para o GPT COM HISTÓRICO E PERFIL
     let context = agentConfig?.system_prompt || `Você é um assistente especializado em acolhimento emocional. 
     Sua função é oferecer suporte, orientação e informações úteis de forma empática e acolhedora.
     Sempre mantenha um tom respeitoso, compreensivo e humanizado em suas respostas.`
+    
+    // NOVO: Adicionar informações do perfil do usuário ao contexto
+    if (userProfile) {
+      context += '\n\n=== INFORMAÇÕES DO USUÁRIO ===\n'
+      context += `Nome: ${userProfile.display_name}\n`
+      if (userProfile.bio) {
+        context += `Bio: ${userProfile.bio}\n`
+      }
+      if (userProfile.grief_type) {
+        context += `Tipo de luto: ${userProfile.grief_type}\n`
+      }
+      context += `Usuário anônimo: ${userProfile.is_anonymous ? 'Sim' : 'Não'}\n`
+      context += '=== FIM DAS INFORMAÇÕES DO USUÁRIO ===\n'
+      context += `\nUse essas informações para personalizar suas respostas. Se o usuário preferir anonimato, seja discreto. Adapte seu tom baseado no tipo de luto quando mencionado. Chame o usuário pelo nome quando apropriado.\n`
+    }
     
     // NOVO: Adicionar histórico de mensagens ao contexto
     if (messageHistory && messageHistory.length > 0) {

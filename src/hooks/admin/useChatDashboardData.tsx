@@ -12,6 +12,13 @@ interface ConversationStats {
   message_count: number;
   status: string;
   lead_id: string | null;
+  community_profiles?: {
+    id: string;
+    display_name: string;
+    bio: string | null;
+    grief_type: string | null;
+    is_anonymous: boolean;
+  };
 }
 
 interface ChatLead {
@@ -21,6 +28,17 @@ interface ChatLead {
   phone: string | null;
   created_at: string;
   conversation_id: string;
+  conversations?: {
+    id: string;
+    title: string;
+    user_id: string;
+    community_profiles?: {
+      display_name: string;
+      bio: string | null;
+      grief_type: string | null;
+      is_anonymous: boolean;
+    };
+  };
 }
 
 interface DashboardMetrics {
@@ -51,7 +69,7 @@ export const useChatDashboardData = () => {
     try {
       console.log('Carregando dados do dashboard...');
       
-      // Buscar conversas
+      // Buscar conversas básicas
       const { data: conversationsData, error: convError } = await supabase
         .from('conversations')
         .select('*')
@@ -66,7 +84,31 @@ export const useChatDashboardData = () => {
         });
       }
 
-      // Buscar leads
+      // Buscar perfis dos usuários das conversas
+      const userIds = conversationsData?.filter(c => c.user_id).map(c => c.user_id) || [];
+      let profilesData: any[] = [];
+      
+      if (userIds.length > 0) {
+        const { data: profiles, error: profileError } = await supabase
+          .from('community_profiles')
+          .select('*')
+          .in('user_id', userIds);
+          
+        if (!profileError) {
+          profilesData = profiles || [];
+        }
+      }
+
+      // Combinar conversas com perfis
+      const enrichedConversations = conversationsData?.map(conversation => {
+        const profile = profilesData.find(p => p.user_id === conversation.user_id);
+        return {
+          ...conversation,
+          community_profiles: profile || null
+        };
+      }) || [];
+
+      // Buscar leads básicos
       const { data: leadsData, error: leadsError } = await supabase
         .from('chat_leads')
         .select('*')
@@ -81,6 +123,22 @@ export const useChatDashboardData = () => {
         });
       }
 
+      // Enriquecer leads com dados das conversas
+      const enrichedLeads = await Promise.all(
+        (leadsData || []).map(async (lead) => {
+          const conversation = enrichedConversations.find(c => c.id === lead.conversation_id);
+          return {
+            ...lead,
+            conversations: conversation ? {
+              id: conversation.id,
+              title: conversation.title,
+              user_id: conversation.user_id,
+              community_profiles: conversation.community_profiles
+            } : null
+          };
+        })
+      );
+
       // Buscar total de mensagens
       const { count: totalMessages, error: messagesError } = await supabase
         .from('messages')
@@ -91,13 +149,13 @@ export const useChatDashboardData = () => {
       }
 
       // Calcular métricas
-      const totalConversations = conversationsData?.length || 0;
-      const activeConversations = conversationsData?.filter(c => c.status === 'active').length || 0;
-      const leadsGenerated = leadsData?.length || 0;
+      const totalConversations = enrichedConversations?.length || 0;
+      const activeConversations = enrichedConversations?.filter(c => c.status === 'active').length || 0;
+      const leadsGenerated = enrichedLeads?.length || 0;
       const avgMessages = totalConversations > 0 ? Math.round((totalMessages || 0) / totalConversations) : 0;
 
-      setConversations(conversationsData || []);
-      setLeads(leadsData || []);
+      setConversations(enrichedConversations);
+      setLeads(enrichedLeads);
       setMetrics({
         totalConversations,
         activeConversations,
@@ -106,7 +164,11 @@ export const useChatDashboardData = () => {
         avgMessagesPerConversation: avgMessages
       });
 
-      console.log('Dashboard carregado com sucesso');
+      console.log('Dashboard carregado com sucesso', {
+        conversations: enrichedConversations.length,
+        leads: enrichedLeads.length,
+        profiles: profilesData.length
+      });
 
     } catch (error) {
       console.error('Erro ao carregar dados do dashboard:', error);

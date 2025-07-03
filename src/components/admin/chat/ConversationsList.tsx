@@ -15,6 +15,13 @@ interface ConversationStats {
   message_count: number;
   status: string;
   lead_id: string | null;
+  community_profiles?: {
+    id: string;
+    display_name: string;
+    bio: string | null;
+    grief_type: string | null;
+    is_anonymous: boolean;
+  };
 }
 
 interface ConversationsListProps {
@@ -58,30 +65,50 @@ export const ConversationsList = ({
           ) : (
             conversations.slice(0, 20).map((conversation) => (
               <div key={conversation.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-medium">{conversation.title || 'Conversa sem título'}</h3>
-                    <Badge className={`${getStatusColor(conversation.status)} text-white`}>
-                      {getStatusText(conversation.status)}
-                    </Badge>
-                    {conversation.lead_id && (
-                      <Badge variant="outline">Lead</Badge>
-                    )}
-                  </div>
-                  <div className="text-sm text-gray-500 flex items-center gap-4">
-                    <span className="flex items-center gap-1">
-                      <MessageSquare className="h-3 w-3" />
-                      {conversation.message_count} mensagens
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {formatDistanceToNow(new Date(conversation.last_message_at), {
-                        addSuffix: true,
-                        locale: ptBR
-                      })}
-                    </span>
-                  </div>
-                </div>
+                 <div className="flex-1">
+                   <div className="flex items-center gap-2 mb-1">
+                     <h3 className="font-medium">{conversation.title || 'Conversa sem título'}</h3>
+                     <Badge className={`${getStatusColor(conversation.status)} text-white`}>
+                       {getStatusText(conversation.status)}
+                     </Badge>
+                     {conversation.lead_id && (
+                       <Badge variant="outline">Lead</Badge>
+                     )}
+                   </div>
+                   
+                   {/* Informações do usuário */}
+                   {conversation.community_profiles && (
+                     <div className="text-sm text-blue-600 mb-2">
+                       <strong>Usuário:</strong> {conversation.community_profiles.display_name}
+                       {conversation.community_profiles.grief_type && (
+                         <span className="ml-2 text-gray-500">• {conversation.community_profiles.grief_type}</span>
+                       )}
+                       {conversation.community_profiles.is_anonymous && (
+                         <span className="ml-2 text-orange-500">• Anônimo</span>
+                       )}
+                     </div>
+                   )}
+                   
+                   {conversation.community_profiles?.bio && (
+                     <div className="text-xs text-gray-600 mb-2 italic">
+                       "{conversation.community_profiles.bio.substring(0, 100)}..."
+                     </div>
+                   )}
+                   
+                   <div className="text-sm text-gray-500 flex items-center gap-4">
+                     <span className="flex items-center gap-1">
+                       <MessageSquare className="h-3 w-3" />
+                       {conversation.message_count} mensagens
+                     </span>
+                     <span className="flex items-center gap-1">
+                       <Calendar className="h-3 w-3" />
+                       {formatDistanceToNow(new Date(conversation.last_message_at), {
+                         addSuffix: true,
+                         locale: ptBR
+                       })}
+                     </span>
+                   </div>
+                 </div>
                 <Button 
                   variant="outline" 
                   size="sm"
