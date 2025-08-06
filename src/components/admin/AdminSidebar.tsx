@@ -19,6 +19,7 @@ import {
   Settings,
   PenTool,
   MessageCircle,
+  Users,
 } from "lucide-react";
 
 export const AdminSidebar = () => {
@@ -60,6 +61,11 @@ export const AdminSidebar = () => {
       title: "Integrações",
       path: "/admin/integrations",
       icon: Share2
+    },
+    {
+      title: "Usuários",
+      path: "/admin/users",
+      icon: Users
     },
     {
       title: "Configurações",

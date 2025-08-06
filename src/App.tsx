@@ -38,6 +38,7 @@ import Categories from "./pages/admin/Categories";
 import Integrations from "./pages/admin/Integrations";
 import Settings from "./pages/admin/Settings";
 import ChatDashboard from "./pages/admin/ChatDashboard";
+import AdminUsers from "./pages/admin/Users";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -110,6 +111,7 @@ const App = () => (
                 <Route path="integrations" element={<Integrations />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="chat-dashboard" element={<ChatDashboard />} />
+                <Route path="users" element={<AdminUsers />} />
               </Route>
             </Routes>
             
