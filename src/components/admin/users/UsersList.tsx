@@ -1,23 +1,25 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, MoreHorizontal } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MoreVertical, Users, Copy, UserPlus } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { UserRoleEditor } from "./UserRoleEditor";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { UserActionsDropdown } from "./UserActionsDropdown";
+import { AddUserModal } from "./AddUserModal";
 
 interface User {
   user_id: string;
   site_role: string | null;
+  site_role_assigned_at: string | null;
   community_role: string | null;
+  community_role_assigned_at: string | null;
   display_name: string | null;
   last_active: string | null;
   joined_at: string | null;
-  site_role_assigned_at: string | null;
-  community_role_assigned_at: string | null;
+  status: string;
 }
 
 interface UsersListProps {
@@ -28,25 +30,23 @@ interface UsersListProps {
 
 export function UsersList({ users, isLoading, onRefetch }: UsersListProps) {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [showRoleEditor, setShowRoleEditor] = useState(false);
+  const [roleEditorOpen, setRoleEditorOpen] = useState(false);
+  const [addUserModalOpen, setAddUserModalOpen] = useState(false);
+  const { toast } = useToast();
 
   const getRoleBadgeVariant = (role: string | null) => {
     switch (role) {
-      case 'super_admin':
-        return 'destructive';
-      case 'admin':
-        return 'secondary';
-      case 'moderator':
-        return 'outline';
-      default:
-        return 'default';
+      case 'super_admin': return 'destructive' as const;
+      case 'admin': return 'secondary' as const;
+      case 'moderator': return 'outline' as const;
+      default: return 'default' as const;
     }
   };
 
   const getRoleLabel = (role: string | null) => {
     const roleLabels: { [key: string]: string } = {
       'super_admin': 'Super Admin',
-      'admin': 'Admin',
+      'admin': 'Admin', 
       'moderator': 'Moderador',
       'member': 'Membro',
       'community_member': 'Membro Comunidade'
@@ -57,28 +57,33 @@ export function UsersList({ users, isLoading, onRefetch }: UsersListProps) {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Nunca';
     try {
-      return format(new Date(dateString), 'dd/MM/yyyy HH:mm', { locale: ptBR });
+      return new Date(dateString).toLocaleDateString('pt-BR');
     } catch {
       return 'Data inválida';
     }
   };
 
   const getActivityStatus = (lastActive: string | null) => {
-    if (!lastActive) return 'Inativo';
+    if (!lastActive) return { status: "Nunca ativo", variant: "secondary" as const };
     
     const now = new Date();
     const lastActiveDate = new Date(lastActive);
-    const diffDays = Math.floor((now.getTime() - lastActiveDate.getTime()) / (1000 * 60 * 60 * 24));
+    const diffInDays = Math.floor((now.getTime() - lastActiveDate.getTime()) / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 0) return 'Hoje';
-    if (diffDays <= 7) return `${diffDays}d atrás`;
-    if (diffDays <= 30) return `${Math.floor(diffDays / 7)}sem atrás`;
-    return 'Inativo';
+    if (diffInDays === 0) return { status: "Hoje", variant: "default" as const };
+    if (diffInDays === 1) return { status: "Ontem", variant: "default" as const };
+    if (diffInDays <= 7) return { status: `${diffInDays} dias atrás`, variant: "default" as const };
+    if (diffInDays <= 30) return { status: `${Math.floor(diffInDays / 7)} semanas atrás`, variant: "secondary" as const };
+    return { status: "Há muito tempo", variant: "secondary" as const };
   };
 
-  const handleEditUser = (user: User) => {
-    setSelectedUser(user);
-    setShowRoleEditor(true);
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active': return { label: 'Ativo', variant: 'default' as const };
+      case 'suspended': return { label: 'Suspenso', variant: 'secondary' as const };
+      case 'banned': return { label: 'Banido', variant: 'destructive' as const };
+      default: return { label: 'Ativo', variant: 'default' as const };
+    }
   };
 
   if (isLoading) {
@@ -103,27 +108,39 @@ export function UsersList({ users, isLoading, onRefetch }: UsersListProps) {
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Lista de Usuários ({users.length})
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Lista de Usuários
+              </CardTitle>
+              <CardDescription>
+                Gerencie usuários e suas permissões
+              </CardDescription>
+            </div>
+            <Button onClick={() => setAddUserModalOpen(true)}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Adicionar Usuário
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Role do Site</TableHead>
-                  <TableHead>Role da Comunidade</TableHead>
-                  <TableHead>Último Acesso</TableHead>
+                  <TableHead>Nome/ID</TableHead>
+                  <TableHead>Role Site</TableHead>
+                  <TableHead>Role Comunidade</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Última Atividade</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       Nenhum usuário encontrado
                     </TableCell>
                   </TableRow>
@@ -151,35 +168,44 @@ export function UsersList({ users, isLoading, onRefetch }: UsersListProps) {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-col">
-                          <span className="text-sm">
-                            {getActivityStatus(user.last_active)}
-                          </span>
-                          {user.last_active && (
-                            <span className="text-xs text-muted-foreground">
-                              {formatDate(user.last_active)}
-                            </span>
-                          )}
-                        </div>
+                        <Badge variant={getStatusBadge(user.status).variant}>
+                          {getStatusBadge(user.status).label}
+                        </Badge>
                       </TableCell>
                       <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEditUser(user)}>
-                              Editar Roles
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => navigator.clipboard.writeText(user.user_id)}
-                            >
-                              Copiar ID
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <Badge variant={getActivityStatus(user.last_active).variant}>
+                          {getActivityStatus(user.last_active).status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => {
+                                setSelectedUser(user);
+                                setRoleEditorOpen(true);
+                              }}>
+                                Editar Roles
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                navigator.clipboard.writeText(user.user_id);
+                                toast({
+                                  title: "ID copiado",
+                                  description: "ID do usuário copiado para a área de transferência.",
+                                });
+                              }}>
+                                <Copy className="mr-2 h-4 w-4" />
+                                Copiar ID
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          <UserActionsDropdown user={user} onRefetch={onRefetch} />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -190,19 +216,24 @@ export function UsersList({ users, isLoading, onRefetch }: UsersListProps) {
         </CardContent>
       </Card>
 
-      {/* Role Editor Modal */}
       {selectedUser && (
         <UserRoleEditor
           user={selectedUser}
-          open={showRoleEditor}
-          onOpenChange={setShowRoleEditor}
+          open={roleEditorOpen}
+          onOpenChange={setRoleEditorOpen}
           onSuccess={() => {
             onRefetch();
-            setShowRoleEditor(false);
+            setRoleEditorOpen(false);
             setSelectedUser(null);
           }}
         />
       )}
+      
+      <AddUserModal
+        open={addUserModalOpen}
+        onOpenChange={setAddUserModalOpen}
+        onSuccess={onRefetch}
+      />
     </>
   );
 }

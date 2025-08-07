@@ -1241,6 +1241,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_invitations: {
+        Row: {
+          community_role: string | null
+          created_at: string | null
+          display_name: string | null
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          site_role: string | null
+          used: boolean | null
+        }
+        Insert: {
+          community_role?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          invited_by: string
+          site_role?: string | null
+          used?: boolean | null
+        }
+        Update: {
+          community_role?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          site_role?: string | null
+          used?: boolean | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           assigned_at: string | null

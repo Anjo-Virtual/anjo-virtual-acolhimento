@@ -62,7 +62,7 @@ export function UserActionsDropdown({ user, onRefetch }: UserActionsDropdownProp
   });
 
   const handleStatusChange = (newStatus: 'active' | 'suspended' | 'banned') => {
-    setActionType(newStatus === 'active' ? 'activate' : newStatus);
+    setActionType(newStatus === 'active' ? 'activate' : newStatus === 'suspended' ? 'suspend' : 'ban');
     setShowConfirmDialog(true);
   };
 

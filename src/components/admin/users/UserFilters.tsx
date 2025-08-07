@@ -51,8 +51,10 @@ export function UserFilters({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Todos</SelectItem>
-          <SelectItem value="active">Ativos (7 dias)</SelectItem>
-          <SelectItem value="inactive">Inativos</SelectItem>
+          <SelectItem value="active">Ativos</SelectItem>
+          <SelectItem value="suspended">Suspensos</SelectItem>
+          <SelectItem value="banned">Banidos</SelectItem>
+          <SelectItem value="recently_active">Ativos (7 dias)</SelectItem>
         </SelectContent>
       </Select>
     </div>
