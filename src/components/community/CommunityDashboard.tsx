@@ -7,6 +7,7 @@ import QuickActions from "./QuickActions";
 import RecentPostsSection from "./RecentPostsSection";
 import CategoriesSection from "./CategoriesSection";
 import RightSidebar from "./RightSidebar";
+import CreatePostForm from "./CreatePostForm";
 
 
 const CommunityDashboard = () => {
@@ -39,6 +40,11 @@ const CommunityDashboard = () => {
             showCreateForm={showCreateForm} 
             setShowCreateForm={setShowCreateForm} 
           />
+          {showCreateForm && (
+            <CreatePostForm 
+              onSuccess={() => setShowCreateForm(false)}
+            />
+          )}
           <RecentPostsSection />
           <CategoriesSection categories={categories} />
         </div>
