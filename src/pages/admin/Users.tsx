@@ -15,7 +15,7 @@ export default function Users() {
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  // Fetch users with their roles from both systems
+// Fetch users with their roles from both systems
   const { data: users, isLoading, refetch } = useQuery({
     queryKey: ["admin-users", searchTerm, roleFilter, statusFilter],
     queryFn: async () => {
@@ -31,7 +31,7 @@ export default function Users() {
 
       if (authError) throw authError;
 
-      // Get community profiles with their roles
+      // Get community profiles with their roles and status
       const { data: communityData, error: communityError } = await supabase
         .from("community_profiles")
         .select(`
@@ -40,6 +40,7 @@ export default function Users() {
           display_name,
           bio,
           is_anonymous,
+          status,
           joined_at,
           last_active,
           community_user_roles (
@@ -64,7 +65,8 @@ export default function Users() {
             community_role: null,
             display_name: null,
             last_active: null,
-            joined_at: authUser.created_at
+            joined_at: authUser.created_at,
+            status: 'active'
           });
         } else {
           const user = userMap.get(authUser.user_id);
@@ -86,7 +88,8 @@ export default function Users() {
               community_role_assigned_at: profile.community_user_roles?.[0]?.assigned_at || null,
               display_name: profile.display_name,
               last_active: profile.last_active,
-              joined_at: profile.joined_at
+              joined_at: profile.joined_at,
+              status: profile.status || 'active'
             });
           } else {
             const user = userMap.get(profile.user_id);
@@ -95,6 +98,7 @@ export default function Users() {
             user.community_role_assigned_at = profile.community_user_roles?.[0]?.assigned_at || null;
             user.display_name = profile.display_name;
             user.last_active = profile.last_active;
+            user.status = profile.status || 'active';
           }
         }
       });
@@ -116,17 +120,17 @@ export default function Users() {
       }
 
       if (statusFilter !== "all") {
-        const now = new Date();
-        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        
-        filteredUsers = filteredUsers.filter(user => {
-          if (statusFilter === "active") {
-            return user.last_active && new Date(user.last_active) > weekAgo;
-          } else if (statusFilter === "inactive") {
-            return !user.last_active || new Date(user.last_active) <= weekAgo;
-          }
-          return true;
-        });
+        if (statusFilter === "suspended" || statusFilter === "banned") {
+          filteredUsers = filteredUsers.filter(user => user.status === statusFilter);
+        } else if (statusFilter === "active") {
+          filteredUsers = filteredUsers.filter(user => user.status === "active");
+        } else if (statusFilter === "recently_active") {
+          const now = new Date();
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          filteredUsers = filteredUsers.filter(user => 
+            user.status === "active" && user.last_active && new Date(user.last_active) > weekAgo
+          );
+        }
       }
 
       return filteredUsers;
