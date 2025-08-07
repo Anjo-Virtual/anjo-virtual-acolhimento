@@ -12,10 +12,12 @@ interface User {
   status?: string;
   site_role?: string;
   community_role?: string;
-  last_sign_in_at?: string;
-  created_at?: string;
+  last_active?: string;
+  joined_at?: string;
   phone?: string;
   bio?: string;
+  site_role_assigned_at?: string;
+  community_role_assigned_at?: string;
 }
 
 interface UserDetailsModalProps {
@@ -90,7 +92,7 @@ export function UserDetailsModal({ user, open, onOpenChange }: UserDetailsModalP
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Nome</p>
-                  <p className="text-sm">{user.display_name}</p>
+                  <p className="text-sm">{user.display_name || "Nome não definido"}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Email</p>
@@ -102,7 +104,7 @@ export function UserDetailsModal({ user, open, onOpenChange }: UserDetailsModalP
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">ID do Usuário</p>
-                  <p className="text-sm font-mono text-xs">{user.user_id}</p>
+                  <p className="text-sm font-mono text-xs break-all">{user.user_id}</p>
                 </div>
               </div>
               
@@ -131,6 +133,16 @@ export function UserDetailsModal({ user, open, onOpenChange }: UserDetailsModalP
                   {getRoleBadge(user.community_role, 'community')}
                 </div>
               </div>
+              {(user.site_role_assigned_at || user.community_role_assigned_at) && (
+                <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
+                  <div>
+                    {user.site_role_assigned_at && `Atribuído: ${formatDate(user.site_role_assigned_at)}`}
+                  </div>
+                  <div>
+                    {user.community_role_assigned_at && `Atribuído: ${formatDate(user.community_role_assigned_at)}`}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -142,12 +154,12 @@ export function UserDetailsModal({ user, open, onOpenChange }: UserDetailsModalP
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Criado em</p>
-                  <p className="text-sm">{formatDate(user.created_at)}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Membro desde</p>
+                  <p className="text-sm">{formatDate(user.joined_at)}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Último login</p>
-                  <p className="text-sm">{formatDate(user.last_sign_in_at)}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Última atividade</p>
+                  <p className="text-sm">{formatDate(user.last_active)}</p>
                 </div>
               </div>
             </CardContent>

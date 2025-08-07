@@ -46,6 +46,18 @@ export default function Users() {
         throw authError;
       }
 
+      // Get auth.users data for emails (need admin access)
+      let authUserDetails = [];
+      try {
+        const { data: authData, error: authDetailError } = await supabase.auth.admin.listUsers();
+        if (!authDetailError) {
+          authUserDetails = authData.users;
+        }
+        console.log("👤 Dados de auth.users:", { count: authUserDetails.length });
+      } catch (error) {
+        console.warn("⚠️ Não foi possível buscar emails dos usuários:", error);
+      }
+
       // Get community profiles with their roles and status
       const { data: communityData, error: communityError } = await supabase
         .from("community_profiles")
@@ -90,6 +102,8 @@ export default function Users() {
 
       // Add auth users with site roles
       authUsers?.forEach(authUser => {
+        const authDetail = authUserDetails.find(detail => detail.id === authUser.user_id);
+        
         if (!userMap.has(authUser.user_id)) {
           userMap.set(authUser.user_id, {
             user_id: authUser.user_id,
@@ -100,12 +114,18 @@ export default function Users() {
             display_name: null,
             last_active: null,
             joined_at: authUser.created_at,
-            status: 'active'
+            status: 'active',
+            email: authDetail?.email || null,
+            phone: authDetail?.phone || null
           });
         } else {
           const user = userMap.get(authUser.user_id);
           user.site_role = authUser.role;
           user.site_role_assigned_at = authUser.assigned_at;
+          if (authDetail) {
+            user.email = authDetail.email;
+            user.phone = authDetail.phone;
+          }
         }
       });
 
@@ -114,6 +134,7 @@ export default function Users() {
         if (profile.user_id) {
           // Find the role for this profile
           const userRole = communityRoles?.find(role => role.profile_id === profile.id);
+          const authDetail = authUserDetails.find(detail => detail.id === profile.user_id);
           
           if (!userMap.has(profile.user_id)) {
             userMap.set(profile.user_id, {
@@ -126,7 +147,10 @@ export default function Users() {
               display_name: profile.display_name,
               last_active: profile.last_active,
               joined_at: profile.joined_at,
-              status: profile.status || 'active'
+              status: profile.status || 'active',
+              email: authDetail?.email || null,
+              phone: authDetail?.phone || null,
+              bio: profile.bio
             });
           } else {
             const user = userMap.get(profile.user_id);
@@ -136,6 +160,11 @@ export default function Users() {
             user.display_name = profile.display_name;
             user.last_active = profile.last_active;
             user.status = profile.status || 'active';
+            user.bio = profile.bio;
+            if (authDetail && !user.email) {
+              user.email = authDetail.email;
+              user.phone = authDetail.phone;
+            }
           }
         }
       });

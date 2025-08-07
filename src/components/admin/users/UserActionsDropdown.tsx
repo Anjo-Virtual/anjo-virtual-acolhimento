@@ -13,6 +13,15 @@ interface User {
   user_id: string;
   status: string;
   display_name: string | null;
+  email?: string;
+  site_role?: string;
+  community_role?: string;
+  last_active?: string;
+  joined_at?: string;
+  phone?: string;
+  bio?: string;
+  site_role_assigned_at?: string;
+  community_role_assigned_at?: string;
 }
 
 interface UserActionsDropdownProps {
