@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { MoreVertical, UserX, UserCheck, Ban, Copy, Bell, Eye, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { UserDetailsModal } from "./UserDetailsModal";
+import { SendNotificationModal } from "./SendNotificationModal";
 
 interface User {
   user_id: string;
@@ -21,6 +23,8 @@ interface UserActionsDropdownProps {
 export function UserActionsDropdown({ user, onRefetch }: UserActionsDropdownProps) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [actionType, setActionType] = useState<'suspend' | 'activate' | 'ban' | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
   const { toast } = useToast();
 
   const statusMutation = useMutation({
@@ -84,6 +88,14 @@ export function UserActionsDropdown({ user, onRefetch }: UserActionsDropdownProp
     });
   };
 
+  const handleViewDetails = () => {
+    setShowDetailsModal(true);
+  };
+
+  const handleSendNotification = () => {
+    setShowNotificationModal(true);
+  };
+
   const getActionText = () => {
     switch (actionType) {
       case 'activate': return 'reativar';
@@ -110,11 +122,11 @@ export function UserActionsDropdown({ user, onRefetch }: UserActionsDropdownProp
             <Copy className="mr-2 h-4 w-4" />
             Copiar ID do Usuário
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={handleViewDetails}>
             <Eye className="mr-2 h-4 w-4" />
             Ver Detalhes
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={handleSendNotification}>
             <Bell className="mr-2 h-4 w-4" />
             Enviar Notificação
           </DropdownMenuItem>
@@ -175,6 +187,18 @@ export function UserActionsDropdown({ user, onRefetch }: UserActionsDropdownProp
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <UserDetailsModal
+        user={user}
+        open={showDetailsModal}
+        onOpenChange={setShowDetailsModal}
+      />
+
+      <SendNotificationModal
+        user={user}
+        open={showNotificationModal}
+        onOpenChange={setShowNotificationModal}
+      />
     </>
   );
 }
