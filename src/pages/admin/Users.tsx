@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,16 +9,26 @@ import { Search, UsersIcon, Shield, Crown } from "lucide-react";
 import { UsersList } from "@/components/admin/users/UsersList";
 import { UserStatsCards } from "@/components/admin/users/UserStatsCards";
 import { UserFilters } from "@/components/admin/users/UserFilters";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 
 export default function Users() {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const { isAdmin, loading: authLoading } = useAdminAuth();
 
-// Fetch users with their roles from both systems
-  const { data: users, isLoading, refetch } = useQuery({
+  // Don't render if not authenticated as admin
+  useEffect(() => {
+    console.log("🔐 Admin auth status:", { isAdmin, authLoading });
+  }, [isAdmin, authLoading]);
+
+  // Fetch users with their roles from both systems
+  const { data: users, isLoading, refetch, error } = useQuery({
     queryKey: ["admin-users", searchTerm, roleFilter, statusFilter],
+    enabled: !authLoading && isAdmin, // Only run query if user is admin
     queryFn: async () => {
+      console.log("🔍 Iniciando busca de usuários...");
+      
       // Get users from auth system with their site roles
       const { data: authUsers, error: authError } = await supabase
         .from("user_roles")
@@ -29,7 +39,12 @@ export default function Users() {
           created_at
         `);
 
-      if (authError) throw authError;
+      console.log("🔐 Dados de user_roles:", { authUsers, authError });
+
+      if (authError) {
+        console.error("❌ Erro ao buscar user_roles:", authError);
+        throw authError;
+      }
 
       // Get community profiles with their roles and status
       const { data: communityData, error: communityError } = await supabase
@@ -49,8 +64,15 @@ export default function Users() {
           )
         `);
 
-      if (communityError) throw communityError;
+      console.log("👥 Dados de community_profiles:", { communityData, communityError });
 
+      if (communityError) {
+        console.error("❌ Erro ao buscar community_profiles:", communityError);
+        throw communityError;
+      }
+
+      console.log("📊 Processando dados de usuários...");
+      
       // Combine data to create unified user list
       const userMap = new Map();
 
@@ -133,8 +155,11 @@ export default function Users() {
         }
       }
 
+      console.log("✅ Usuários processados:", filteredUsers.length);
       return filteredUsers;
     },
+    retry: 1,
+    staleTime: 30000, // 30 seconds
   });
 
   // Calculate stats
@@ -149,8 +174,41 @@ export default function Users() {
     }).length
   } : null;
 
+  // Debug error if it exists
+  if (error) {
+    console.error("🚨 Erro na query de usuários:", error);
+  }
+
+  // Show loading if auth is loading
+  if (authLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <span className="ml-2">Verificando permissões...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show access denied if not admin
+  if (!isAdmin) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-2 rounded-md">
+          <strong>Acesso negado:</strong> Você precisa ser administrador para acessar esta página.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-2 rounded-md">
+          <strong>Erro ao carregar usuários:</strong> {error.message}
+        </div>
+      )}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div>
