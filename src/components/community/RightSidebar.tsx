@@ -28,7 +28,7 @@ const RightSidebar = () => {
           <p className="text-sm text-gray-600">
             Converse com nosso Anjo Virtual, uma IA especializada em oferecer suporte emocional e orientação durante o luto.
           </p>
-          <Button className="w-full" size="sm" onClick={() => openChat('anjo-virtual-sidebar')}>
+          <Button className="w-full" size="sm" onClick={() => openChat('global-persistent-chat')}>
             <MessageCircle className="mr-2 h-4 w-4" />
             Conversar com Anjo Virtual
           </Button>
