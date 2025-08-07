@@ -25,8 +25,8 @@ interface UserRoleEditorProps {
 }
 
 export function UserRoleEditor({ user, open, onOpenChange, onSuccess }: UserRoleEditorProps) {
-  const [siteRole, setSiteRole] = useState(user.site_role || "");
-  const [communityRole, setCommunityRole] = useState(user.community_role || "");
+  const [siteRole, setSiteRole] = useState(user.site_role || "none");
+  const [communityRole, setCommunityRole] = useState(user.community_role || "none");
 
   const updateRolesMutation = useMutation({
     mutationFn: async ({ newSiteRole, newCommunityRole }: { newSiteRole: string; newCommunityRole: string }) => {
@@ -131,20 +131,20 @@ export function UserRoleEditor({ user, open, onOpenChange, onSuccess }: UserRole
 
   const handleSave = () => {
     updateRolesMutation.mutate({
-      newSiteRole: siteRole,
-      newCommunityRole: communityRole
+      newSiteRole: siteRole === "none" ? "" : siteRole,
+      newCommunityRole: communityRole === "none" ? "" : communityRole
     });
   };
 
   const siteRoles = [
-    { value: "", label: "Sem role" },
+    { value: "none", label: "Sem role" },
     { value: "community_member", label: "Membro Comunidade" },
     { value: "admin", label: "Admin" },
     { value: "super_admin", label: "Super Admin" }
   ];
 
   const communityRoles = [
-    { value: "", label: "Sem role" },
+    { value: "none", label: "Sem role" },
     { value: "member", label: "Membro" },
     { value: "moderator", label: "Moderador" },
     { value: "admin", label: "Admin Comunidade" }
