@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Users, MessageCircle, Sparkles } from "lucide-react";
 import { useCommunityEvents } from "@/hooks/useCommunityEvents";
+import { useModalControls } from "@/components/FloatingButtons";
 
 const RightSidebar = () => {
   const { events, loading } = useCommunityEvents();
+  const { openChatModal } = useModalControls();
 
   const upcomingEvents = events
     .filter(event => new Date(event.event_date) > new Date())
@@ -26,7 +28,7 @@ const RightSidebar = () => {
           <p className="text-sm text-gray-600">
             Converse com nosso Anjo Virtual, uma IA especializada em oferecer suporte emocional e orientação durante o luto.
           </p>
-          <Button className="w-full" size="sm">
+          <Button className="w-full" size="sm" onClick={openChatModal}>
             <MessageCircle className="mr-2 h-4 w-4" />
             Conversar com Anjo Virtual
           </Button>
