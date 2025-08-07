@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Users, Copy, UserPlus } from "lucide-react";
+import { Users, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { UserRoleEditor } from "./UserRoleEditor";
 import { UserActionsDropdown } from "./UserActionsDropdown";
@@ -177,33 +177,19 @@ export function UsersList({ users, isLoading, onRefetch }: UsersListProps) {
                           {getActivityStatus(user.last_active).status}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => {
-                                setSelectedUser(user);
-                                setRoleEditorOpen(true);
-                              }}>
-                                Editar Roles
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => {
-                                navigator.clipboard.writeText(user.user_id);
-                                toast({
-                                  title: "ID copiado",
-                                  description: "ID do usuário copiado para a área de transferência.",
-                                });
-                              }}>
-                                <Copy className="mr-2 h-4 w-4" />
-                                Copiar ID
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setRoleEditorOpen(true);
+                            }}
+                            className="h-8"
+                          >
+                            Editar Roles
+                          </Button>
                           <UserActionsDropdown user={user} onRefetch={onRefetch} />
                         </div>
                       </TableCell>
