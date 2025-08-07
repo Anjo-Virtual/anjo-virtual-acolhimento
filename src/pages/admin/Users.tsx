@@ -57,11 +57,7 @@ export default function Users() {
           is_anonymous,
           status,
           joined_at,
-          last_active,
-          community_user_roles (
-            role,
-            assigned_at
-          )
+          last_active
         `);
 
       console.log("👥 Dados de community_profiles:", { communityData, communityError });
@@ -69,6 +65,22 @@ export default function Users() {
       if (communityError) {
         console.error("❌ Erro ao buscar community_profiles:", communityError);
         throw communityError;
+      }
+
+      // Get community user roles separately to avoid relationship conflicts
+      const { data: communityRoles, error: rolesError } = await supabase
+        .from("community_user_roles")
+        .select(`
+          profile_id,
+          role,
+          assigned_at
+        `);
+
+      console.log("🔑 Dados de community_user_roles:", { communityRoles, rolesError });
+
+      if (rolesError) {
+        console.error("❌ Erro ao buscar community_user_roles:", rolesError);
+        throw rolesError;
       }
 
       console.log("📊 Processando dados de usuários...");
@@ -100,14 +112,17 @@ export default function Users() {
       // Add community users
       communityData?.forEach(profile => {
         if (profile.user_id) {
+          // Find the role for this profile
+          const userRole = communityRoles?.find(role => role.profile_id === profile.id);
+          
           if (!userMap.has(profile.user_id)) {
             userMap.set(profile.user_id, {
               user_id: profile.user_id,
               site_role: null,
               site_role_assigned_at: null,
               community_profile: profile,
-              community_role: profile.community_user_roles?.[0]?.role || null,
-              community_role_assigned_at: profile.community_user_roles?.[0]?.assigned_at || null,
+              community_role: userRole?.role || null,
+              community_role_assigned_at: userRole?.assigned_at || null,
               display_name: profile.display_name,
               last_active: profile.last_active,
               joined_at: profile.joined_at,
@@ -116,8 +131,8 @@ export default function Users() {
           } else {
             const user = userMap.get(profile.user_id);
             user.community_profile = profile;
-            user.community_role = profile.community_user_roles?.[0]?.role || null;
-            user.community_role_assigned_at = profile.community_user_roles?.[0]?.assigned_at || null;
+            user.community_role = userRole?.role || null;
+            user.community_role_assigned_at = userRole?.assigned_at || null;
             user.display_name = profile.display_name;
             user.last_active = profile.last_active;
             user.status = profile.status || 'active';

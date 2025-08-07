@@ -25,15 +25,51 @@ export function AddUserModal({ open, onOpenChange, onSuccess }: AddUserModalProp
 
   const createUserMutation = useMutation({
     mutationFn: async () => {
-      // For now, we'll create a direct user and assign roles
-      // In a real implementation, you would use Supabase Admin API or invitation system
-      
-      // Log admin action for creating user invitation
+      // Create user using Supabase Auth Admin
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password: password || Math.random().toString(36).slice(-8), // Generate random password if not provided
+        options: {
+          emailRedirectTo: `${window.location.origin}/admin/login`,
+          data: {
+            display_name: displayName
+          }
+        }
+      });
+
+      if (authError) {
+        console.error("Erro ao criar usuário:", authError);
+        throw authError;
+      }
+
+      if (!authData.user) {
+        throw new Error("Usuário não foi criado");
+      }
+
+      console.log("✅ Usuário criado:", authData.user.id);
+
+      // Add site role if not community_member
+      if (siteRole !== 'community_member') {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: authData.user.id,
+            role: siteRole as "community_member" | "admin" | "super_admin",
+            assigned_by: (await supabase.auth.getUser()).data.user?.id
+          });
+
+        if (roleError) {
+          console.error("Erro ao atribuir role do site:", roleError);
+        }
+      }
+
+      // Log admin action
       await supabase
         .from('admin_actions_log')
         .insert({
           admin_user_id: (await supabase.auth.getUser()).data.user?.id,
-          action: 'user_invite_created',
+          target_user_id: authData.user.id,
+          action: 'user_created',
           details: { 
             email, 
             display_name: displayName,
@@ -42,13 +78,12 @@ export function AddUserModal({ open, onOpenChange, onSuccess }: AddUserModalProp
           }
         });
 
-      // For demo purposes, we'll just log the action
-      // Real implementation would send email invitation
+      return authData.user;
     },
-    onSuccess: () => {
+    onSuccess: (userData) => {
       toast({
-        title: "Ação registrada",
-        description: "Convite de usuário foi registrado no sistema. Implemente sistema de email para envio real.",
+        title: "Usuário criado com sucesso",
+        description: `Usuário ${email} foi criado e receberá um email de confirmação.`,
       });
       setEmail("");
       setPassword("");
@@ -58,10 +93,11 @@ export function AddUserModal({ open, onOpenChange, onSuccess }: AddUserModalProp
       onOpenChange(false);
       onSuccess();
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error("Erro ao criar usuário:", error);
       toast({
-        title: "Erro",
-        description: "Falha ao criar convite para o usuário.",
+        title: "Erro ao criar usuário",
+        description: error.message || "Falha ao criar o usuário. Verifique se o email já existe.",
         variant: "destructive",
       });
       console.error(error);
@@ -78,6 +114,10 @@ export function AddUserModal({ open, onOpenChange, onSuccess }: AddUserModalProp
       });
       return;
     }
+    
+    // Generate a secure random password if none provided
+    const finalPassword = password.trim() || `Temp${Math.random().toString(36).slice(-8)}#`;
+    
     createUserMutation.mutate();
   };
 
@@ -87,7 +127,7 @@ export function AddUserModal({ open, onOpenChange, onSuccess }: AddUserModalProp
         <DialogHeader>
           <DialogTitle>Adicionar Novo Usuário</DialogTitle>
           <DialogDescription>
-            Crie um convite para um novo usuário. Eles receberão instruções por email.
+            Crie um novo usuário no sistema. Eles receberão um email de confirmação.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -101,6 +141,19 @@ export function AddUserModal({ open, onOpenChange, onSuccess }: AddUserModalProp
               placeholder="usuario@exemplo.com"
               required
             />
+          </div>
+          <div>
+            <Label htmlFor="password">Senha (opcional)</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Deixe vazio para gerar automaticamente"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Se não informar, uma senha temporária será gerada
+            </p>
           </div>
           <div>
             <Label htmlFor="displayName">Nome de Exibição</Label>
@@ -149,7 +202,7 @@ export function AddUserModal({ open, onOpenChange, onSuccess }: AddUserModalProp
               {createUserMutation.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Criar Convite
+              Criar Usuário
             </Button>
           </DialogFooter>
         </form>
