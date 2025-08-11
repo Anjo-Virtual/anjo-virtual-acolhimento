@@ -6,7 +6,6 @@ import WelcomeSection from "./WelcomeSection";
 import QuickActions from "./QuickActions";
 import RecentPostsSection from "./RecentPostsSection";
 import CategoriesSection from "./CategoriesSection";
-import RightSidebar from "./RightSidebar";
 import CreatePostForm from "./CreatePostForm";
 
 
@@ -49,8 +48,6 @@ const CommunityDashboard = () => {
           <CategoriesSection categories={categories} />
         </div>
 
-        {/* Right Sidebar */}
-        <RightSidebar />
       </div>
 
     </div>

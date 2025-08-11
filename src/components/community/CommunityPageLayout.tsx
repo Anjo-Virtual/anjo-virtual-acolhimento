@@ -5,12 +5,14 @@ import CommunitySidebar from "@/components/community/CommunitySidebar";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMobile } from "@/hooks/useMobile";
+import RightSidebar from "@/components/community/RightSidebar";
 
 interface CommunityPageLayoutProps {
   children: React.ReactNode;
+  showRightSidebar?: boolean;
 }
 
-const CommunityPageLayout = ({ children }: CommunityPageLayoutProps) => {
+const CommunityPageLayout = ({ children, showRightSidebar = true }: CommunityPageLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useMobile();
 
@@ -58,6 +60,13 @@ const CommunityPageLayout = ({ children }: CommunityPageLayoutProps) => {
             {children}
           </div>
         </main>
+
+        {/* Right Sidebar (desktop) */}
+        {showRightSidebar && (
+          <div className="hidden lg:block w-80 flex-shrink-0 pt-20 pr-6">
+            <RightSidebar />
+          </div>
+        )}
       </div>
     </div>
   );
