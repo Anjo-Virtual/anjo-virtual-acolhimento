@@ -168,6 +168,7 @@ export type Database = {
           id: string
           metadata: Json | null
           prompt_id: string | null
+          user_id: string | null
           user_input: string
         }
         Insert: {
@@ -176,6 +177,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           prompt_id?: string | null
+          user_id?: string | null
           user_input: string
         }
         Update: {
@@ -184,6 +186,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           prompt_id?: string | null
+          user_id?: string | null
           user_input?: string
         }
         Relationships: [
