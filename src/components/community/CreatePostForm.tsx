@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { useCommunityAuth } from "@/contexts/CommunityAuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { useCommunityCategories } from "@/hooks/useCommunityCategories";
 
 interface CreatePostFormProps {
   preselectedCategory?: string;
@@ -19,11 +21,22 @@ const CreatePostForm = ({ preselectedCategory, onSuccess }: CreatePostFormProps)
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(preselectedCategory || "");
+  const { categories, loading: loadingCategories, error: categoriesError } = useCommunityCategories();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!selectedCategory) {
+      toast({
+        title: "Erro",
+        description: "Selecione uma categoria.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!title.trim() || !content.trim()) {
       toast({
         title: "Erro",
@@ -49,7 +62,7 @@ const CreatePostForm = ({ preselectedCategory, onSuccess }: CreatePostFormProps)
       const { data: post, error: postError } = await supabase
         .from('forum_posts')
         .insert({
-          category_id: preselectedCategory,
+          category_id: selectedCategory,
           author_id: profile.id,
           title: title.trim(),
           content: content.trim(),
@@ -67,6 +80,7 @@ const CreatePostForm = ({ preselectedCategory, onSuccess }: CreatePostFormProps)
 
       setTitle("");
       setContent("");
+      setSelectedCategory("");
       onSuccess?.();
     } catch (error) {
       console.error('Erro ao criar post:', error);
@@ -87,6 +101,29 @@ const CreatePostForm = ({ preselectedCategory, onSuccess }: CreatePostFormProps)
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <Label htmlFor="category">Categoria</Label>
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+              disabled={loadingCategories}
+            >
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder={loadingCategories ? "Carregando categorias..." : "Selecione uma categoria"} />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {categoriesError && (
+              <p className="text-xs text-red-500 mt-1">Erro ao carregar categorias.</p>
+            )}
+          </div>
+
           <div>
             <Label htmlFor="title">Título do Post</Label>
             <Input
@@ -118,7 +155,7 @@ const CreatePostForm = ({ preselectedCategory, onSuccess }: CreatePostFormProps)
           </div>
 
           <div className="flex justify-end gap-4">
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || !selectedCategory}>
               {loading ? 'Publicando...' : 'Publicar Post'}
             </Button>
           </div>
