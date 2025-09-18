@@ -7,10 +7,10 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
@@ -1379,9 +1379,9 @@ export type Database = {
       debug_user_profile: {
         Args: { user_uuid?: string }
         Returns: {
+          display_name: string
           profile_exists: boolean
           profile_id: string
-          display_name: string
           user_id: string
         }[]
       }
@@ -1391,8 +1391,8 @@ export type Database = {
       }
       has_role: {
         Args: {
-          user_uuid: string
           role_name: Database["public"]["Enums"]["user_role"]
+          user_uuid: string
         }
         Returns: boolean
       }
@@ -1401,18 +1401,18 @@ export type Database = {
         Returns: boolean
       }
       search_knowledge_base: {
-        Args: { search_query: string; limit_results?: number }
+        Args: { limit_results?: number; search_query: string }
         Returns: {
-          id: string
-          document_id: string
-          chunk_text: string
           chunk_index: number
+          chunk_text: string
+          document_id: string
           document_name: string
+          id: string
           similarity_score: number
         }[]
       }
       user_has_liked_post: {
-        Args: { user_uuid: string; post_uuid: string }
+        Args: { post_uuid: string; user_uuid: string }
         Returns: boolean
       }
       validate_whatsapp_config: {
