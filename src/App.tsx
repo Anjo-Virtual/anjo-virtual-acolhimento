@@ -10,6 +10,7 @@ import { ProtectedAdminRoute } from "@/components/admin/ProtectedAdminRoute";
 import AdminLayout from "@/components/admin/AdminLayout";
 import GlobalLayout from "@/components/GlobalLayout";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { SecurityProvider } from "@/components/security/SecurityProvider";
 import Index from "./pages/Index";
 import TermosDeUso from "./pages/TermosDeUso";
 import PoliticaDePrivacidade from "./pages/PoliticaDePrivacidade";
@@ -60,14 +61,15 @@ const queryClient = new QueryClient({
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AdminAuthProvider>
-          <CommunityAuthProvider>
-            <ErrorBoundary>
-              <TrackingScripts />
-            </ErrorBoundary>
+      <SecurityProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AdminAuthProvider>
+            <CommunityAuthProvider>
+              <ErrorBoundary>
+                <TrackingScripts />
+              </ErrorBoundary>
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Index />} />
@@ -115,13 +117,14 @@ const App = () => (
               </Route>
             </Routes>
             
-            {/* Layout Global - Chat e FloatingButtons */}
-            <ErrorBoundary>
-              <GlobalLayout />
-            </ErrorBoundary>
-          </CommunityAuthProvider>
-        </AdminAuthProvider>
-      </BrowserRouter>
+              {/* Layout Global - Chat e FloatingButtons */}
+              <ErrorBoundary>
+                <GlobalLayout />
+              </ErrorBoundary>
+            </CommunityAuthProvider>
+          </AdminAuthProvider>
+        </BrowserRouter>
+      </SecurityProvider>
     </QueryClientProvider>
   </ErrorBoundary>
 );

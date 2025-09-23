@@ -341,6 +341,13 @@ export type Database = {
             referencedRelation: "community_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "community_events_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       community_groups: {
@@ -383,6 +390,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_groups_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "community_profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -466,10 +480,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "community_user_roles_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "community_profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "community_user_roles_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_user_roles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -624,7 +652,41 @@ export type Database = {
             referencedRelation: "community_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "event_participants_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles_public"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      form_submission_limits: {
+        Row: {
+          created_at: string | null
+          form_type: string
+          id: string
+          ip_address: unknown
+          submission_count: number | null
+          window_start: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          form_type: string
+          id?: string
+          ip_address: unknown
+          submission_count?: number | null
+          window_start?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          form_type?: string
+          id?: string
+          ip_address?: unknown
+          submission_count?: number | null
+          window_start?: string | null
+        }
+        Relationships: []
       }
       forum_categories: {
         Row: {
@@ -734,6 +796,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "forum_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "forum_comments_parent_comment_id_fkey"
             columns: ["parent_comment_id"]
             isOneToOne: false
@@ -838,6 +907,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "forum_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "forum_posts_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
@@ -888,6 +964,13 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1091,6 +1174,13 @@ export type Database = {
             referencedRelation: "community_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       private_messages: {
@@ -1133,10 +1223,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "private_messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "private_messages_sender_id_fkey"
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "private_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1180,6 +1284,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "community_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1309,6 +1420,30 @@ export type Database = {
       }
     }
     Views: {
+      community_profiles_public: {
+        Row: {
+          display_name: string | null
+          id: string | null
+          is_anonymous: boolean | null
+          joined_at: string | null
+          status: string | null
+        }
+        Insert: {
+          display_name?: string | null
+          id?: string | null
+          is_anonymous?: boolean | null
+          joined_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          display_name?: string | null
+          id?: string | null
+          is_anonymous?: boolean | null
+          joined_at?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       forum_categories_with_stats: {
         Row: {
           color: string | null
@@ -1355,6 +1490,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "forum_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "community_profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "forum_posts_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
@@ -1372,6 +1514,15 @@ export type Database = {
       }
     }
     Functions: {
+      check_rate_limit: {
+        Args: {
+          client_ip: unknown
+          form_name: string
+          max_submissions?: number
+          window_minutes?: number
+        }
+        Returns: boolean
+      }
       current_user_is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean

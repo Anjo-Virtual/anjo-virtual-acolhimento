@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { validateEmail, checkRateLimit, getClientIP, sanitizeInput } from "@/utils/security";
 
 const newsletterSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -28,10 +29,32 @@ const FooterNewsletter = () => {
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
+      // Enhanced security validation
+      if (!validateEmail(data.email)) {
+        form.setError("email", { message: "Email inválido" });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Rate limiting check
+      const clientId = getClientIP();
+      if (!checkRateLimit(`newsletter_${clientId}`, 2, 5 * 60 * 1000)) { // 2 submissions per 5 minutes
+        toast({
+          title: "Limite excedido",
+          description: "Aguarde alguns minutos antes de tentar novamente.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Sanitize input
+      const sanitizedEmail = sanitizeInput(data.email);
+      
       const { error } = await supabase
         .from('newsletter_subscriptions' as any)
         .insert({
-          email: data.email,
+          email: sanitizedEmail,
         } as any);
 
       if (error) {
