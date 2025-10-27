@@ -92,20 +92,21 @@ const Blog = () => {
                 <ImageIcon className="h-20 w-20 text-primary/30" />
               </div>
             )}
-            
-            <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm text-primary px-4 py-2 rounded-full text-xs font-semibold shadow-lg">
-              {post.category}
-            </div>
           </div>
 
           <CardHeader className="pb-2 flex-grow space-y-3 p-5">
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Calendar className="h-4 w-4" />
-              <span>{new Date(post.created_at).toLocaleDateString('pt-BR', { 
-                day: 'numeric', 
-                month: 'long', 
-                year: 'numeric' 
-              })}</span>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Calendar className="h-4 w-4" />
+                <span>{new Date(post.created_at).toLocaleDateString('pt-BR', { 
+                  day: 'numeric', 
+                  month: 'long', 
+                  year: 'numeric' 
+                })}</span>
+              </div>
+              <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-semibold">
+                {post.category}
+              </span>
             </div>
             
             <CardTitle className="text-xl font-playfair line-clamp-2 group-hover:text-primary transition-colors duration-300 leading-tight">

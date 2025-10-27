@@ -1,4 +1,4 @@
-
+import { Link } from "react-router-dom";
 import FooterNewsletter from "./FooterNewsletter";
 
 const Footer = () => {
@@ -7,9 +7,9 @@ const Footer = () => {
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           <div>
-            <div className="mb-4">
-              <img src="/logo-anjo-branca.png" alt="Anjo Virtual" className="h-10" />
-            </div>
+            <Link to="/" className="inline-block mb-4">
+              <img src="/logo-anjo-branca.png" alt="Anjo Virtual" className="h-10 hover:opacity-80 transition-opacity cursor-pointer" />
+            </Link>
             <p className="text-gray-300 mb-4">O primeiro assistente digital de acolhimento no luto. Um espaço seguro para encontrar conforto e esperança.</p>
             <div className="flex space-x-4">
               <a href="https://www.instagram.com/anjovirtual.br/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-primary transition-colors">
