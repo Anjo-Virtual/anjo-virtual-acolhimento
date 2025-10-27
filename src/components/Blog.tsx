@@ -77,46 +77,46 @@ const Blog = () => {
                   rounded-2xl"
                 onClick={() => navigateToBlogPost(post.id)}
               >
-                <div className="relative overflow-hidden bg-gray-100 aspect-[4/3] w-full">
-                  {post.image_url ? (
-                    <>
-                      <img 
-                        src={post.image_url} 
-                        alt={post.title} 
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    </>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-primary/5 to-purple-50">
-                      <ImageIcon className="h-20 w-20 text-primary/30" />
-                    </div>
-                  )}
-                  
-                  <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm text-primary px-4 py-2 rounded-full text-xs font-semibold shadow-lg">
-                    {post.category}
-                  </div>
-                </div>
+          <div className="relative overflow-hidden bg-gray-100 aspect-[16/9] w-full">
+            {post.image_url ? (
+              <>
+                <img 
+                  src={post.image_url} 
+                  alt={post.title} 
+                  className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              </>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-primary/5 to-purple-50">
+                <ImageIcon className="h-20 w-20 text-primary/30" />
+              </div>
+            )}
+            
+            <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm text-primary px-4 py-2 rounded-full text-xs font-semibold shadow-lg">
+              {post.category}
+            </div>
+          </div>
 
-                <CardHeader className="pb-3 flex-grow space-y-4 p-6">
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Calendar className="h-4 w-4" />
-                    <span>{new Date(post.created_at).toLocaleDateString('pt-BR', { 
-                      day: 'numeric', 
-                      month: 'long', 
-                      year: 'numeric' 
-                    })}</span>
-                  </div>
-                  
-                  <CardTitle className="text-2xl font-playfair line-clamp-2 group-hover:text-primary transition-colors duration-300 leading-tight">
-                    {post.title}
-                  </CardTitle>
-                </CardHeader>
+          <CardHeader className="pb-2 flex-grow space-y-3 p-5">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Calendar className="h-4 w-4" />
+              <span>{new Date(post.created_at).toLocaleDateString('pt-BR', { 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric' 
+              })}</span>
+            </div>
+            
+            <CardTitle className="text-xl font-playfair line-clamp-2 group-hover:text-primary transition-colors duration-300 leading-tight">
+              {post.title}
+            </CardTitle>
+          </CardHeader>
 
-                <CardContent className="pt-0 pb-6 px-6 mt-auto space-y-4">
-                  <p className="text-gray-600 line-clamp-3 leading-relaxed text-base">
-                    {post.description}
-                  </p>
+          <CardContent className="pt-0 pb-5 px-5 mt-auto space-y-3">
+            <p className="text-gray-600 line-clamp-2 leading-relaxed text-base">
+              {post.description}
+            </p>
                   
                   <div className="flex items-center text-primary text-sm font-semibold group-hover:gap-2 transition-all duration-300">
                     Ler artigo completo 

@@ -8,7 +8,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           <div>
             <div className="mb-4">
-              <img src="/lovable-uploads/9c10832e-edfc-4236-974a-8bf7c44d3f78.png" alt="Anjo Virtual" className="h-8" />
+              <img src="/logo-anjo-branca.png" alt="Anjo Virtual" className="h-10" />
             </div>
             <p className="text-gray-300 mb-4">O primeiro assistente digital de acolhimento no luto. Um espaço seguro para encontrar conforto e esperança.</p>
             <div className="flex space-x-4">
