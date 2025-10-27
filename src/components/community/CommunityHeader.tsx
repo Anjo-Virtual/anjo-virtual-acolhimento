@@ -15,9 +15,7 @@ const CommunityHeader = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/comunidade" className="flex items-center space-x-2">
-            <div className="text-2xl font-playfair font-bold text-primary">
-              Comunidade
-            </div>
+            <img src="/logo-anjo-roxa.png" alt="Anjo Virtual - Comunidade" className="h-8" />
           </Link>
 
           {/* Desktop Navigation */}

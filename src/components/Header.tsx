@@ -30,7 +30,7 @@ const Header = () => {
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
-              <img src="/lovable-uploads/cc2c200f-dee8-4469-950f-eba3fd8b9f40.png" alt="Anjo Virtual" className="h-8" />
+              <img src="/logo-anjo-roxa.png" alt="Anjo Virtual" className="h-10" />
             </Link>
 
             {/* Desktop Navigation */}
