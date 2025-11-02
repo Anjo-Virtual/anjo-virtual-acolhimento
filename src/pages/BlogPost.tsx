@@ -93,26 +93,34 @@ const BlogPost = () => {
         
         <article className="max-w-4xl mx-auto">
           {post.image_url ? (
-            <div className="w-full max-w-3xl mx-auto mb-8 overflow-hidden rounded-lg bg-gray-100">
+            <div className="relative w-full max-w-3xl mx-auto mb-8 overflow-hidden rounded-2xl bg-gray-100 aspect-[16/9]">
               <img 
                 src={post.image_url} 
                 alt={post.title} 
-                className="w-full h-auto object-contain max-h-96"
+                className="w-full h-full object-cover"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             </div>
           ) : (
-            <div className="w-full h-64 md:h-96 mb-8 flex items-center justify-center bg-gray-100 rounded-lg">
-              <ImageIcon className="h-16 w-16 text-gray-300" />
+            <div className="w-full h-64 md:h-96 mb-8 flex items-center justify-center bg-gradient-to-br from-primary/10 via-primary/5 to-purple-50 rounded-2xl">
+              <ImageIcon className="h-16 w-16 text-primary/30" />
             </div>
           )}
 
           <header className="mb-8">
-            <h1 className="text-4xl font-playfair font-bold mb-4">{post.title}</h1>
-            <div className="flex items-center gap-4 text-gray-600">
-              <time>{new Date(post.created_at).toLocaleDateString('pt-BR')}</time>
-              <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+            <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-4 leading-tight">{post.title}</h1>
+            <div className="flex items-center gap-4 text-gray-600 flex-wrap">
+              <time className="text-sm">{new Date(post.created_at).toLocaleDateString('pt-BR', { 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric' 
+              })}</time>
+              <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
                 {post.category}
               </span>
+              {/* Tags coloridas */}
+              <span className="text-primary text-sm font-medium">#AnjoVirtual</span>
+              <span className="text-purple-600 text-sm font-medium">#{post.category.replace(/\s+/g, '')}</span>
             </div>
           </header>
 

@@ -67,7 +67,7 @@ const Blog = () => {
             <p className="text-gray-500 text-sm">Carregando artigos...</p>
           </div>
         ) : (
-          <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3 mb-16 max-w-7xl mx-auto">
+          <div className="grid gap-8 md:grid-cols-2 mb-16 max-w-6xl mx-auto">
             {posts.map((post) => (
               <Card 
                 key={post.id} 
@@ -77,7 +77,7 @@ const Blog = () => {
                   rounded-2xl"
                 onClick={() => navigateToBlogPost(post.id)}
               >
-          <div className="relative overflow-hidden bg-gray-100 aspect-[16/9] w-full">
+          <div className="relative overflow-hidden bg-gray-100 aspect-[4/3] w-full">
             {post.image_url ? (
               <>
                 <img 
@@ -85,7 +85,15 @@ const Blog = () => {
                   alt={post.title} 
                   className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                {/* Overlay escuro permanente */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                
+                {/* Título sobreposto na imagem */}
+                <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
+                  <h3 className="text-white text-xl sm:text-2xl md:text-3xl font-bold leading-tight drop-shadow-lg font-playfair line-clamp-3">
+                    {post.title}
+                  </h3>
+                </div>
               </>
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-primary/5 to-purple-50">
@@ -104,26 +112,25 @@ const Blog = () => {
                   year: 'numeric' 
                 })}</span>
               </div>
-              <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-semibold">
-                {post.category}
-              </span>
             </div>
-            
-            <CardTitle className="text-xl font-playfair line-clamp-2 group-hover:text-primary transition-colors duration-300 leading-tight">
-              {post.title}
-            </CardTitle>
           </CardHeader>
 
           <CardContent className="pt-0 pb-5 px-5 mt-auto space-y-3">
-            <p className="text-gray-600 line-clamp-2 leading-relaxed text-base">
+            <p className="text-gray-600 line-clamp-3 leading-relaxed text-base">
               {post.description}
             </p>
+            
+            {/* Tags coloridas */}
+            <div className="flex flex-wrap gap-2 pt-1">
+              <span className="text-primary text-xs font-medium">#AnjoVirtual</span>
+              <span className="text-purple-600 text-xs font-medium">#{post.category.replace(/\s+/g, '')}</span>
+            </div>
                   
-                  <div className="flex items-center text-primary text-sm font-semibold group-hover:gap-2 transition-all duration-300">
-                    Ler artigo completo 
-                    <ArrowRight className="ml-1 h-5 w-5 group-hover:translate-x-2 transition-transform duration-300" />
-                  </div>
-                </CardContent>
+            <div className="flex items-center text-primary text-sm font-semibold group-hover:gap-2 transition-all duration-300 pt-1">
+              Ler artigo completo 
+              <ArrowRight className="ml-1 h-5 w-5 group-hover:translate-x-2 transition-transform duration-300" />
+            </div>
+          </CardContent>
               </Card>
             ))}
           </div>
