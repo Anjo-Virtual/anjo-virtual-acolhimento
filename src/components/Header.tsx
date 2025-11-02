@@ -30,36 +30,34 @@ const Header = () => {
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
-              <img src="/logo-anjo-roxa.png" alt="Anjo Virtual" className="h-12" />
+              <img src="/logo-anjo-roxa.png" alt="Anjo Virtual" className="h-12 min-h-12 w-auto" />
             </Link>
 
-            {/* Desktop Navigation */}
-            {!isMobile && (
-              <div className="flex items-center space-x-8">
-                <NavigationLinks 
-                  onCommunityScroll={handleCommunityScroll}
-                  onEmpresasClick={handleEmpresasClick}
-                />
-                <HeaderActions 
-                  user={user}
-                  openChatModal={openContactModal}
-                />
-              </div>
-            )}
+            {/* Desktop Navigation - Hidden on mobile/tablet */}
+            <div className="hidden lg:flex items-center space-x-8">
+              <NavigationLinks 
+                onCommunityScroll={handleCommunityScroll}
+                onEmpresasClick={handleEmpresasClick}
+              />
+              <HeaderActions 
+                user={user}
+                openChatModal={openContactModal}
+              />
+            </div>
 
-            {/* Mobile Menu Button */}
-            {isMobile && (
+            {/* Mobile/Tablet Menu Button */}
+            <div className="lg:hidden">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="text-gray-700 focus:outline-none"
               >
                 {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
-            )}
+            </div>
           </nav>
 
-          {/* Mobile Menu */}
-          {isMobile && (
+          {/* Mobile/Tablet Menu */}
+          <div className="lg:hidden">
             <MobileMenu
               isOpen={mobileMenuOpen}
               onClose={() => setMobileMenuOpen(false)}
@@ -69,7 +67,7 @@ const Header = () => {
               onBlogClick={handleBlogClick}
               openChatModal={openContactModal}
             />
-          )}
+          </div>
         </div>
       </header>
 

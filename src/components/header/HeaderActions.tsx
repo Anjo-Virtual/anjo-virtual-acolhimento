@@ -26,10 +26,11 @@ export const HeaderActions = ({ user, openChatModal }: HeaderActionsProps) => {
       {user ? (
         <Link 
           to="/comunidade/perfil" 
-          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-button hover:bg-opacity-90 transition-colors"
+          className="flex items-center gap-2 bg-primary text-white px-3 lg:px-4 py-2 rounded-button hover:bg-opacity-90 transition-colors"
         >
           <UserCircle size={18} />
-          Minha Conta
+          <span className="hidden xl:inline">Minha Conta</span>
+          <span className="xl:hidden">Conta</span>
         </Link>
       ) : (
         <Link 
@@ -42,10 +43,10 @@ export const HeaderActions = ({ user, openChatModal }: HeaderActionsProps) => {
       <Button
         onClick={handleContactClick}
         variant="outline"
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 px-3 lg:px-4"
       >
         <MessageCircle size={18} />
-        Fale Conosco
+        <span className="hidden xl:inline">Fale Conosco</span>
       </Button>
     </div>
   );
