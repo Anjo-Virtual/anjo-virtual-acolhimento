@@ -27,17 +27,17 @@ const Hero = () => {
           <p className="text-lg md:text-xl text-gray-600 mb-8 animate-slideIn [text-wrap:pretty]">
             Encontre acolhimento, compreensão e esperança em sua jornada de superação da perda.
           </p>
-          <div className="flex flex-col sm:flex-row sm:flex-wrap lg:flex-nowrap gap-4 justify-start">
+          <div className="flex flex-col sm:flex-row gap-4">
             <button 
               onClick={openChatModal}
-              className="bg-primary text-white px-8 py-3 rounded-button hover:bg-opacity-90 hover:translate-y-[-2px] hover:shadow-soft text-center whitespace-nowrap animate-scaleIn transition-all duration-300 w-full sm:w-auto"
+              className="bg-primary text-white px-8 py-3 rounded-button hover:bg-opacity-90 hover:translate-y-[-2px] hover:shadow-soft text-center whitespace-nowrap animate-scaleIn transition-all duration-300"
             >
               Conversar com Anjo Virtual
             </button>
             <button 
               onClick={startFreePlan}
               disabled={isCheckoutDisabled || isLoading === "free"}
-              className={`px-8 py-3 rounded-button text-center whitespace-nowrap animate-scaleIn flex items-center justify-center transition-all duration-300 w-full sm:w-auto ${
+              className={`px-8 py-3 rounded-button text-center whitespace-nowrap animate-scaleIn flex items-center justify-center transition-all duration-300 ${
                 isCheckoutDisabled 
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
                   : 'border border-gray-300 text-gray-700 hover:bg-gray-50 hover:translate-y-[-2px] hover:shadow-soft'
@@ -54,7 +54,7 @@ const Hero = () => {
             </button>
             <a 
               href="#como-funciona" 
-              className="border border-gray-300 text-gray-700 px-8 py-3 rounded-button hover:bg-gray-50 transition-all duration-300 hover:translate-y-[-2px] hover:shadow-soft text-center whitespace-nowrap w-full sm:w-auto"
+              className="border border-gray-300 text-gray-700 px-8 py-3 rounded-button hover:bg-gray-50 transition-all duration-300 hover:translate-y-[-2px] hover:shadow-soft text-center whitespace-nowrap"
             >
               Saiba Mais
             </a>
