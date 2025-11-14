@@ -1523,10 +1523,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      current_user_is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      current_user_is_admin: { Args: never; Returns: boolean }
       debug_user_profile: {
         Args: { user_uuid?: string }
         Returns: {
@@ -1536,10 +1533,7 @@ export type Database = {
           user_id: string
         }[]
       }
-      get_current_user_profile_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_current_user_profile_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           role_name: Database["public"]["Enums"]["user_role"]
@@ -1547,10 +1541,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin: {
-        Args: { user_uuid: string }
-        Returns: boolean
-      }
+      is_admin: { Args: { user_uuid: string }; Returns: boolean }
       search_knowledge_base: {
         Args: { limit_results?: number; search_query: string }
         Returns: {
@@ -1566,10 +1557,7 @@ export type Database = {
         Args: { post_uuid: string; user_uuid: string }
         Returns: boolean
       }
-      validate_whatsapp_config: {
-        Args: { config: Json }
-        Returns: boolean
-      }
+      validate_whatsapp_config: { Args: { config: Json }; Returns: boolean }
     }
     Enums: {
       community_role: "member" | "moderator" | "professional" | "admin"
